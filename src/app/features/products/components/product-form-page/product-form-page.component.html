@@ -2,6 +2,9 @@
   @if (loadError()) {
     <p class="product-form__error" role="alert">{{ loadError() }}</p>
   }
+  @if (submitError()) {
+    <p class="product-form__error" role="alert">{{ submitError() }}</p>
+  }
 
   <label class="product-form__field">
     <span class="product-form__label">Nom *</span>

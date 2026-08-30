@@ -1,3 +1,5 @@
+import { normalizeBarcodeInput } from '../barcode/ean';
+
 import type { Store } from './store';
 
 export interface ProductReferenceMacros {
@@ -62,7 +64,7 @@ export function createProductReference(
     store: input.store,
     label: input.label.trim(),
     brand: input.brand?.trim() || undefined,
-    barcode: input.barcode?.trim() || undefined,
+    barcode: normalizeStoredBarcode(input.barcode),
     kcalPer100g: input.kcalPer100g,
     proteinPer100g: input.proteinPer100g,
     fatPer100g: input.fatPer100g,
@@ -104,6 +106,15 @@ export function deriveRecommendedStores(references: ProductReference[]): Store[]
   }
 
   return stores;
+}
+
+export function normalizeStoredBarcode(barcode: string | undefined): string | undefined {
+  if (!barcode?.trim()) {
+    return undefined;
+  }
+
+  const normalized = normalizeBarcodeInput(barcode);
+  return normalized || undefined;
 }
 
 export function formatMacrosSummary(reference: ProductReferenceMacros): string {

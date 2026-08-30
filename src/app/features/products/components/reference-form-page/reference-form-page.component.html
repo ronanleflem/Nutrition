@@ -2,6 +2,9 @@
   @if (loadError()) {
     <p class="reference-form__error" role="alert">{{ loadError() }}</p>
   }
+  @if (submitError()) {
+    <p class="reference-form__error" role="alert">{{ submitError() }}</p>
+  }
 
   <label class="reference-form__field">
     <span class="reference-form__label">Enseigne *</span>
@@ -29,6 +32,9 @@
   <label class="reference-form__field">
     <span class="reference-form__label">Code-barres</span>
     <input class="reference-form__input" type="text" formControlName="barcode" inputmode="numeric" />
+    @if (form.controls.barcode.touched && form.controls.barcode.hasError('ean')) {
+      <span class="reference-form__error">Code-barres EAN-8 ou EAN-13 invalide.</span>
+    }
   </label>
 
   <fieldset class="reference-form__macros">

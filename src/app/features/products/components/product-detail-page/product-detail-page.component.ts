@@ -33,7 +33,16 @@ export class ProductDetailPageComponent implements OnInit {
   private productId: string | null = null;
 
   ngOnInit(): void {
-    void this.load();
+    this.route.paramMap.subscribe((params) => {
+      const id = params.get('id');
+      if (!id) {
+        this.loadError.set('Produit introuvable.');
+        this.loading.set(false);
+        return;
+      }
+
+      void this.load(id);
+    });
   }
 
   storeLabel(store: string | undefined): string {
@@ -49,8 +58,12 @@ export class ProductDetailPageComponent implements OnInit {
       return;
     }
 
-    await this.productsService.setPreferredReference(this.productId, referenceId);
-    await this.load();
+    try {
+      await this.productsService.setPreferredReference(this.productId, referenceId);
+      await this.load(this.productId);
+    } catch {
+      this.loadError.set('Préférence non enregistrée. Réessayez.');
+    }
   }
 
   openArchiveConfirm(): void {
@@ -62,7 +75,7 @@ export class ProductDetailPageComponent implements OnInit {
   }
 
   async confirmArchive(): Promise<void> {
-    if (!this.productId) {
+    if (!this.productId || this.archiving()) {
       return;
     }
 
@@ -72,22 +85,16 @@ export class ProductDetailPageComponent implements OnInit {
       await this.productsService.archiveProduct(this.productId);
       this.showArchiveConfirm.set(false);
       await this.router.navigate(['/products']);
+    } catch {
+      this.loadError.set('Archivage impossible. Réessayez.');
     } finally {
       this.archiving.set(false);
     }
   }
 
-  private async load(): Promise<void> {
+  private async load(id: string): Promise<void> {
     this.loading.set(true);
     this.loadError.set(null);
-
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      this.loadError.set('Produit introuvable.');
-      this.loading.set(false);
-      return;
-    }
-
     this.productId = id;
 
     try {

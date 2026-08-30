@@ -264,6 +264,24 @@ describe('DatabaseService', () => {
     expect(found?.id).toBe(reference.id);
   });
 
+  it('normalizes formatted barcodes when looking up references', async () => {
+    const product = await service.createProduct({ name: 'Nutella' });
+    await service.createProductReference({
+      productId: product.id,
+      store: 'auchan',
+      label: 'Nutella pot',
+      barcode: '3017 6204 2200 3',
+      kcalPer100g: 539,
+      proteinPer100g: 6.3,
+      fatPer100g: 30.9,
+      carbsPer100g: 57.5,
+    });
+
+    const found = await service.getActiveReferenceByBarcode('3017620422003');
+
+    expect(found?.label).toBe('Nutella pot');
+  });
+
   it('archives and restores a product', async () => {
     const product = await service.createProduct({ name: 'Yaourt' });
 

@@ -10,6 +10,7 @@ export class ConfirmDialogComponent {
   readonly message = input.required<string>();
   readonly confirmLabel = input('Confirmer');
   readonly cancelLabel = input('Annuler');
+  readonly confirmDisabled = input(false);
 
   readonly confirmed = output<void>();
   readonly cancelled = output<void>();

@@ -7,7 +7,12 @@
       <button class="confirm-dialog__button confirm-dialog__button--secondary" type="button" (click)="cancelled.emit()">
         {{ cancelLabel() }}
       </button>
-      <button class="confirm-dialog__button confirm-dialog__button--primary" type="button" (click)="confirmed.emit()">
+      <button
+        class="confirm-dialog__button confirm-dialog__button--primary"
+        type="button"
+        [disabled]="confirmDisabled()"
+        (click)="confirmed.emit()"
+      >
         {{ confirmLabel() }}
       </button>
     </div>

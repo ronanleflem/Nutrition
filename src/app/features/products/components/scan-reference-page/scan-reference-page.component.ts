@@ -26,6 +26,7 @@ export class ScanReferencePageComponent implements OnInit, OnDestroy {
   readonly flowState = signal<ScanFlowState | null>(null);
   readonly products = signal<Product[]>([]);
   readonly saving = signal(false);
+  readonly submitError = signal<string | null>(null);
   readonly productMode = signal<'existing' | 'new'>('new');
 
   readonly form = this.fb.nonNullable.group({
@@ -55,6 +56,7 @@ export class ScanReferencePageComponent implements OnInit, OnDestroy {
 
   setProductMode(mode: 'existing' | 'new'): void {
     this.productMode.set(mode);
+    this.syncProductModeValidators();
   }
 
   statusMessage(): string | null {
@@ -69,6 +71,10 @@ export class ScanReferencePageComponent implements OnInit, OnDestroy {
 
     if (state.status === 'offline') {
       return 'Pas de connexion — saisissez le produit manuellement.';
+    }
+
+    if (state.status === 'network-error') {
+      return 'Open Food Facts indisponible — saisissez le produit manuellement.';
     }
 
     return null;
@@ -88,6 +94,7 @@ export class ScanReferencePageComponent implements OnInit, OnDestroy {
     }
 
     this.saving.set(true);
+    this.submitError.set(null);
 
     try {
       let productId = raw.productId;
@@ -120,6 +127,8 @@ export class ScanReferencePageComponent implements OnInit, OnDestroy {
 
       this.scanService.clearFlowState();
       await this.router.navigate(['/products', productId]);
+    } catch {
+      this.submitError.set('Création impossible. Réessayez.');
     } finally {
       this.saving.set(false);
     }
@@ -160,13 +169,35 @@ export class ScanReferencePageComponent implements OnInit, OnDestroy {
 
     if (products.length > 0) {
       this.productMode.set('existing');
-      this.form.patchValue({ productId: products[0].id });
+      const suggestedMatch = state.prefill?.suggestedProductName
+        ? products.find((product) =>
+            product.name.localeCompare(state.prefill!.suggestedProductName!, 'fr', {
+              sensitivity: 'base',
+            }) === 0,
+          )
+        : undefined;
+
+      this.form.patchValue({ productId: (suggestedMatch ?? products[0]).id });
+      this.syncProductModeValidators();
       return;
     }
 
     this.productMode.set('new');
+    this.syncProductModeValidators();
     if (!this.form.controls.newProductName.value && state.prefill?.suggestedProductName) {
       this.form.patchValue({ newProductName: state.prefill.suggestedProductName });
     }
+  }
+
+  private syncProductModeValidators(): void {
+    const newProductName = this.form.controls.newProductName;
+
+    if (this.productMode() === 'existing') {
+      newProductName.clearValidators();
+    } else {
+      newProductName.setValidators([Validators.required, Validators.pattern(/\S/)]);
+    }
+
+    newProductName.updateValueAndValidity();
   }
 }

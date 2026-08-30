@@ -8,10 +8,12 @@ import { NetworkStatusService } from '../../../core/network/network-status.servi
 import { OffApiService } from '../../../core/off-api/off-api.service';
 import type { PendingRestoreMatch } from '../models/pending-restore-match';
 import type { ScanFlowState } from '../models/scan-flow-state';
+import { ProductsService } from './products.service';
 
 @Injectable({ providedIn: 'root' })
 export class ScanService {
   private readonly database = inject(DatabaseService);
+  private readonly productsService = inject(ProductsService);
   private readonly networkStatus = inject(NetworkStatusService);
   private readonly offApi = inject(OffApiService);
   private readonly router = inject(Router);
@@ -66,7 +68,7 @@ export class ScanService {
       if (lookup.status === 'network_error') {
         this.openReferenceForm({
           barcode,
-          status: 'offline',
+          status: 'network-error',
         });
         return;
       }
@@ -86,7 +88,7 @@ export class ScanService {
       return;
     }
 
-    await this.database.restoreProduct(match.product.id);
+    await this.productsService.restoreProduct(match.product.id);
     this.pendingRestore.set(null);
     await this.router.navigate(['/products', match.product.id]);
   }

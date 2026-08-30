@@ -1,10 +1,26 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import { isValidEan, normalizeBarcodeInput } from '../../../../core/barcode/ean';
 import type { Store } from '../../../../core/models/store';
 import { STORES, STORE_LABELS } from '../../../../core/models/store';
 import { ProductsService } from '../../services/products.service';
+
+function optionalEanValidator(control: AbstractControl): ValidationErrors | null {
+  const value = String(control.value ?? '').trim();
+  if (!value) {
+    return null;
+  }
+
+  return isValidEan(normalizeBarcodeInput(value)) ? null : { ean: true };
+}
 
 @Component({
   selector: 'app-reference-form-page',
@@ -23,6 +39,7 @@ export class ReferenceFormPageComponent implements OnInit {
   readonly isEditMode = signal(false);
   readonly saving = signal(false);
   readonly loadError = signal<string | null>(null);
+  readonly submitError = signal<string | null>(null);
   readonly productId = signal<string | null>(null);
 
   private referenceId: string | null = null;
@@ -31,7 +48,7 @@ export class ReferenceFormPageComponent implements OnInit {
     store: ['' as '' | Store, Validators.required],
     label: ['', [Validators.required, Validators.pattern(/\S/)]],
     brand: [''],
-    barcode: [''],
+    barcode: ['', optionalEanValidator],
     kcalPer100g: [0, [Validators.required, Validators.min(0)]],
     proteinPer100g: [0, [Validators.required, Validators.min(0)]],
     fatPer100g: [0, [Validators.required, Validators.min(0)]],
@@ -43,7 +60,9 @@ export class ReferenceFormPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    void this.load();
+    this.route.paramMap.subscribe((params) => {
+      void this.load(params.get('productId'), params.get('refId'));
+    });
   }
 
   async onSubmit(): Promise<void> {
@@ -70,6 +89,7 @@ export class ReferenceFormPageComponent implements OnInit {
     };
 
     this.saving.set(true);
+    this.submitError.set(null);
 
     try {
       if (this.isEditMode() && this.referenceId) {
@@ -82,16 +102,17 @@ export class ReferenceFormPageComponent implements OnInit {
       }
 
       await this.router.navigate(['/products', productId]);
+    } catch {
+      this.submitError.set('Enregistrement impossible. Réessayez.');
     } finally {
       this.saving.set(false);
     }
   }
 
-  private async load(): Promise<void> {
-    const productId = this.route.snapshot.paramMap.get('productId');
-    const refId = this.route.snapshot.paramMap.get('refId');
-
+  private async load(productId: string | null, refId: string | null): Promise<void> {
     this.productId.set(productId);
+    this.loadError.set(null);
+    this.submitError.set(null);
 
     if (!productId) {
       this.loadError.set('Produit introuvable.');
@@ -105,6 +126,22 @@ export class ReferenceFormPageComponent implements OnInit {
     }
 
     if (!refId) {
+      this.isEditMode.set(false);
+      this.referenceId = null;
+      this.form.reset({
+        store: '',
+        label: '',
+        brand: '',
+        barcode: '',
+        kcalPer100g: 0,
+        proteinPer100g: 0,
+        fatPer100g: 0,
+        carbsPer100g: 0,
+        fiberPer100g: null,
+        saltPer100g: null,
+        ingredients: '',
+        notes: '',
+      });
       return;
     }
 

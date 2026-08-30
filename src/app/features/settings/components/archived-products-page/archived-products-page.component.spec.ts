@@ -65,4 +65,26 @@ describe('ArchivedProductsPageComponent', () => {
 
     expect((await productsService.listArchivedProducts()).length).toBe(0);
   });
+
+  it('shows archived badge on references of archived products', async () => {
+    const product = await database.createProduct({ name: 'Nutella archivé' });
+    await database.createProductReference({
+      productId: product.id,
+      store: 'auchan',
+      label: 'Nutella pot',
+      barcode: '3017620422003',
+      kcalPer100g: 539,
+      proteinPer100g: 6.3,
+      fatPer100g: 30.9,
+      carbsPer100g: 57.5,
+    });
+    await database.archiveProduct(product.id);
+
+    fixture = TestBed.createComponent(ArchivedProductsPageComponent);
+    fixture.detectChanges();
+    await waitForLoad();
+
+    expect(fixture.nativeElement.textContent).toContain('Archivé');
+    expect(fixture.nativeElement.textContent).toContain('Nutella pot');
+  });
 });

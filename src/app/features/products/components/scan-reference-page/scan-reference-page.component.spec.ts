@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { vi } from 'vitest';
 
 import { ProductsService } from '../../services/products.service';
 import { ScanService } from '../../services/scan.service';
@@ -67,5 +68,43 @@ describe('ScanReferencePageComponent', () => {
 
     expect(fixture.componentInstance.form.controls.label.value).toBe('Nutella');
     expect(fixture.componentInstance.form.controls.kcalPer100g.value).toBe(539);
+  });
+
+  it('allows submit in existing product mode without newProductName', async () => {
+    const productsService = TestBed.inject(ProductsService);
+    vi.spyOn(productsService, 'loadCatalog').mockResolvedValue();
+    vi.spyOn(productsService, 'catalog').mockReturnValue([
+      {
+        product: {
+          id: 'product-1',
+          name: 'Yaourt',
+          recommendedStores: [],
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+          deletedAt: null,
+        },
+      },
+    ]);
+
+    scanService.flowState.set({
+      barcode: '3017620422003',
+      status: 'off-unknown',
+    });
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    fixture.componentInstance.form.patchValue({
+      productId: 'product-1',
+      store: 'auchan',
+      label: 'Yaourt nature',
+      kcalPer100g: 60,
+      proteinPer100g: 4,
+      fatPer100g: 3,
+      carbsPer100g: 5,
+    });
+
+    expect(fixture.componentInstance.form.invalid).toBe(false);
   });
 });

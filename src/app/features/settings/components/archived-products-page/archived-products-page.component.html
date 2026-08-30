@@ -4,28 +4,49 @@
     <h1 class="archived-products-page__title">Produits archivés</h1>
   </header>
 
+  @if (loadError()) {
+    <p class="archived-products-page__error" role="alert">{{ loadError() }}</p>
+  }
+
   @if (loading()) {
     <p class="archived-products-page__status" role="status">Chargement…</p>
-  } @else if (products().length === 0) {
+  } @else if (items().length === 0) {
     <p class="archived-products-page__empty">Aucun produit archivé.</p>
   } @else {
     <ul class="archived-products-page__list">
-      @for (product of products(); track product.id) {
+      @for (item of items(); track item.product.id) {
         <li class="archived-products-page__item">
-          <div class="archived-products-page__info">
-            <span class="archived-products-page__name">{{ product.name }}</span>
-            @if (product.category) {
-              <span class="archived-products-page__category">{{ product.category }}</span>
-            }
+          <div class="archived-products-page__header-row">
+            <div class="archived-products-page__info">
+              <span class="archived-products-page__name">{{ item.product.name }}</span>
+              @if (item.product.category) {
+                <span class="archived-products-page__category">{{ item.product.category }}</span>
+              }
+            </div>
+            <button
+              class="archived-products-page__restore"
+              type="button"
+              [disabled]="restoringId() === item.product.id"
+              (click)="restoreProduct(item.product.id)"
+            >
+              {{ restoringId() === item.product.id ? 'Restauration…' : 'Restaurer' }}
+            </button>
           </div>
-          <button
-            class="archived-products-page__restore"
-            type="button"
-            [disabled]="restoringId() === product.id"
-            (click)="restoreProduct(product.id)"
-          >
-            {{ restoringId() === product.id ? 'Restauration…' : 'Restaurer' }}
-          </button>
+
+          @if (item.references.length === 0) {
+            <p class="archived-products-page__no-refs">Aucune référence enseigne.</p>
+          } @else {
+            <div class="archived-products-page__references">
+              @for (reference of item.references; track reference.id) {
+                <app-reference-row
+                  [reference]="reference"
+                  [productId]="item.product.id"
+                  [productArchived]="true"
+                  [readonly]="true"
+                />
+              }
+            </div>
+          }
         </li>
       }
     </ul>

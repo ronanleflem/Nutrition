@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 
+import { normalizeBarcodeInput } from '../barcode/ean';
+
 import {
   APP_SETTINGS_SINGLETON_ID,
   type AppSettings,
@@ -21,6 +23,7 @@ import {
   createProductReference,
   deriveRecommendedStores,
   isActiveProductReference,
+  normalizeStoredBarcode,
   type CreateProductReferenceInput,
   type ProductReference,
   type UpdateProductReferenceInput,
@@ -87,6 +90,12 @@ export class DatabaseService {
     }
 
     return product;
+  }
+
+  async getProductIncludingArchived(id: string): Promise<Product | undefined> {
+    await this.initialize();
+
+    return (await this.db!.products.get(id)) ?? undefined;
   }
 
   async getProductCatalogItem(productId: string): Promise<ProductCatalogItem | undefined> {
@@ -156,7 +165,7 @@ export class DatabaseService {
   async getActiveReferenceByBarcode(barcode: string): Promise<ProductReference | undefined> {
     await this.initialize();
 
-    const normalized = barcode.trim();
+    const normalized = normalizeBarcodeInput(barcode);
     if (!normalized) {
       return undefined;
     }
@@ -174,7 +183,7 @@ export class DatabaseService {
   ): Promise<{ reference: ProductReference; product: Product } | undefined> {
     await this.initialize();
 
-    const normalized = barcode.trim();
+    const normalized = normalizeBarcodeInput(barcode);
     if (!normalized) {
       return undefined;
     }
@@ -270,7 +279,7 @@ export class DatabaseService {
       store: input.store,
       label: input.label.trim(),
       brand: input.brand?.trim() || undefined,
-      barcode: input.barcode?.trim() || undefined,
+      barcode: normalizeStoredBarcode(input.barcode),
       kcalPer100g: input.kcalPer100g,
       proteinPer100g: input.proteinPer100g,
       fatPer100g: input.fatPer100g,

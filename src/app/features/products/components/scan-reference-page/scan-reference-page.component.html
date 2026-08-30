@@ -9,6 +9,9 @@
   }
 
   <form class="reference-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    @if (submitError()) {
+      <p class="reference-form__error" role="alert">{{ submitError() }}</p>
+    }
     <fieldset class="scan-reference-page__product">
       <legend class="reference-form__label">Produit générique</legend>
       <div class="scan-reference-page__mode">

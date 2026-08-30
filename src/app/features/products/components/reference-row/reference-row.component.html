@@ -1,24 +1,43 @@
-<a
-  class="reference-row"
-  [routerLink]="['/products', productId(), 'references', reference().id, 'edit']"
->
-  <div class="reference-row__header">
-    <div class="reference-row__title">{{ reference().label }}</div>
-    <app-score-chip [score]="reference().nutritionalScore" />
+@if (readonly()) {
+  <div class="reference-row reference-row--readonly">
+    <div class="reference-row__header">
+      <div class="reference-row__title">{{ reference().label }}</div>
+      <app-score-chip [score]="reference().nutritionalScore" />
+    </div>
+    <div class="reference-row__meta">
+      {{ storeLabel() }}
+      @if (isPreferred()) {
+        <span class="reference-row__badge">Préférée</span>
+      }
+      @if (productArchived()) {
+        <span class="reference-row__badge reference-row__badge--archived">Archivé</span>
+      }
+    </div>
+    <div class="reference-row__macros">{{ macrosLine() }}</div>
   </div>
-  <div class="reference-row__meta">
-    {{ storeLabel() }}
-    @if (isPreferred()) {
-      <span class="reference-row__badge">Préférée</span>
+} @else {
+  <a
+    class="reference-row"
+    [routerLink]="['/products', productId(), 'references', reference().id, 'edit']"
+  >
+    <div class="reference-row__header">
+      <div class="reference-row__title">{{ reference().label }}</div>
+      <app-score-chip [score]="reference().nutritionalScore" />
+    </div>
+    <div class="reference-row__meta">
+      {{ storeLabel() }}
+      @if (isPreferred()) {
+        <span class="reference-row__badge">Préférée</span>
+      }
+      @if (productArchived()) {
+        <span class="reference-row__badge reference-row__badge--archived">Archivé</span>
+      }
+    </div>
+    <div class="reference-row__macros">{{ macrosLine() }}</div>
+    @if (!isPreferred()) {
+      <button class="reference-row__prefer" type="button" (click)="onSetPreferred($event)">
+        Définir comme préférée
+      </button>
     }
-    @if (productArchived()) {
-      <span class="reference-row__badge reference-row__badge--archived">Archivé</span>
-    }
-  </div>
-  <div class="reference-row__macros">{{ macrosLine() }}</div>
-  @if (!isPreferred()) {
-    <button class="reference-row__prefer" type="button" (click)="onSetPreferred($event)">
-      Définir comme préférée
-    </button>
-  }
-</a>
+  </a>
+}

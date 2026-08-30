@@ -60,8 +60,12 @@ export class ScannerPageComponent implements OnInit, OnDestroy {
     }
 
     this.scanLocked = true;
-    await this.scanService.resolveBarcode(barcode);
-    this.scanLocked = false;
+
+    try {
+      await this.scanService.resolveBarcode(barcode);
+    } finally {
+      this.scanLocked = false;
+    }
   }
 
   async submitManualBarcode(): Promise<void> {

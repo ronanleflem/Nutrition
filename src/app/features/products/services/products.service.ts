@@ -31,6 +31,10 @@ export class ProductsService {
     return this.database.getProduct(id);
   }
 
+  async getProductIncludingArchived(id: string): Promise<Product | undefined> {
+    return this.database.getProductIncludingArchived(id);
+  }
+
   async getProductCatalogItem(productId: string): Promise<ProductCatalogItem | undefined> {
     return this.database.getProductCatalogItem(productId);
   }

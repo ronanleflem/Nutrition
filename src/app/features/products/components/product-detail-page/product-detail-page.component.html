@@ -25,7 +25,7 @@
       </button>
     </header>
 
-    @if (!item.product.preferredReferenceId) {
+    @if (!item.preferredReference) {
       <p class="product-detail__banner" role="status">
         Choisir une référence pour les macros
       </p>
@@ -59,6 +59,7 @@
       message="Le produit disparaîtra du catalogue mais restera référencé dans vos recettes et votre garde-manger."
       confirmLabel="Archiver"
       cancelLabel="Annuler"
+      [confirmDisabled]="archiving()"
       (confirmed)="confirmArchive()"
       (cancelled)="closeArchiveConfirm()"
     />

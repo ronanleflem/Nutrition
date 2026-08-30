@@ -86,4 +86,39 @@ describe('OffApiService', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it('converts energy in kilojoules to kcal when kcal is missing', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: 1,
+        code: '3017620422003',
+        product: {
+          product_name: 'Test',
+          nutriments: {
+            energy_100g: 2252,
+            proteins_100g: 6.3,
+            fat_100g: 30.9,
+            carbohydrates_100g: 57.5,
+          },
+        },
+      }),
+    } as Response);
+
+    const result = await service.lookupProduct('3017620422003');
+
+    expect(result.status).toBe('found');
+    if (result.status === 'found') {
+      expect(result.prefill.kcalPer100g).toBe(538.2);
+    }
+  });
+
+  it('does not cache network_error responses', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
+
+    await service.lookupProduct('3017620422003');
+    await service.lookupProduct('3017620422003');
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });

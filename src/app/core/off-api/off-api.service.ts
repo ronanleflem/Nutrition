@@ -33,9 +33,7 @@ export class OffApiService {
       });
 
       if (!response.ok) {
-        const result: OffLookupResult = { status: 'network_error', barcode };
-        this.sessionCache.set(barcode, result);
-        return result;
+        return { status: 'network_error', barcode };
       }
 
       const payload = (await response.json()) as OffApiResponse;
@@ -50,9 +48,7 @@ export class OffApiService {
       this.sessionCache.set(barcode, result);
       return result;
     } catch {
-      const result: OffLookupResult = { status: 'network_error', barcode };
-      this.sessionCache.set(barcode, result);
-      return result;
+      return { status: 'network_error', barcode };
     }
   }
 
@@ -74,7 +70,7 @@ function mapOffProduct(barcode: string, product: NonNullable<OffApiResponse['pro
     label,
     brand,
     suggestedProductName: deriveGenericProductName(label, brand),
-    kcalPer100g: readNutriment(nutriments, 'energy-kcal_100g', 'energy-kcal'),
+    kcalPer100g: readEnergyKcal(nutriments),
     proteinPer100g: readNutriment(nutriments, 'proteins_100g', 'proteins'),
     fatPer100g: readNutriment(nutriments, 'fat_100g', 'fat'),
     carbsPer100g: readNutriment(nutriments, 'carbohydrates_100g', 'carbohydrates'),
@@ -100,6 +96,20 @@ function escapeRegExp(value: string): string {
 function pickFrenchOrDefault(french?: string, fallback?: string): string | undefined {
   const value = french?.trim() || fallback?.trim();
   return value || undefined;
+}
+
+function readEnergyKcal(nutriments: Record<string, number | string | undefined>): number {
+  const kcal = readNutriment(nutriments, 'energy-kcal_100g', 'energy-kcal');
+  if (kcal > 0) {
+    return kcal;
+  }
+
+  const kilojoules = readNutriment(nutriments, 'energy_100g', 'energy-kj_100g');
+  if (kilojoules > 0) {
+    return Math.round((kilojoules / 4.184) * 10) / 10;
+  }
+
+  return 0;
 }
 
 function readNutriment(

@@ -91,6 +91,19 @@ describe('ScanService', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/products', 'scan', 'reference']);
   });
 
+  it('opens reference form with network-error when OFF is unreachable online', async () => {
+    vi.spyOn(offApi, 'lookupProduct').mockResolvedValue({
+      status: 'network_error',
+      barcode: '3017620422003',
+    });
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    await service.resolveBarcode('3017620422003');
+
+    expect(service.flowState()?.status).toBe('network-error');
+    expect(navigateSpy).toHaveBeenCalledWith(['/products', 'scan', 'reference']);
+  });
+
   it('prompts restore when barcode matches an archived product', async () => {
     const product = await database.createProduct({ name: 'Nutella archivé' });
     const reference = await database.createProductReference({

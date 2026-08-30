@@ -20,6 +20,7 @@ export class ProductFormPageComponent implements OnInit {
   readonly isEditMode = signal(false);
   readonly saving = signal(false);
   readonly loadError = signal<string | null>(null);
+  readonly submitError = signal<string | null>(null);
 
   private productId: string | null = null;
 
@@ -30,26 +31,22 @@ export class ProductFormPageComponent implements OnInit {
     notes: [''],
   });
 
-  async ngOnInit(): Promise<void> {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      return;
-    }
+  ngOnInit(): void {
+    this.route.paramMap.subscribe((params) => {
+      const id = params.get('id');
+      if (!id) {
+        this.isEditMode.set(false);
+        this.productId = null;
+        this.form.reset({
+          name: '',
+          category: '',
+          priority: '',
+          notes: '',
+        });
+        return;
+      }
 
-    this.isEditMode.set(true);
-    this.productId = id;
-
-    const product = await this.productsService.getProduct(id);
-    if (!product) {
-      this.loadError.set('Produit introuvable.');
-      return;
-    }
-
-    this.form.patchValue({
-      name: product.name,
-      category: product.category ?? '',
-      priority: product.priority ?? '',
-      notes: product.notes ?? '',
+      void this.loadProduct(id);
     });
   }
 
@@ -68,6 +65,7 @@ export class ProductFormPageComponent implements OnInit {
     };
 
     this.saving.set(true);
+    this.submitError.set(null);
 
     try {
       if (this.isEditMode() && this.productId) {
@@ -80,8 +78,30 @@ export class ProductFormPageComponent implements OnInit {
         const product = await this.productsService.createProduct(payload);
         await this.router.navigate(['/products', product.id]);
       }
+    } catch {
+      this.submitError.set('Enregistrement impossible. Réessayez.');
     } finally {
       this.saving.set(false);
     }
+  }
+
+  private async loadProduct(id: string): Promise<void> {
+    this.isEditMode.set(true);
+    this.productId = id;
+    this.loadError.set(null);
+    this.submitError.set(null);
+
+    const product = await this.productsService.getProduct(id);
+    if (!product) {
+      this.loadError.set('Produit introuvable.');
+      return;
+    }
+
+    this.form.patchValue({
+      name: product.name,
+      category: product.category ?? '',
+      priority: product.priority ?? '',
+      notes: product.notes ?? '',
+    });
   }
 }
