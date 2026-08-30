@@ -84,7 +84,7 @@ context:
 
 ### Review Findings
 
-- [ ] [Review][Decision] Badge « Archivé » sur `ReferenceRow` implémenté mais jamais branché ; aucun écran ne liste les références d'un produit archivé (AC #2 FR-6 partiel) [`reference-row.component.html:14-16`, `product-detail-page.component.html:45-50`]
-- [ ] [Review][Patch] Restauration via scan : `restorePendingProduct` appelle `DatabaseService` directement sans `ProductsService.loadCatalog()` [`src/app/features/products/services/scan.service.ts:83-91`]
-- [x] [Review][Defer] Confirmation archivage non testée au niveau composant — dette tests, flux implémenté
-- [x] [Review][Defer] Bottom sheet restauration scanner non testée en composant — dette tests
+- [x] [Review][Decision] Badge « Archivé » sur références archivées — implémenté (D1, page Produits archivés)
+- [x] [Review][Patch] Restauration scan via `ProductsService.restoreProduct` — corrigé
+- [x] [Review][Defer] Confirmation archivage non testée composant — dette tests
+- [x] [Review][Defer] Bottom sheet restauration scanner non testée composant — dette tests

@@ -96,6 +96,6 @@ context:
 
 ### Review Findings
 
-- [ ] [Review][Patch] Formulaire produit : erreurs DB silencieuses [`src/app/features/products/components/product-form-page/product-form-page.component.ts:72-85`]
-- [ ] [Review][Patch] Édition produit : `route.snapshot` sans réabonnement `paramMap` [`src/app/features/products/components/product-form-page/product-form-page.component.ts:33-54`]
-- [x] [Review][Defer] Couverture tests `ProductFormPageComponent` absente — dette de tests, pré-existant au périmètre review
+- [x] [Review][Patch] Formulaire produit : erreurs DB silencieuses [`product-form-page.component.ts`] — corrigé
+- [x] [Review][Patch] Édition produit : `route.snapshot` sans réabonnement `paramMap` — corrigé
+- [x] [Review][Defer] Couverture tests `ProductFormPageComponent` absente — dette de tests
