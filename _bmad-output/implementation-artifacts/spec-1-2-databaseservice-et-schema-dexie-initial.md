@@ -2,7 +2,7 @@
 title: 'Story 1.2 — DatabaseService et schéma Dexie initial'
 type: 'feature'
 created: '2026-08-30'
-status: 'ready-for-dev'
+status: 'done'
 review_loop_iteration: 0
 baseline_commit: 'f3d1e4b693ca3f1f7598b32ca270462c38af6b5f'
 story_key: '1-2-databaseservice-et-schéma-dexie-initial'
@@ -62,12 +62,12 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `package.json` — add dexie 4.4.5 and fake-indexeddb dev dependency.
-- [ ] `src/app/core/models/app-settings.ts` — AppSettings model + defaults.
-- [ ] `src/app/core/database/nutrition-database.ts` — Dexie schema v1 with appSettings store.
-- [ ] `src/app/core/database/database.service.ts` — init, seed, getAppSettings.
-- [ ] `src/app/app.config.ts` — bootstrap initializer.
-- [ ] `src/app/core/database/database.service.spec.ts` — unit tests covering I/O matrix.
+- [x] `package.json` — add dexie 4.4.5 and fake-indexeddb dev dependency.
+- [x] `src/app/core/models/app-settings.ts` — AppSettings model + defaults.
+- [x] `src/app/core/database/nutrition-database.ts` — Dexie schema v1 with appSettings store.
+- [x] `src/app/core/database/database.service.ts` — init, seed, getAppSettings.
+- [x] `src/app/app.config.ts` — bootstrap initializer.
+- [x] `src/app/core/database/database.service.spec.ts` — unit tests covering I/O matrix.
 
 **Acceptance Criteria:**
 - Given first app start, when Dexie initializes via DatabaseService, then `appSettings` exists with `theme: 'dark'`.
