@@ -1,6 +1,8 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { from, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 import type { Product } from '../../../../core/models/product';
 import { ProductsService } from '../../../products/services/products.service';
@@ -20,7 +22,9 @@ export class RecipeVariantFormPageComponent implements OnInit {
   private readonly recipesService = inject(RecipesService);
   private readonly productsService = inject(ProductsService);
 
+  readonly loading = signal(true);
   readonly saving = signal(false);
+  readonly loadError = signal<string | null>(null);
   readonly submitError = signal<string | null>(null);
   readonly ingredientError = signal<string | null>(null);
   readonly blockedProduct = signal<Product | null>(null);
@@ -46,17 +50,41 @@ export class RecipeVariantFormPageComponent implements OnInit {
   ngOnInit(): void {
     void this.productsService.loadCatalog();
 
-    this.route.paramMap.subscribe((params) => {
-      const id = params.get('id');
-      this.recipeId.set(id);
-      if (!id) {
-        void this.router.navigate(['/recipes']);
-      }
-    });
+    this.route.paramMap
+      .pipe(
+        switchMap((params) => {
+          const id = params.get('id');
+          this.recipeId.set(id);
+          if (!id) {
+            void this.router.navigate(['/recipes']);
+            return of(null);
+          }
+
+          return from(this.loadRecipe(id));
+        }),
+      )
+      .subscribe();
   }
 
   get ingredients(): FormArray {
     return this.form.controls.ingredients;
+  }
+
+  async loadRecipe(recipeId: string): Promise<void> {
+    this.loading.set(true);
+    this.loadError.set(null);
+
+    try {
+      const detail = await this.recipesService.getRecipeDetail(recipeId);
+      if (!detail) {
+        this.loadError.set('Recette introuvable.');
+        return;
+      }
+    } catch (error) {
+      this.loadError.set(error instanceof Error ? error.message : 'Impossible de charger la recette.');
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   addIngredient(): void {
@@ -86,6 +114,9 @@ export class RecipeVariantFormPageComponent implements OnInit {
 
     const item = this.productsService.catalog().find((entry) => entry.product.id === productId);
     if (!item) {
+      this.ingredientError.set('Produit introuvable dans le catalogue.');
+      this.blockedProduct.set(null);
+      this.ingredients.at(index).patchValue({ productId: '' });
       return;
     }
 
@@ -124,7 +155,7 @@ export class RecipeVariantFormPageComponent implements OnInit {
         rating: this.rating(),
         ingredients: raw.ingredients.map((ingredient) => ({
           productId: ingredient.productId,
-          quantityG: ingredient.quantityG,
+          quantityG: Number(ingredient.quantityG),
           slotLabel: ingredient.slotLabel || undefined,
         })),
       });

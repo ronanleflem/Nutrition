@@ -24,6 +24,7 @@ import {
 import {
   createProduct,
   isActiveProduct,
+  isArchivedProduct,
   type CreateProductInput,
   type Product,
   type UpdateProductInput,
@@ -45,10 +46,7 @@ import {
 } from '../models/recipe-detail';
 import { createRecipe, type CreateRecipeInput, type Recipe, type UpdateRecipeInput } from '../models/recipe';
 import { createRecipeIngredient, type RecipeIngredient } from '../models/recipe-ingredient';
-import {
-  compareRecipeListItems,
-  type RecipeListItem,
-} from '../models/recipe-list-item';
+import type { RecipeListItem } from '../models/recipe-list-item';
 import { createRecipeVariant } from '../models/recipe-variant';
 import { NutritionalScoreService } from '../scoring/nutritional-score.service';
 import { NutritionDatabase } from './nutrition-database';
@@ -488,7 +486,7 @@ export class DatabaseService {
       defaultVariantName: variantMap.get(recipe.defaultVariantId)?.name ?? 'Variante',
     }));
 
-    return items.sort(compareRecipeListItems);
+    return items;
   }
 
   async getRecipeDetail(recipeId: string): Promise<RecipeDetail | undefined> {
@@ -528,8 +526,11 @@ export class DatabaseService {
     const preferredReferences = await this.db!.productReferences.bulkGet(preferredReferenceIds);
     const referenceMap = new Map(
       preferredReferences
-        .filter((reference) => reference != null)
-        .map((reference) => [reference!.id, reference!]),
+        .filter(
+          (reference): reference is ProductReference =>
+            reference != null && isActiveProductReference(reference),
+        )
+        .map((reference) => [reference.id, reference]),
     );
 
     const ingredientsByVariant = new Map<string, RecipeVariantDetail['ingredients']>();
@@ -546,6 +547,7 @@ export class DatabaseService {
       ingredientsByVariant.get(ingredient.variantId)?.push({
         ...ingredient,
         productName: product?.name ?? 'Produit inconnu',
+        productArchived: product ? isArchivedProduct(product) : false,
         macrosPer100g: preferredReference
           ? {
               kcalPer100g: preferredReference.kcalPer100g,
@@ -685,6 +687,8 @@ export class DatabaseService {
       throw new Error('Le nombre de portions doit être supérieur à 0.');
     }
 
+    const durationMin = this.normalizeDurationMin(input.recipe.durationMin);
+
     const variantName = input.variantName.trim();
     if (!variantName) {
       throw new Error('Le nom de la variante est obligatoire.');
@@ -706,6 +710,7 @@ export class DatabaseService {
         ...input.recipe,
         title,
         steps,
+        durationMin,
       },
       variant.id,
     );
@@ -751,11 +756,13 @@ export class DatabaseService {
       throw new Error('Le nombre de portions doit être supérieur à 0.');
     }
 
+    const durationMin = this.normalizeDurationMin(input.durationMin);
+
     const updated: Recipe = {
       ...existing,
       title,
       steps,
-      durationMin: input.durationMin,
+      durationMin,
       defaultPortions: input.defaultPortions,
       tags: input.tags?.map((tag) => tag.trim()).filter(Boolean),
       notes: input.notes?.trim() || undefined,
@@ -820,6 +827,18 @@ export class DatabaseService {
 
     this.db = null;
     this.initPromise = null;
+  }
+
+  private normalizeDurationMin(value: number | undefined): number | undefined {
+    if (value == null) {
+      return undefined;
+    }
+
+    if (!Number.isFinite(value) || value < 1) {
+      throw new Error('La durée doit être un nombre entier supérieur ou égal à 1 minute.');
+    }
+
+    return Math.floor(value);
   }
 
   private async validateRecipeIngredients(

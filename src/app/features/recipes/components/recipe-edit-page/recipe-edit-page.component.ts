@@ -1,6 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { from, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 import { RecipesService } from '../../services/recipes.service';
 
@@ -35,16 +37,20 @@ export class RecipeEditPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe((params) => {
-      const id = params.get('id');
-      this.recipeId.set(id);
-      if (!id) {
-        void this.router.navigate(['/recipes']);
-        return;
-      }
+    this.route.paramMap
+      .pipe(
+        switchMap((params) => {
+          const id = params.get('id');
+          this.recipeId.set(id);
+          if (!id) {
+            void this.router.navigate(['/recipes']);
+            return of(null);
+          }
 
-      void this.loadRecipe(id);
-    });
+          return from(this.loadRecipe(id));
+        }),
+      )
+      .subscribe();
   }
 
   get steps(): FormArray {
@@ -104,6 +110,18 @@ export class RecipeEditPageComponent implements OnInit {
     }
 
     const raw = this.form.getRawValue();
+    const defaultPortions = Number(raw.defaultPortions);
+    if (!Number.isFinite(defaultPortions) || defaultPortions < 1) {
+      this.submitError.set('Le nombre de portions doit être supérieur à 0.');
+      return;
+    }
+
+    const durationMin = raw.durationMin ? Number(raw.durationMin) : undefined;
+    if (durationMin != null && (!Number.isFinite(durationMin) || durationMin < 1)) {
+      this.submitError.set('La durée doit être un nombre supérieur ou égal à 1 minute.');
+      return;
+    }
+
     const tags = raw.tags
       .split(',')
       .map((tag) => tag.trim())
@@ -116,8 +134,8 @@ export class RecipeEditPageComponent implements OnInit {
       await this.recipesService.updateRecipe(recipeId, {
         title: raw.title,
         steps: raw.steps,
-        durationMin: raw.durationMin ? Number(raw.durationMin) : undefined,
-        defaultPortions: raw.defaultPortions,
+        durationMin,
+        defaultPortions,
         tags: tags.length > 0 ? tags : undefined,
         notes: raw.notes || undefined,
       });

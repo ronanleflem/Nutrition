@@ -96,6 +96,9 @@ export class RecipeFormPageComponent implements OnInit {
 
     const item = this.productsService.catalog().find((entry) => entry.product.id === productId);
     if (!item) {
+      this.ingredientError.set('Produit introuvable dans le catalogue.');
+      this.blockedProduct.set(null);
+      this.ingredients.at(index).patchValue({ productId: '' });
       return;
     }
 
@@ -119,6 +122,18 @@ export class RecipeFormPageComponent implements OnInit {
     }
 
     const raw = this.form.getRawValue();
+    const defaultPortions = Number(raw.defaultPortions);
+    if (!Number.isFinite(defaultPortions) || defaultPortions < 1) {
+      this.submitError.set('Le nombre de portions doit être supérieur à 0.');
+      return;
+    }
+
+    const durationMin = raw.durationMin ? Number(raw.durationMin) : undefined;
+    if (durationMin != null && (!Number.isFinite(durationMin) || durationMin < 1)) {
+      this.submitError.set('La durée doit être un nombre supérieur ou égal à 1 minute.');
+      return;
+    }
+
     const tags = raw.tags
       .split(',')
       .map((tag) => tag.trim())
@@ -132,15 +147,15 @@ export class RecipeFormPageComponent implements OnInit {
         recipe: {
           title: raw.title,
           steps: raw.steps,
-          durationMin: raw.durationMin ? Number(raw.durationMin) : undefined,
-          defaultPortions: raw.defaultPortions,
+          durationMin,
+          defaultPortions,
           tags: tags.length > 0 ? tags : undefined,
           notes: raw.notes || undefined,
         },
         variantName: raw.variantName,
         ingredients: raw.ingredients.map((ingredient) => ({
           productId: ingredient.productId,
-          quantityG: ingredient.quantityG,
+          quantityG: Number(ingredient.quantityG),
           slotLabel: ingredient.slotLabel || undefined,
         })),
       });

@@ -1,98 +1,118 @@
-<form class="recipe-variant-form" [formGroup]="form" (ngSubmit)="onSubmit()">
-  @if (submitError()) {
-    <p class="recipe-variant-form__error" role="alert">{{ submitError() }}</p>
-  }
-  @if (ingredientError()) {
-    <div class="recipe-variant-form__banner" role="alert">
-      <p>{{ ingredientError() }}</p>
-      @if (blockedProduct(); as product) {
-        <a class="recipe-variant-form__banner-link" [routerLink]="['/products', product.id]">
-          Ouvrir le produit
-        </a>
-      }
-    </div>
-  }
-
-  <label class="recipe-variant-form__field">
-    <span class="recipe-variant-form__label">Nom de la variante *</span>
-    <input class="recipe-variant-form__input" type="text" formControlName="name" autocomplete="off" />
-    @if (form.controls.name.touched && form.controls.name.invalid) {
-      <span class="recipe-variant-form__error">Le nom est obligatoire.</span>
+@if (loading()) {
+  <p class="recipe-variant-form__status" role="status">Chargement…</p>
+} @else if (loadError()) {
+  <p class="recipe-variant-form__error" role="alert">{{ loadError() }}</p>
+  <a class="recipe-variant-form__back" [routerLink]="recipeId() ? ['/recipes', recipeId()] : ['/recipes']">
+    Retour
+  </a>
+} @else {
+  <form class="recipe-variant-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    @if (submitError()) {
+      <p class="recipe-variant-form__error" role="alert">{{ submitError() }}</p>
     }
-  </label>
+    @if (ingredientError()) {
+      <div class="recipe-variant-form__banner" role="alert">
+        <p>{{ ingredientError() }}</p>
+        @if (blockedProduct(); as product) {
+          <a class="recipe-variant-form__banner-link" [routerLink]="['/products', product.id]">
+            Ouvrir le produit
+          </a>
+        }
+      </div>
+    }
 
-  <div class="recipe-variant-form__rating">
-    <span class="recipe-variant-form__label">Note (optionnelle)</span>
-    <app-star-rating [value]="rating()" (valueChange)="onRatingChange($event)" />
-  </div>
+    <label class="recipe-variant-form__field">
+      <span class="recipe-variant-form__label">Nom de la variante *</span>
+      <input class="recipe-variant-form__input" type="text" formControlName="name" autocomplete="off" />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <span class="recipe-variant-form__error">Le nom est obligatoire.</span>
+      }
+    </label>
 
-  <section class="recipe-variant-form__section" aria-labelledby="variant-ingredients-heading">
-    <div class="recipe-variant-form__section-header">
-      <h2 id="variant-ingredients-heading" class="recipe-variant-form__section-title">Ingrédients *</h2>
-      <button type="button" class="recipe-variant-form__link-button" (click)="addIngredient()">
-        Ajouter un ingrédient
+    <div class="recipe-variant-form__rating">
+      <span class="recipe-variant-form__label">Note (optionnelle)</span>
+      <app-star-rating [value]="rating()" (valueChange)="onRatingChange($event)" />
+    </div>
+
+    <section class="recipe-variant-form__section" aria-labelledby="variant-ingredients-heading">
+      <div class="recipe-variant-form__section-header">
+        <h2 id="variant-ingredients-heading" class="recipe-variant-form__section-title">Ingrédients *</h2>
+        <button type="button" class="recipe-variant-form__link-button" (click)="addIngredient()">
+          Ajouter un ingrédient
+        </button>
+      </div>
+
+      @if (eligibleProducts().length === 0) {
+        <p class="recipe-variant-form__hint">
+          Aucun produit avec référence préférée.
+          <a routerLink="/products">Aller au catalogue</a>
+        </p>
+      } @else {
+        <p class="recipe-variant-form__hint">
+          Seuls les produits avec référence préférée sont proposés.
+          <a routerLink="/products">Catalogue produits</a>
+        </p>
+      }
+
+      <div formArrayName="ingredients" class="recipe-variant-form__list">
+        @for (ingredient of ingredients.controls; track $index) {
+          <div class="recipe-variant-form__ingredient" [formGroupName]="$index">
+            <label class="recipe-variant-form__field recipe-variant-form__field--grow">
+              <span class="recipe-variant-form__label">Produit</span>
+              <select
+                class="recipe-variant-form__input"
+                formControlName="productId"
+                (change)="onProductChange($index)"
+              >
+                <option value="">Choisir un produit…</option>
+                @for (item of eligibleProducts(); track item.product.id) {
+                  <option [value]="item.product.id">{{ item.product.name }}</option>
+                }
+              </select>
+              @if (ingredient.get('productId')?.touched && ingredient.get('productId')?.invalid) {
+                <span class="recipe-variant-form__error">Choisissez un produit.</span>
+              }
+            </label>
+            <label class="recipe-variant-form__field">
+              <span class="recipe-variant-form__label">Quantité (g)</span>
+              <input class="recipe-variant-form__input" type="number" min="1" formControlName="quantityG" />
+              @if (ingredient.get('quantityG')?.touched && ingredient.get('quantityG')?.invalid) {
+                <span class="recipe-variant-form__error">La quantité doit être supérieure à 0 g.</span>
+              }
+            </label>
+            <label class="recipe-variant-form__field recipe-variant-form__field--grow">
+              <span class="recipe-variant-form__label">Rôle (optionnel)</span>
+              <input class="recipe-variant-form__input" type="text" formControlName="slotLabel" />
+            </label>
+            @if (ingredients.length > 1) {
+              <button
+                type="button"
+                class="recipe-variant-form__icon-button"
+                aria-label="Supprimer l'ingrédient"
+                (click)="removeIngredient($index)"
+              >
+                ×
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    <div class="recipe-variant-form__actions">
+      <a
+        class="recipe-variant-form__button recipe-variant-form__button--secondary"
+        [routerLink]="recipeId() ? ['/recipes', recipeId()] : ['/recipes']"
+      >
+        Annuler
+      </a>
+      <button
+        class="recipe-variant-form__button recipe-variant-form__button--primary"
+        type="submit"
+        [disabled]="saving() || eligibleProducts().length === 0"
+      >
+        Ajouter la variante
       </button>
     </div>
-
-    @if (eligibleProducts().length === 0) {
-      <p class="recipe-variant-form__hint">
-        Aucun produit avec référence préférée.
-        <a routerLink="/products">Aller au catalogue</a>
-      </p>
-    }
-
-    <div formArrayName="ingredients" class="recipe-variant-form__list">
-      @for (ingredient of ingredients.controls; track $index) {
-        <div class="recipe-variant-form__ingredient" [formGroupName]="$index">
-          <label class="recipe-variant-form__field recipe-variant-form__field--grow">
-            <span class="recipe-variant-form__label">Produit</span>
-            <select
-              class="recipe-variant-form__input"
-              formControlName="productId"
-              (change)="onProductChange($index)"
-            >
-              <option value="">Choisir un produit…</option>
-              @for (item of eligibleProducts(); track item.product.id) {
-                <option [value]="item.product.id">{{ item.product.name }}</option>
-              }
-            </select>
-          </label>
-          <label class="recipe-variant-form__field">
-            <span class="recipe-variant-form__label">Quantité (g)</span>
-            <input class="recipe-variant-form__input" type="number" min="1" formControlName="quantityG" />
-          </label>
-          <label class="recipe-variant-form__field recipe-variant-form__field--grow">
-            <span class="recipe-variant-form__label">Rôle (optionnel)</span>
-            <input class="recipe-variant-form__input" type="text" formControlName="slotLabel" />
-          </label>
-          @if (ingredients.length > 1) {
-            <button
-              type="button"
-              class="recipe-variant-form__icon-button"
-              aria-label="Supprimer l'ingrédient"
-              (click)="removeIngredient($index)"
-            >
-              ×
-            </button>
-          }
-        </div>
-      }
-    </div>
-  </section>
-
-  <div class="recipe-variant-form__actions">
-    <a
-      class="recipe-variant-form__button recipe-variant-form__button--secondary"
-      [routerLink]="recipeId() ? ['/recipes', recipeId()] : ['/recipes']"
-    >
-      Annuler
-    </a>
-    <button
-      class="recipe-variant-form__button recipe-variant-form__button--primary"
-      type="submit"
-      [disabled]="saving() || eligibleProducts().length === 0"
-    >
-      Ajouter la variante
-    </button>
-  </div>
-</form>
+  </form>
+}

@@ -1,5 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { from, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
 import type { RecipeDetail, RecipeVariantDetail } from '../../../../core/models/recipe-detail';
@@ -70,16 +72,20 @@ export class RecipeDetailPageComponent implements OnInit {
   private recipeId: string | null = null;
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe((params) => {
-      const id = params.get('id');
-      if (!id) {
-        void this.router.navigate(['/recipes']);
-        return;
-      }
+    this.route.paramMap
+      .pipe(
+        switchMap((params) => {
+          const id = params.get('id');
+          if (!id) {
+            void this.router.navigate(['/recipes']);
+            return of(null);
+          }
 
-      this.recipeId = id;
-      void this.loadDetail(id);
-    });
+          this.recipeId = id;
+          return from(this.loadDetail(id));
+        }),
+      )
+      .subscribe();
   }
 
   async loadDetail(recipeId: string): Promise<void> {
@@ -95,7 +101,13 @@ export class RecipeDetailPageComponent implements OnInit {
       }
 
       this.detail.set(detail);
-      this.planEntryCount.set(await this.recipesService.countMealPlanEntries(recipeId));
+
+      try {
+        this.planEntryCount.set(await this.recipesService.countMealPlanEntries(recipeId));
+      } catch {
+        this.planEntryCount.set(0);
+      }
+
       const selected =
         detail.variants.find((variant) => variant.id === detail.recipe.defaultVariantId)?.id ??
         detail.variants[0]?.id ??

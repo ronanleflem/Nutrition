@@ -1,12 +1,17 @@
 <div class="variant-chip-row" role="tablist" aria-label="Variantes de la recette">
-  @for (variant of variants(); track variant.id) {
+  @for (variant of variants(); track variant.id; let index = $index) {
     <button
+      #chipButton
       type="button"
       class="variant-chip-row__chip"
       role="tab"
+      [id]="'variant-tab-' + variant.id"
       [class.variant-chip-row__chip--active]="variant.id === selectedVariantId()"
       [attr.aria-selected]="variant.id === selectedVariantId()"
+      [attr.aria-controls]="'variant-panel-' + variant.id"
+      [attr.tabindex]="variant.id === selectedVariantId() ? 0 : -1"
       (click)="onSelect(variant.id)"
+      (keydown)="onChipKeydown($event, index)"
     >
       <span class="variant-chip-row__name">{{ variant.name }}</span>
       @if (variant.id === defaultVariantId()) {

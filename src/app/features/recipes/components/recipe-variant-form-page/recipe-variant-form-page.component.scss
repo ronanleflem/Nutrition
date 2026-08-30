@@ -1,3 +1,16 @@
+.recipe-variant-form__status,
+.recipe-variant-form__back {
+  color: var(--color-ink-secondary);
+}
+
+.recipe-variant-form__back {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--spacing-touch-min);
+  color: var(--color-ink-primary);
+  text-decoration: none;
+}
+
 .recipe-variant-form {
   display: flex;
   flex-direction: column;

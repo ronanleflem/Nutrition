@@ -5,6 +5,7 @@ import type { RecipeVariant } from './recipe-variant';
 
 export interface RecipeIngredientWithProduct extends RecipeIngredient {
   productName: string;
+  productArchived?: boolean;
   macrosPer100g?: ProductReferenceMacros;
 }
 

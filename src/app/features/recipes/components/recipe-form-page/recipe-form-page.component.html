@@ -33,6 +33,9 @@
     <label class="recipe-form__field">
       <span class="recipe-form__label">Portions *</span>
       <input class="recipe-form__input" type="number" min="1" formControlName="defaultPortions" />
+      @if (form.controls.defaultPortions.touched && form.controls.defaultPortions.invalid) {
+        <span class="recipe-form__error">Le nombre de portions doit être supérieur à 0.</span>
+      }
     </label>
     <label class="recipe-form__field">
       <span class="recipe-form__label">Durée (min)</span>
@@ -62,6 +65,9 @@
             <span class="recipe-form__label">Étape {{ $index + 1 }}</span>
             <input class="recipe-form__input" type="text" [formControlName]="$index" />
           </label>
+          @if (step.touched && step.invalid) {
+            <span class="recipe-form__error">Cette étape ne peut pas être vide.</span>
+          }
           @if (steps.length > 1) {
             <button
               type="button"
@@ -90,6 +96,11 @@
         Aucun produit avec référence préférée. Ajoutez des produits au catalogue et définissez une référence préférée.
         <a routerLink="/products">Aller au catalogue</a>
       </p>
+    } @else {
+      <p class="recipe-form__hint">
+        Seuls les produits avec référence préférée sont proposés.
+        <a routerLink="/products">Catalogue produits</a>
+      </p>
     }
 
     <div formArrayName="ingredients" class="recipe-form__list">
@@ -107,10 +118,16 @@
                 <option [value]="item.product.id">{{ item.product.name }}</option>
               }
             </select>
+            @if (ingredient.get('productId')?.touched && ingredient.get('productId')?.invalid) {
+              <span class="recipe-form__error">Choisissez un produit.</span>
+            }
           </label>
           <label class="recipe-form__field">
             <span class="recipe-form__label">Quantité (g)</span>
             <input class="recipe-form__input" type="number" min="1" formControlName="quantityG" />
+            @if (ingredient.get('quantityG')?.touched && ingredient.get('quantityG')?.invalid) {
+              <span class="recipe-form__error">La quantité doit être supérieure à 0 g.</span>
+            }
           </label>
           <label class="recipe-form__field recipe-form__field--grow">
             <span class="recipe-form__label">Rôle (optionnel)</span>

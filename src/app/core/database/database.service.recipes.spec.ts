@@ -5,7 +5,7 @@ import Dexie from 'dexie';
 
 import { createProduct } from '../models/product';
 import { createProductReference } from '../models/product-reference';
-import { NUTRITION_DB_NAME } from './nutrition-database';
+import { NUTRITION_DB_NAME, NutritionDatabase } from './nutrition-database';
 import { deleteNutritionDatabase } from './nutrition-database.testing';
 import { DatabaseService } from './database.service';
 
@@ -284,5 +284,86 @@ describe('DatabaseService recipes', () => {
 
     expect(await service.countMealPlanEntriesForRecipe(recipeId)).toBe(0);
     expect(await service.getRecipeDetail(recipeId)).toBeUndefined();
+  });
+
+  it('lists recipes by creation date with newest first', async () => {
+    const productId = await seedProductWithPreferredReference('Tofu');
+
+    await service.createRecipeWithFirstVariant({
+      recipe: { title: 'Ancienne recette', steps: ['Étape'], defaultPortions: 1 },
+      variantName: 'Base',
+      ingredients: [{ productId, quantityG: 100 }],
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 5));
+
+    await service.createRecipeWithFirstVariant({
+      recipe: { title: 'Nouvelle recette', steps: ['Étape'], defaultPortions: 1 },
+      variantName: 'Base',
+      ingredients: [{ productId, quantityG: 100 }],
+    });
+
+    const list = await service.listRecipes();
+    expect(list.map((item) => item.recipe.title)).toEqual(['Nouvelle recette', 'Ancienne recette']);
+  });
+
+  it('rejects invalid duration on update', async () => {
+    const { recipeId } = await createSampleRecipe();
+
+    await expect(
+      service.updateRecipe(recipeId, {
+        title: 'Wrap poulet',
+        steps: ['Étape'],
+        defaultPortions: 2,
+        durationMin: Number.NaN,
+      }),
+    ).rejects.toThrow(/durée/i);
+  });
+
+  it('rejects update for unknown recipe id', async () => {
+    await expect(
+      service.updateRecipe('missing-recipe-id', {
+        title: 'Test',
+        steps: ['Étape'],
+        defaultPortions: 1,
+      }),
+    ).rejects.toThrow(/introuvable/i);
+  });
+
+  it('marks archived products on recipe detail ingredients', async () => {
+    const { recipeId, productId } = await createSampleRecipe();
+
+    await service.archiveProduct(productId);
+
+    const detail = await service.getRecipeDetail(recipeId);
+    const ingredient = detail?.variants[0]?.ingredients[0];
+
+    expect(ingredient?.productArchived).toBe(true);
+  });
+
+  it('omits macros from archived preferred references', async () => {
+    const { recipeId, productId } = await createSampleRecipe();
+    const product = await service.getProduct(productId);
+    if (!product?.preferredReferenceId) {
+      throw new Error('Preferred reference missing');
+    }
+
+    const db = new NutritionDatabase();
+    await db.open();
+    const reference = await db.productReferences.get(product.preferredReferenceId);
+    if (!reference) {
+      throw new Error('Reference missing');
+    }
+
+    await db.productReferences.put({
+      ...reference,
+      deletedAt: new Date().toISOString(),
+    });
+    await db.close();
+
+    const detail = await service.getRecipeDetail(recipeId);
+    const ingredient = detail?.variants[0]?.ingredients[0];
+
+    expect(ingredient?.macrosPer100g).toBeUndefined();
   });
 });

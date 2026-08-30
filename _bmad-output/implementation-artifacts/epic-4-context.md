@@ -42,7 +42,7 @@ Users build a personal recipe book as **families** with named **variants** (prod
 - Route `/recipes`: list shows family title with default variant name as subtitle; empty list uses `EmptyState` with CTA to create a recipe.
 - Recipe detail uses tabs or segments per variant; macros shown per portion for the active variant.
 - `VariantChipRow` (horizontal scroll, name + star rating) is the shared variant-selection pattern — used in recipe detail and later in meal plan (UX-DR7).
-- Ingredient editing via bottom sheet or inline form; long-press context menu on recipe cards for edit/delete.
+- Ingredient editing via bottom sheet or inline form; edit/delete accessible from recipe detail page (long-press context menu on list cards — post-MVP).
 - Product without preferred reference: actionable banner pattern already established in catalogue (UX-DR15); recipe ingredient add reuses the same blocking rule.
 - French UI strings throughout.
 

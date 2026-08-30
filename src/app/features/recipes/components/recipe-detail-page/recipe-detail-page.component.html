@@ -17,6 +17,12 @@
     @if (current.recipe.tags?.length) {
       <p class="recipe-detail__tags">{{ current.recipe.tags.join(' · ') }}</p>
     }
+    @if (current.recipe.notes) {
+      <section class="recipe-detail__notes" aria-labelledby="recipe-notes-title">
+        <h2 id="recipe-notes-title" class="recipe-detail__section-title">Notes</h2>
+        <p class="recipe-detail__notes-text">{{ current.recipe.notes }}</p>
+      </section>
+    }
   </header>
 
   <app-variant-chip-row
@@ -27,7 +33,12 @@
   />
 
   @if (activeVariant(); as variant) {
-    <section class="recipe-detail__panel" role="tabpanel" [attr.aria-label]="'Variante ' + variant.name">
+    <section
+      class="recipe-detail__panel"
+      role="tabpanel"
+      [id]="'variant-panel-' + variant.id"
+      [attr.aria-labelledby]="'variant-tab-' + variant.id"
+    >
       <div class="recipe-detail__rating-row">
         <span class="recipe-detail__label">Votre note</span>
         <app-star-rating
@@ -61,6 +72,9 @@
           <li class="recipe-detail__ingredient">
             <span class="recipe-detail__ingredient-name">
               {{ ingredient.productName }}
+              @if (ingredient.productArchived) {
+                <span class="recipe-detail__archived-badge">Archivé</span>
+              }
               @if (ingredient.slotLabel) {
                 <span class="recipe-detail__slot">({{ ingredient.slotLabel }})</span>
               }

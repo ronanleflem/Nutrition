@@ -7,7 +7,7 @@ import { RecipeVariantFormPageComponent } from './components/recipe-variant-form
 import { RecipesPageComponent } from './recipes-page.component';
 
 export const RECIPES_ROUTES: Routes = [
-  { path: '', component: RecipesPageComponent },
+  { path: '', component: RecipesPageComponent, data: { title: 'Recettes' } },
   { path: 'new', component: RecipeFormPageComponent, data: { title: 'Nouvelle recette' } },
   {
     path: ':id/variants/new',
