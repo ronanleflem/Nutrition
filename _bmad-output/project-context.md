@@ -35,6 +35,7 @@
 10. **Scan code-barres** — `@zxing/ngx-scanner` + lookup Open Food Facts ; toujours proposer saisie manuelle en repli (iOS).
 11. **Objectifs macros** — entité `MacroGoals` locale ; comparer le total du plan de repas du jour aux cibles.
 12. **Thème UI** — sombre par défaut ; palette contrastée pour usage magasin (lisibilité, OLED).
+13. **Recettes** — famille `Recipe` + `RecipeVariant` (substitution/scale) ; plan/cook via `mealPlanEntry.recipeVariantId` ; notation étoiles sur variante.
 
 ## Structure cible (features)
 
