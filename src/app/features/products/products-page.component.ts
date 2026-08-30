@@ -1,7 +1,23 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
+
+import { EmptyStateComponent } from './components/empty-state/empty-state.component';
+import { ProductCardComponent } from './components/product-card/product-card.component';
+import { ProductsService } from './services/products.service';
 
 @Component({
   selector: 'app-products-page',
-  template: `<p>Surface en construction.</p>`,
+  imports: [RouterLink, ProductCardComponent, EmptyStateComponent],
+  templateUrl: './products-page.component.html',
+  styleUrl: './products-page.component.scss',
 })
-export class ProductsPageComponent {}
+export class ProductsPageComponent implements OnInit {
+  private readonly productsService = inject(ProductsService);
+
+  readonly products = this.productsService.products;
+  readonly loading = this.productsService.loading;
+
+  ngOnInit(): void {
+    void this.productsService.loadProducts();
+  }
+}

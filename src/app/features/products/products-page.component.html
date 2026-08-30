@@ -1,0 +1,17 @@
+<section class="products-page">
+  <div class="products-page__toolbar">
+    <a class="products-page__add" routerLink="/products/new">Ajouter un produit</a>
+  </div>
+
+  @if (loading()) {
+    <p class="products-page__status" role="status">Chargement…</p>
+  } @else if (products().length === 0) {
+    <app-empty-state />
+  } @else {
+    <div class="products-page__list">
+      @for (product of products(); track product.id) {
+        <app-product-card [product]="product" />
+      }
+    </div>
+  }
+</section>

@@ -5,6 +5,14 @@ import {
   type AppSettings,
   createDefaultAppSettings,
 } from '../models/app-settings';
+import {
+  compareProductsForDisplay,
+  createProduct,
+  isActiveProduct,
+  type CreateProductInput,
+  type Product,
+  type UpdateProductInput,
+} from '../models/product';
 import { NutritionDatabase } from './nutrition-database';
 
 @Injectable({ providedIn: 'root' })
@@ -31,6 +39,53 @@ export class DatabaseService {
     }
 
     return settings;
+  }
+
+  async listActiveProducts(): Promise<Product[]> {
+    await this.initialize();
+
+    const products = await this.db!.products.toArray();
+    return products.filter(isActiveProduct).sort(compareProductsForDisplay);
+  }
+
+  async getProduct(id: string): Promise<Product | undefined> {
+    await this.initialize();
+
+    const product = await this.db!.products.get(id);
+    if (!product || !isActiveProduct(product)) {
+      return undefined;
+    }
+
+    return product;
+  }
+
+  async createProduct(input: CreateProductInput): Promise<Product> {
+    await this.initialize();
+
+    const product = createProduct(input);
+    await this.db!.products.put(product);
+    return product;
+  }
+
+  async updateProduct(id: string, input: UpdateProductInput): Promise<Product> {
+    await this.initialize();
+
+    const existing = await this.db!.products.get(id);
+    if (!existing || !isActiveProduct(existing)) {
+      throw new Error(`Produit introuvable : ${id}`);
+    }
+
+    const updated: Product = {
+      ...existing,
+      name: input.name.trim(),
+      category: input.category?.trim() || undefined,
+      priority: input.priority ?? undefined,
+      notes: input.notes?.trim() || undefined,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.db!.products.put(updated);
+    return updated;
   }
 
   /** Test helper to reset in-memory state after closing the Dexie connection. */

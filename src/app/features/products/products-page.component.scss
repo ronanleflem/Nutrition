@@ -1,0 +1,25 @@
+.products-page__toolbar {
+  margin-bottom: 16px;
+}
+
+.products-page__add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--spacing-touch-min);
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-positive);
+  color: var(--color-surface-base);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.products-page__status {
+  color: var(--color-ink-secondary);
+}
+
+.products-page__list {
+  display: flex;
+  flex-direction: column;
+}

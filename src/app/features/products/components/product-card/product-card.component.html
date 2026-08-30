@@ -1,0 +1,11 @@
+<a class="product-card" [routerLink]="['/products', product().id, 'edit']">
+  <div class="product-card__top">
+    <app-priority-badge [priority]="product().priority" />
+    <div class="product-card__info">
+      <div class="product-card__title">{{ product().name }}</div>
+      @if (product().category) {
+        <div class="product-card__meta">{{ product().category }}</div>
+      }
+    </div>
+  </div>
+</a>
