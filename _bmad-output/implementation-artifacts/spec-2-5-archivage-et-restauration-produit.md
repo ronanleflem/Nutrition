@@ -2,7 +2,7 @@
 title: 'Story 2.5 — Archivage et restauration produit'
 type: 'feature'
 created: '2026-08-30'
-status: 'in-review'
+status: 'done'
 review_loop_iteration: 0
 baseline_commit: '139f37f8a2b8c4e8f0e2b6f3a1d9c0e7b4a2f1d0'
 story_key: '2-5-archivage-et-restauration-produit'

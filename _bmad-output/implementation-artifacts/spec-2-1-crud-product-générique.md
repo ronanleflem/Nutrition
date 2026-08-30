@@ -2,7 +2,7 @@
 title: 'Story 2.1 — CRUD Product générique'
 type: 'feature'
 created: '2026-08-30'
-status: 'in-review'
+status: 'done'
 review_loop_iteration: 0
 baseline_commit: 'e588a0abfb3e992c3dac0193dc05e04e212ffb54'
 story_key: '2-1-crud-product-générique'

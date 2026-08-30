@@ -2,7 +2,7 @@
 title: 'Story 2.3 — Liste catalogue recherche et tri'
 type: 'feature'
 created: '2026-08-30'
-status: 'in-review'
+status: 'done'
 review_loop_iteration: 0
 baseline_commit: '1e850c3d7757d4a8511ca700d09c881c5a3fd1f'
 story_key: '2-3-liste-catalogue-recherche-et-tri'
