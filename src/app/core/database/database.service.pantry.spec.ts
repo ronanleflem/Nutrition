@@ -25,7 +25,7 @@ describe('DatabaseService pantry', () => {
   });
 
   it('creates a pantry line for an active product', async () => {
-    const product = await service.createProduct('Yaourt nature');
+    const product = await service.createProduct({ name: 'Yaourt nature' });
 
     const item = await service.addPantryItem({
       productId: product.id,
@@ -45,7 +45,7 @@ describe('DatabaseService pantry', () => {
   });
 
   it('rejects pantry add for archived product', async () => {
-    const product = await service.createProduct('Skyr');
+    const product = await service.createProduct({ name: 'Skyr' });
     const db = new NutritionDatabase();
     await db.open();
     await db.products.update(product.id, {
@@ -60,7 +60,7 @@ describe('DatabaseService pantry', () => {
   });
 
   it('updates pantry quantity and refreshes updatedAt', async () => {
-    const product = await service.createProduct('Riz');
+    const product = await service.createProduct({ name: 'Riz' });
     const created = await service.addPantryItem({ productId: product.id, quantityG: 500 });
 
     const updated = await service.updatePantryItem(created.id, { quantityG: 400 });
@@ -71,7 +71,7 @@ describe('DatabaseService pantry', () => {
   });
 
   it('deletes pantry row when quantity reaches zero', async () => {
-    const product = await service.createProduct('Pâtes');
+    const product = await service.createProduct({ name: 'Pâtes' });
     const created = await service.addPantryItem({ productId: product.id, quantityG: 300 });
 
     const result = await service.updatePantryItem(created.id, { quantityG: 0 });
@@ -82,7 +82,7 @@ describe('DatabaseService pantry', () => {
   });
 
   it('deletes pantry row explicitly', async () => {
-    const product = await service.createProduct('Tomates');
+    const product = await service.createProduct({ name: 'Tomates' });
     const created = await service.addPantryItem({ productId: product.id, quantityG: 200 });
 
     await service.deletePantryItem(created.id);
@@ -95,7 +95,7 @@ describe('DatabaseService pantry', () => {
     const products = await service.listActiveProducts();
     expect(products).toHaveLength(0);
 
-    const product = await service.createProduct('Bananes');
+    const product = await service.createProduct({ name: 'Bananes' });
     const active = await service.listActiveProducts();
 
     expect(active).toHaveLength(1);
@@ -103,7 +103,7 @@ describe('DatabaseService pantry', () => {
   });
 
   it('supports separate lines for the same product', async () => {
-    const product = await service.createProduct('Fromage');
+    const product = await service.createProduct({ name: 'Fromage' });
     await service.addPantryItem({ productId: product.id, quantityG: 100, location: 'Frigo' });
     await service.addPantryItem({ productId: product.id, quantityG: 50, location: 'Cellier' });
 

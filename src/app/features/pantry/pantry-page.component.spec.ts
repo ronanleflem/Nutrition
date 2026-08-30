@@ -57,7 +57,7 @@ describe('PantryPageComponent', () => {
   it('lists pantry items after refresh', async () => {
     const db = TestBed.inject(DatabaseService);
     await db.initialize();
-    const product = await db.createProduct('Lait');
+    const product = await db.createProduct({ name: 'Lait' });
     await db.addPantryItem({ productId: product.id, quantityG: 500 });
 
     const pantry = TestBed.inject(PantryService);
@@ -75,8 +75,8 @@ describe('PantryPageComponent', () => {
   it('shows expiry warning badge for near DLC', async () => {
     const db = TestBed.inject(DatabaseService);
     await db.initialize();
-    const near = await db.createProduct('Yaourt');
-    const far = await db.createProduct('Riz');
+    const near = await db.createProduct({ name: 'Yaourt' });
+    const far = await db.createProduct({ name: 'Riz' });
 
     const soon = new Date();
     soon.setDate(soon.getDate() + 2);
@@ -112,7 +112,7 @@ describe('PantryPageComponent', () => {
   it('shows filtered empty state when no near-expiry items match', async () => {
     const db = TestBed.inject(DatabaseService);
     await db.initialize();
-    const product = await db.createProduct('Pâtes');
+    const product = await db.createProduct({ name: 'Pâtes' });
     const later = new Date();
     later.setDate(later.getDate() + 10);
     const expiryDate = `${later.getFullYear()}-${String(later.getMonth() + 1).padStart(
