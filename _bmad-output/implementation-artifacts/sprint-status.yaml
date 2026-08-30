@@ -37,7 +37,7 @@ story_location: /workspace/_bmad-output/implementation-artifacts
 development_status:
   epic-1: in-progress
   1-1-scaffold-angular-pwa-et-routing-lazy: done
-  1-2-databaseservice-et-schéma-dexie-initial: backlog
+  1-2-databaseservice-et-schéma-dexie-initial: in-progress
   1-3-thème-sombre-et-shell-navigation: backlog
   1-4-service-worker-shell-offline: backlog
   epic-1-retrospective: optional
