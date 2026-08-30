@@ -1,0 +1,126 @@
+.recipe-detail__status,
+.recipe-detail__meta,
+.recipe-detail__tags {
+  color: var(--color-ink-secondary);
+}
+
+.recipe-detail__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.recipe-detail__title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.recipe-detail__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.recipe-detail__rating-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.recipe-detail__label,
+.recipe-detail__section-title {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+}
+
+.recipe-detail__default-button,
+.recipe-detail__add-variant,
+.recipe-detail__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--spacing-touch-min);
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.recipe-detail__default-button {
+  align-self: flex-start;
+  background: var(--color-surface-base);
+  color: var(--color-ink-primary);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.recipe-detail__default-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.recipe-detail__ingredients {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recipe-detail__ingredient {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.recipe-detail__ingredient-name {
+  color: var(--color-ink-primary);
+}
+
+.recipe-detail__slot {
+  color: var(--color-ink-secondary);
+}
+
+.recipe-detail__ingredient-qty {
+  color: var(--color-ink-secondary);
+  white-space: nowrap;
+}
+
+.recipe-detail__steps {
+  margin-top: 20px;
+}
+
+.recipe-detail__steps-list {
+  margin: 8px 0 0;
+  padding-left: 1.25rem;
+  color: var(--color-ink-primary);
+}
+
+.recipe-detail__add-variant {
+  margin-top: 20px;
+  background: var(--color-accent-positive);
+  color: var(--color-surface-base);
+}
+
+.recipe-detail__error {
+  margin-top: 12px;
+  color: #ef9a9a;
+}
+
+.recipe-detail__back {
+  margin-top: 12px;
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  border: 1px solid var(--color-border-subtle);
+}

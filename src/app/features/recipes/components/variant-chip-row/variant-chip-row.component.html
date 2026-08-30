@@ -1,0 +1,18 @@
+<div class="variant-chip-row" role="tablist" aria-label="Variantes de la recette">
+  @for (variant of variants(); track variant.id) {
+    <button
+      type="button"
+      class="variant-chip-row__chip"
+      role="tab"
+      [class.variant-chip-row__chip--active]="variant.id === selectedVariantId()"
+      [attr.aria-selected]="variant.id === selectedVariantId()"
+      (click)="onSelect(variant.id)"
+    >
+      <span class="variant-chip-row__name">{{ variant.name }}</span>
+      @if (variant.id === defaultVariantId()) {
+        <span class="variant-chip-row__badge">Par défaut</span>
+      }
+      <app-star-rating [value]="variant.rating" [readonly]="true" />
+    </button>
+  }
+</div>

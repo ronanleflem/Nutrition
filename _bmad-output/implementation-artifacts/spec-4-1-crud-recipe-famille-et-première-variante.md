@@ -75,18 +75,18 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/app/core/models/recipe.ts` — Recipe model and create input types.
-- [ ] `src/app/core/models/recipe-variant.ts` — RecipeVariant model.
-- [ ] `src/app/core/models/recipe-ingredient.ts` — RecipeIngredient model.
-- [ ] `src/app/core/models/recipe-list-item.ts` — list view type.
-- [ ] `src/app/core/database/nutrition-database.ts` — Dexie v5 migration.
-- [ ] `src/app/core/database/database.service.ts` — recipe create + list APIs.
-- [ ] `src/app/core/database/database.service.recipes.spec.ts` — matrix coverage tests.
-- [ ] `src/app/features/recipes/services/recipes.service.ts` — reactive recipe list + create.
-- [ ] `src/app/features/recipes/components/recipe-form-page/` — create recipe UI with validation.
-- [ ] `src/app/features/recipes/recipes-page.component.ts` — list + empty state + navigation.
-- [ ] `src/app/features/recipes/recipes.routes.ts` — wire create route.
-- [ ] `src/app/features/products/components/empty-state/empty-state.component.ts` — optional `ctaLink` input for reuse.
+- [x] `src/app/core/models/recipe.ts` — Recipe model and create input types.
+- [x] `src/app/core/models/recipe-variant.ts` — RecipeVariant model.
+- [x] `src/app/core/models/recipe-ingredient.ts` — RecipeIngredient model.
+- [x] `src/app/core/models/recipe-list-item.ts` — list view type.
+- [x] `src/app/core/database/nutrition-database.ts` — Dexie v5 migration.
+- [x] `src/app/core/database/database.service.ts` — recipe create + list APIs.
+- [x] `src/app/core/database/database.service.recipes.spec.ts` — matrix coverage tests.
+- [x] `src/app/features/recipes/services/recipes.service.ts` — reactive recipe list + create.
+- [x] `src/app/features/recipes/components/recipe-form-page/` — create recipe UI with validation.
+- [x] `src/app/features/recipes/recipes-page.component.ts` — list + empty state + navigation.
+- [x] `src/app/features/recipes/recipes.routes.ts` — wire create route.
+- [x] `src/app/features/products/components/empty-state/empty-state.component.ts` — optional `ctaLink` input for reuse.
 
 **Acceptance Criteria:**
 - Given active products with `preferredReferenceId`, when I create a recipe with title, steps, portions, first variant, and ingredients, then IndexedDB contains linked `recipes`, `recipeVariants`, and `recipeIngredients` rows with `defaultVariantId` set.

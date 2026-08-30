@@ -61,6 +61,21 @@ describe('DatabaseService recipes', () => {
     return created.id;
   }
 
+  async function createSampleRecipe(): Promise<{ recipeId: string; variantId: string; productId: string }> {
+    const productId = await seedProductWithPreferredReference('Poulet');
+    const result = await service.createRecipeWithFirstVariant({
+      recipe: {
+        title: 'Wrap poulet',
+        steps: ['Couper', 'Assembler'],
+        defaultPortions: 2,
+      },
+      variantName: 'Classique',
+      ingredients: [{ productId, quantityG: 150 }],
+    });
+
+    return { recipeId: result.recipe.id, variantId: result.variantId, productId };
+  }
+
   it('creates recipe with first variant and ingredients', async () => {
     const productId = await seedProductWithPreferredReference('Poulet');
 
@@ -146,5 +161,70 @@ describe('DatabaseService recipes', () => {
         ingredients: [{ productId: product.id, quantityG: 50 }],
       }),
     ).rejects.toThrow(/référence préférée/i);
+  });
+
+  it('adds an additional variant with its own ingredients', async () => {
+    const { recipeId, productId } = await createSampleRecipe();
+    const lavashId = await seedProductWithPreferredReference('Lavash');
+
+    const added = await service.addRecipeVariant({
+      recipeId,
+      name: 'Lavash',
+      rating: 4,
+      ingredients: [{ productId: lavashId, quantityG: 80 }, { productId, quantityG: 120 }],
+    });
+
+    const detail = await service.getRecipeDetail(recipeId);
+    expect(detail?.variants).toHaveLength(2);
+    const lavash = detail?.variants.find((variant) => variant.id === added.variantId);
+    expect(lavash?.name).toBe('Lavash');
+    expect(lavash?.rating).toBe(4);
+    expect(lavash?.ingredients).toHaveLength(2);
+  });
+
+  it('updates variant rating within 1-5', async () => {
+    const { recipeId, variantId } = await createSampleRecipe();
+
+    await service.updateVariantRating(variantId, 5);
+
+    const detail = await service.getRecipeDetail(recipeId);
+    const variant = detail?.variants.find((item) => item.id === variantId);
+    expect(variant?.rating).toBe(5);
+
+    await service.updateVariantRating(variantId, null);
+    const cleared = await service.getRecipeDetail(recipeId);
+    const clearedVariant = cleared?.variants.find((item) => item.id === variantId);
+    expect(clearedVariant?.rating).toBeUndefined();
+  });
+
+  it('rejects invalid variant rating', async () => {
+    const { variantId } = await createSampleRecipe();
+
+    await expect(service.updateVariantRating(variantId, 6)).rejects.toThrow(/note/i);
+  });
+
+  it('sets default variant among existing variants', async () => {
+    const { recipeId, variantId, productId } = await createSampleRecipe();
+    const added = await service.addRecipeVariant({
+      recipeId,
+      name: 'Double protéine',
+      ingredients: [{ productId, quantityG: 250 }],
+    });
+
+    const updated = await service.setDefaultVariant(recipeId, added.variantId);
+    expect(updated.defaultVariantId).toBe(added.variantId);
+    expect(updated.defaultVariantId).not.toBe(variantId);
+
+    const list = await service.listRecipes();
+    expect(list[0].defaultVariantName).toBe('Double protéine');
+  });
+
+  it('rejects default variant from another recipe', async () => {
+    const first = await createSampleRecipe();
+    const second = await createSampleRecipe();
+
+    await expect(service.setDefaultVariant(first.recipeId, second.variantId)).rejects.toThrow(
+      /variante introuvable/i,
+    );
   });
 });

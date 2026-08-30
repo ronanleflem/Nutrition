@@ -10,9 +10,11 @@
   } @else {
     <ul class="recipes-page__list" aria-label="Recettes">
       @for (item of recipes(); track item.recipe.id) {
-        <li class="recipes-page__card">
-          <span class="recipes-page__title">{{ item.recipe.title }}</span>
-          <span class="recipes-page__subtitle">{{ item.defaultVariantName }}</span>
+        <li>
+          <a class="recipes-page__card" [routerLink]="['/recipes', item.recipe.id]">
+            <span class="recipes-page__title">{{ item.recipe.title }}</span>
+            <span class="recipes-page__subtitle">{{ item.defaultVariantName }}</span>
+          </a>
         </li>
       }
     </ul>

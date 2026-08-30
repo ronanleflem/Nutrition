@@ -1,0 +1,24 @@
+.star-rating {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.star-rating__star {
+  min-width: var(--spacing-touch-min);
+  min-height: var(--spacing-touch-min);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-ink-disabled);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.star-rating__star--active {
+  color: #f5c542;
+}
+
+.star-rating__star:disabled {
+  cursor: default;
+}

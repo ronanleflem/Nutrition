@@ -1,8 +1,12 @@
 import { inject, Injectable, signal } from '@angular/core';
 
+import type { RecipeDetail } from '../../../core/models/recipe-detail';
 import type { RecipeListItem } from '../../../core/models/recipe-list-item';
+import type { Recipe } from '../../../core/models/recipe';
 import {
   DatabaseService,
+  type AddRecipeVariantInput,
+  type AddRecipeVariantResult,
   type CreateRecipeWithFirstVariantInput,
   type CreateRecipeResult,
 } from '../../../core/database/database.service';
@@ -25,11 +29,31 @@ export class RecipesService {
     }
   }
 
+  async getRecipeDetail(recipeId: string): Promise<RecipeDetail | undefined> {
+    return this.database.getRecipeDetail(recipeId);
+  }
+
   async createRecipeWithFirstVariant(
     input: CreateRecipeWithFirstVariantInput,
   ): Promise<CreateRecipeResult> {
     const result = await this.database.createRecipeWithFirstVariant(input);
     await this.loadRecipes();
     return result;
+  }
+
+  async addRecipeVariant(input: AddRecipeVariantInput): Promise<AddRecipeVariantResult> {
+    const result = await this.database.addRecipeVariant(input);
+    await this.loadRecipes();
+    return result;
+  }
+
+  async updateVariantRating(variantId: string, rating: number | null): Promise<void> {
+    await this.database.updateVariantRating(variantId, rating);
+  }
+
+  async setDefaultVariant(recipeId: string, variantId: string): Promise<Recipe> {
+    const recipe = await this.database.setDefaultVariant(recipeId, variantId);
+    await this.loadRecipes();
+    return recipe;
   }
 }
