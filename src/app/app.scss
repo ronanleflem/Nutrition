@@ -1,0 +1,17 @@
+.bootstrap-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: var(--spacing-screen-gutter);
+  background: var(--color-surface-base);
+  color: var(--color-ink-primary);
+  text-align: center;
+}
+
+.bootstrap-error__message {
+  margin: 0;
+  max-width: 28rem;
+  font-size: var(--font-size-body);
+  line-height: 1.5;
+}

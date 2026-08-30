@@ -1,0 +1,7 @@
+@if (bootstrap.bootstrapError(); as errorMessage) {
+  <div class="bootstrap-error" role="alert">
+    <p class="bootstrap-error__message">{{ errorMessage }}</p>
+  </div>
+} @else {
+  <router-outlet />
+}

@@ -13,9 +13,25 @@ Application personnelle pour faciliter une alimentation saine : garde-manger, re
 
 | Composant | Technologie |
 |-----------|-------------|
-| Frontend | Angular PWA |
+| Frontend | Angular 22 PWA |
 | Stockage | IndexedDB |
 | Enrichissement | Open Food Facts (lecture seule) |
+
+## Application Angular
+
+Prérequis : Node.js ≥ 22.22.3 (Angular CLI 22).
+
+```bash
+npm install
+npm start      # dev server http://localhost:4200
+npm run build  # build production + service worker
+```
+
+Routes lazy disponibles : `/pantry`, `/products`, `/recipes`, `/plan`, `/shopping`, `/goals`, `/settings`.
+
+Pour tester le shell offline : `npm run build` puis servir `dist/nutrition/browser` (ex. `npx http-server dist/nutrition/browser`) et couper le réseau après la première visite.
+
+**Service worker :** en production, le SW s’enregistre via `registerWhenStable:30000` (au plus 30 s après stabilisation de l’app). La première visite doit rester en ligne assez longtemps pour que le SW installe le shell et les chunks lazy. `navigationRequestStrategy: freshness` tente le réseau avant le cache pour les navigations — hors ligne, le shell utilise le cache après installation du SW.
 
 ## Démarrage BMAD
 
