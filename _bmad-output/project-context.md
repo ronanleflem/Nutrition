@@ -66,6 +66,7 @@ src/app/
 | UX Design | `_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/DESIGN.md` |
 | UX Experience | `_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/EXPERIENCE.md` |
 | Epics & Stories | `_bmad-output/planning-artifacts/epics.md` |
+| Sprint status | `_bmad-output/implementation-artifacts/sprint-status.yaml` |
 
 ## Hors scope MVP
 
