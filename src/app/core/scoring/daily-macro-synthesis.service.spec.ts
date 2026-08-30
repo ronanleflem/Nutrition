@@ -62,7 +62,7 @@ describe('DailyMacroSynthesisService', () => {
     return { recipeId: result.recipe.id, variantId: result.variantId };
   }
 
-  it('returns empty synthesis with neutral bars when no meals are planned', async () => {
+  it('returns empty synthesis with under bar state when no meals are planned', async () => {
     await databaseService.updateMacroGoals({ kcal: 2000, proteinG: 150 });
 
     const synthesis = await service.getDailySynthesis('2026-08-30');

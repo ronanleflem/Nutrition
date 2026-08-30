@@ -16,7 +16,7 @@
       <p class="macro-goals-form__success" role="status">Objectifs enregistrés.</p>
     }
 
-    <fieldset class="macro-goals-form__fieldset">
+    <fieldset class="macro-goals-form__fieldset" [disabled]="!!macroGoalsService.loadError()">
       <legend class="macro-goals-form__legend">Cibles journalières</legend>
 
       <label class="macro-goals-form__field">
@@ -95,7 +95,11 @@
       </label>
     </fieldset>
 
-    <button class="macro-goals-form__button" type="submit" [disabled]="saving() || macroGoalsService.loading()">
+    <button
+      class="macro-goals-form__button"
+      type="submit"
+      [disabled]="saving() || macroGoalsService.loading() || !!macroGoalsService.loadError()"
+    >
       {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
     </button>
   </form>

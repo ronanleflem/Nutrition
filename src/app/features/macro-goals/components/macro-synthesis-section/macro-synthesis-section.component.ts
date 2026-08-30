@@ -18,6 +18,7 @@ import { MacroSynthesisSheetComponent } from '../macro-synthesis-sheet/macro-syn
 })
 export class MacroSynthesisSectionComponent implements OnInit {
   private readonly synthesisService = inject(DailyMacroSynthesisService);
+  private reloadSeq = 0;
 
   readonly selectedDate = signal(todayIsoDate());
   readonly synthesis = signal<DailyMacroSynthesis | null>(null);
@@ -30,17 +31,27 @@ export class MacroSynthesisSectionComponent implements OnInit {
   }
 
   async reload(): Promise<void> {
+    const reloadId = ++this.reloadSeq;
     this.loading.set(true);
     this.loadError.set(null);
 
     try {
-      const result = await this.synthesisService.getDailySynthesis(this.selectedDate());
+      const date = this.selectedDate();
+      const result = await this.synthesisService.getDailySynthesis(date);
+      if (reloadId !== this.reloadSeq) {
+        return;
+      }
       this.synthesis.set(result);
     } catch {
+      if (reloadId !== this.reloadSeq) {
+        return;
+      }
       this.loadError.set('Impossible de charger la synthèse du jour.');
       this.synthesis.set(null);
     } finally {
-      this.loading.set(false);
+      if (reloadId === this.reloadSeq) {
+        this.loading.set(false);
+      }
     }
   }
 

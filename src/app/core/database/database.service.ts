@@ -153,7 +153,10 @@ export class DatabaseService {
     for (const field of fields) {
       if (field in input) {
         const value = input[field];
-        if (value != null && value >= 0) {
+        if (value != null) {
+          if (value < 0) {
+            throw new Error('Les objectifs macros doivent être positifs ou nuls.');
+          }
           updated[field] = value;
         }
       } else if (current[field] != null) {

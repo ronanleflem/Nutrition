@@ -1,9 +1,11 @@
 .macro-bar {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 6px;
   width: 100%;
-  padding: 0;
+  min-height: var(--spacing-touch-min);
+  padding: 8px 0;
   border: none;
   background: transparent;
   color: inherit;

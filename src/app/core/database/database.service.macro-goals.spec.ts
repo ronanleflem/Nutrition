@@ -86,6 +86,17 @@ describe('DatabaseService macro goals', () => {
     expect(goals.kcal).toBeUndefined();
   });
 
+  it('rejects negative macro goal values', async () => {
+    await service.updateMacroGoals({ kcal: 2000, proteinG: 120 });
+
+    await expect(service.updateMacroGoals({ proteinG: -5 })).rejects.toThrow(
+      'Les objectifs macros doivent être positifs ou nuls.',
+    );
+
+    const goals = await service.getMacroGoals();
+    expect(goals.proteinG).toBe(120);
+  });
+
   it('persists macroGoals across service re-instantiation', async () => {
     await service.updateMacroGoals({ kcal: 1800, proteinG: 100 });
     await service.closeForTests();
