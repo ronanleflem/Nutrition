@@ -25,13 +25,13 @@ describe('app routes', () => {
   });
 
   const lazyRoutes = [
-  { path: '/pantry', text: 'Surface en construction.' },
-  { path: '/products', text: 'Ajouter un produit' },
-  { path: '/recipes', text: 'Surface en construction.' },
-  { path: '/plan', text: 'Surface en construction.' },
-  { path: '/shopping', text: 'Surface en construction.' },
-  { path: '/goals', text: 'Surface en construction.' },
-  { path: '/settings', text: 'Produits archivés' },
+    { path: '/pantry', text: '+' },
+    { path: '/products', text: 'Ajouter un produit' },
+    { path: '/recipes', text: 'Surface en construction.' },
+    { path: '/plan', text: 'Surface en construction.' },
+    { path: '/shopping', text: 'Surface en construction.' },
+    { path: '/goals', text: 'Surface en construction.' },
+    { path: '/settings', text: 'Produits archivés' },
   ];
 
   for (const route of lazyRoutes) {

@@ -1,0 +1,91 @@
+@if (pantry.loading() && pantry.items().length === 0) {
+  <p class="pantry__loading">Chargement du garde-manger…</p>
+} @else if (pantry.items().length === 0) {
+  <div class="pantry__empty" role="status">
+    <p class="pantry__empty-icon" aria-hidden="true">📦</p>
+    <p class="pantry__empty-title">Votre garde-manger est vide</p>
+    <p class="pantry__empty-text">Ajoutez ce que vous avez chez vous pour préparer vos courses.</p>
+    <button type="button" class="pantry__empty-cta" (click)="openAddSheet()">
+      Ajouter un produit
+    </button>
+  </div>
+} @else {
+  <div class="pantry__controls" aria-label="Tri et filtres garde-manger">
+    <label class="pantry__control">
+      <span class="pantry__control-label">Tri</span>
+      <select
+        class="pantry__control-select"
+        [value]="pantry.sortMode()"
+        (change)="onSortChange($event)"
+      >
+        <option value="name">Nom (A–Z)</option>
+        <option value="expiry">DLC (proches d’abord)</option>
+      </select>
+    </label>
+    <label class="pantry__control">
+      <span class="pantry__control-label">Filtre</span>
+      <select
+        class="pantry__control-select"
+        [value]="pantry.filterMode()"
+        (change)="onFilterChange($event)"
+      >
+        <option value="all">Tous</option>
+        <option value="expiring">DLC proche (≤ 3 jours)</option>
+      </select>
+    </label>
+  </div>
+
+  @if (pantry.displayItems().length === 0) {
+    <div class="pantry__empty" role="status">
+      <p class="pantry__empty-icon" aria-hidden="true">🔍</p>
+      <p class="pantry__empty-title">Aucun produit avec DLC proche</p>
+      <p class="pantry__empty-text">Aucune ligne correspond à ce filtre pour le moment.</p>
+      <button type="button" class="pantry__empty-cta pantry__empty-cta--secondary" (click)="showAllItems()">
+        Afficher tout le stock
+      </button>
+    </div>
+  } @else {
+    <ul class="pantry__list" aria-label="Stock garde-manger">
+      @for (item of pantry.displayItems(); track item.id) {
+        <li>
+          <button type="button" class="pantry__row" (click)="openEditSheet(item)">
+            <span class="pantry__row-main">
+              <span class="pantry__row-name">{{ item.productName }}</span>
+              @if (item.expiryDate && hasExpiryAlert(item.expiryDate)) {
+                <span class="pantry__badge" role="status">
+                  {{ expiryAlertLabel(item.expiryDate) }}
+                </span>
+              }
+            </span>
+            <span class="pantry__row-meta">
+              <span class="pantry__row-quantity">{{ formatQuantity(item.quantityG) }}</span>
+              @if (formatExpiry(item.expiryDate); as expiry) {
+                <span class="pantry__row-expiry">DLC {{ expiry }}</span>
+              }
+              @if (item.location) {
+                <span class="pantry__row-location">{{ item.location }}</span>
+              }
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+}
+
+<button
+  type="button"
+  class="pantry__fab"
+  aria-label="Ajouter au garde-manger"
+  (click)="openAddSheet()"
+>
+  +
+</button>
+
+@if (sheetOpen()) {
+  <app-pantry-add-sheet
+    [item]="editingItem()"
+    (closed)="closeSheet()"
+    (saved)="onSheetSaved()"
+  />
+}
