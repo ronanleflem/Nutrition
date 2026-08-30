@@ -1,0 +1,28 @@
+.meal-plan-page__title {
+  margin: 0 0 8px;
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.meal-plan-page__intro {
+  margin: 0 0 16px;
+  color: var(--color-ink-secondary);
+}
+
+.meal-plan-page__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meal-plan-page__link {
+  display: flex;
+  align-items: center;
+  min-height: var(--spacing-touch-min);
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-ink-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
+}

@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie';
 
 import type { AppSettings } from '../models/app-settings';
+import type { MacroGoals } from '../models/macro-goals';
 import type { MealPlanEntry } from '../models/meal-plan-entry';
 import type { PantryItem } from '../models/pantry-item';
 import type { Product } from '../models/product';
@@ -10,10 +11,11 @@ import type { RecipeIngredient } from '../models/recipe-ingredient';
 import type { RecipeVariant } from '../models/recipe-variant';
 
 export const NUTRITION_DB_NAME = 'NutritionDb';
-export const NUTRITION_DB_VERSION = 6;
+export const NUTRITION_DB_VERSION = 7;
 
 export class NutritionDatabase extends Dexie {
   appSettings!: EntityTable<AppSettings, 'id'>;
+  macroGoals!: EntityTable<MacroGoals, 'id'>;
   products!: EntityTable<Product, 'id'>;
   productReferences!: EntityTable<ProductReference, 'id'>;
   pantryItems!: EntityTable<PantryItem, 'id'>;
@@ -57,8 +59,20 @@ export class NutritionDatabase extends Dexie {
       recipeIngredients: 'id, variantId, productId',
     });
 
+    this.version(6).stores({
+      appSettings: 'id',
+      products: 'id',
+      productReferences: 'id, productId, barcode, nutritionalScore, store',
+      pantryItems: 'id, productId, quantityG, updatedAt',
+      recipes: 'id, title, defaultVariantId, createdAt',
+      recipeVariants: 'id, recipeId',
+      recipeIngredients: 'id, variantId, productId',
+      mealPlanEntries: 'id, date, slot, recipeId',
+    });
+
     this.version(NUTRITION_DB_VERSION).stores({
       appSettings: 'id',
+      macroGoals: 'id',
       products: 'id',
       productReferences: 'id, productId, barcode, nutritionalScore, store',
       pantryItems: 'id, productId, quantityG, updatedAt',
