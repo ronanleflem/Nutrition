@@ -21,6 +21,7 @@ export class ScannerPageComponent implements OnInit, OnDestroy {
   readonly manualBarcode = signal('');
   readonly resolving = this.scanService.resolving;
   readonly errorMessage = this.scanService.lastError;
+  readonly pendingRestore = this.scanService.pendingRestore;
 
   private scanLocked = false;
 
@@ -69,5 +70,13 @@ export class ScannerPageComponent implements OnInit, OnDestroy {
 
   openManualEntry(): void {
     this.scanService.openManualEntry(this.manualBarcode());
+  }
+
+  async restoreArchivedProduct(): Promise<void> {
+    await this.scanService.restorePendingProduct();
+  }
+
+  dismissRestorePrompt(): void {
+    this.scanService.clearPendingRestore();
   }
 }

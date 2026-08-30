@@ -16,6 +16,7 @@ export class ReferenceRowComponent {
   readonly reference = input.required<ProductReference>();
   readonly productId = input.required<string>();
   readonly isPreferred = input(false);
+  readonly productArchived = input(false);
 
   readonly setPreferred = output<string>();
 

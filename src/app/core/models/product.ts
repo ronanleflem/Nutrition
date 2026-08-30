@@ -48,6 +48,10 @@ export function isActiveProduct(product: Product): boolean {
   return product.deletedAt == null;
 }
 
+export function isArchivedProduct(product: Product): boolean {
+  return product.deletedAt != null;
+}
+
 /** @deprecated Use compareProductCatalogItems from product-catalog.ts */
 export function compareProductsForDisplay(a: Product, b: Product): number {
   return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });

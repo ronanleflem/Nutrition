@@ -90,4 +90,27 @@ describe('ScanService', () => {
     expect(service.flowState()?.status).toBe('offline');
     expect(navigateSpy).toHaveBeenCalledWith(['/products', 'scan', 'reference']);
   });
+
+  it('prompts restore when barcode matches an archived product', async () => {
+    const product = await database.createProduct({ name: 'Nutella archivé' });
+    const reference = await database.createProductReference({
+      productId: product.id,
+      store: 'auchan',
+      label: 'Nutella pot',
+      barcode: '3017620422003',
+      kcalPer100g: 539,
+      proteinPer100g: 6.3,
+      fatPer100g: 30.9,
+      carbsPer100g: 57.5,
+    });
+    await database.archiveProduct(product.id);
+
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    await service.resolveBarcode('3017620422003');
+
+    expect(navigateSpy).not.toHaveBeenCalled();
+    expect(service.pendingRestore()?.product.id).toBe(product.id);
+    expect(service.pendingRestore()?.reference.id).toBe(reference.id);
+  });
 });

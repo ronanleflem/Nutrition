@@ -20,6 +20,9 @@
       <a class="product-detail__edit" [routerLink]="['/products', item.product.id, 'edit']">
         Modifier le produit
       </a>
+      <button class="product-detail__archive" type="button" (click)="openArchiveConfirm()">
+        Archiver le produit
+      </button>
     </header>
 
     @if (!item.product.preferredReferenceId) {
@@ -48,5 +51,16 @@
         }
       </div>
     }
+  }
+
+  @if (showArchiveConfirm()) {
+    <app-confirm-dialog
+      title="Archiver ce produit ?"
+      message="Le produit disparaîtra du catalogue mais restera référencé dans vos recettes et votre garde-manger."
+      confirmLabel="Archiver"
+      cancelLabel="Annuler"
+      (confirmed)="confirmArchive()"
+      (cancelled)="closeArchiveConfirm()"
+    />
   }
 </section>

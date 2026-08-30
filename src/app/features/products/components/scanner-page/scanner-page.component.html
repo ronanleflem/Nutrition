@@ -60,4 +60,31 @@
     Créer sans recherche
   </button>
   </div>
+
+  @if (pendingRestore(); as match) {
+    <div class="scanner-page__sheet" role="dialog" aria-modal="true" aria-label="Restaurer le produit">
+      <div class="scanner-page__sheet-panel">
+        <h2 class="scanner-page__sheet-title">Restaurer cette référence ?</h2>
+        <p class="scanner-page__sheet-message">
+          « {{ match.reference.label }} » est liée au produit archivé « {{ match.product.name }} ».
+        </p>
+        <div class="scanner-page__sheet-actions">
+          <button
+            class="scanner-page__button scanner-page__button--secondary"
+            type="button"
+            (click)="dismissRestorePrompt()"
+          >
+            Annuler
+          </button>
+          <button
+            class="scanner-page__button scanner-page__button--primary"
+            type="button"
+            (click)="restoreArchivedProduct()"
+          >
+            Restaurer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </section>

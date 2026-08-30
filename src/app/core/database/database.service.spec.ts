@@ -263,4 +263,44 @@ describe('DatabaseService', () => {
 
     expect(found?.id).toBe(reference.id);
   });
+
+  it('archives and restores a product', async () => {
+    const product = await service.createProduct({ name: 'Yaourt' });
+
+    const archived = await service.archiveProduct(product.id);
+    expect(archived.deletedAt).toBeTruthy();
+
+    const activeProducts = await service.listActiveProducts();
+    expect(activeProducts).toHaveLength(0);
+
+    const archivedProducts = await service.listArchivedProducts();
+    expect(archivedProducts).toHaveLength(1);
+    expect(archivedProducts[0].name).toBe('Yaourt');
+
+    const restored = await service.restoreProduct(product.id);
+    expect(restored.deletedAt).toBeNull();
+    expect((await service.listActiveProducts()).map((item) => item.name)).toEqual(['Yaourt']);
+  });
+
+  it('finds a reference by barcode including archived products', async () => {
+    const product = await service.createProduct({ name: 'Nutella' });
+    const reference = await service.createProductReference({
+      productId: product.id,
+      store: 'auchan',
+      label: 'Nutella pot',
+      barcode: '3017620422003',
+      kcalPer100g: 539,
+      proteinPer100g: 6.3,
+      fatPer100g: 30.9,
+      carbsPer100g: 57.5,
+    });
+
+    await service.archiveProduct(product.id);
+
+    const match = await service.findReferenceByBarcode('3017620422003');
+
+    expect(match?.reference.id).toBe(reference.id);
+    expect(match?.product.id).toBe(product.id);
+    expect(match?.product.deletedAt).toBeTruthy();
+  });
 });

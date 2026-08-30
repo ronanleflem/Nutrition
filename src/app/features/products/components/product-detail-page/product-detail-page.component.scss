@@ -38,6 +38,18 @@
   font-size: var(--font-size-meta);
 }
 
+.product-detail__archive {
+  display: block;
+  margin-top: 12px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #ef9a9a;
+  font: inherit;
+  font-size: var(--font-size-meta);
+  cursor: pointer;
+}
+
 .product-detail__banner {
   margin: 0 0 16px;
   padding: 12px 14px;

@@ -40,6 +40,11 @@
   font-weight: var(--font-weight-semibold);
 }
 
+.reference-row__badge--archived {
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-secondary);
+}
+
 .reference-row__macros {
   margin-top: 8px;
   font-size: var(--font-size-meta);

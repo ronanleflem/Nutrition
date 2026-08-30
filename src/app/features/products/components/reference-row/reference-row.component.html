@@ -11,6 +11,9 @@
     @if (isPreferred()) {
       <span class="reference-row__badge">Préférée</span>
     }
+    @if (productArchived()) {
+      <span class="reference-row__badge reference-row__badge--archived">Archivé</span>
+    }
   </div>
   <div class="reference-row__macros">{{ macrosLine() }}</div>
   @if (!isPreferred()) {

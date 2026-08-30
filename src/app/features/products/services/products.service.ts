@@ -73,6 +73,22 @@ export class ProductsService {
     return product;
   }
 
+  async archiveProduct(id: string): Promise<Product> {
+    const product = await this.database.archiveProduct(id);
+    await this.loadCatalog();
+    return product;
+  }
+
+  async restoreProduct(id: string): Promise<Product> {
+    const product = await this.database.restoreProduct(id);
+    await this.loadCatalog();
+    return product;
+  }
+
+  async listArchivedProducts(): Promise<Product[]> {
+    return this.database.listArchivedProducts();
+  }
+
   async getReferenceByBarcode(barcode: string): Promise<ProductReference | undefined> {
     return this.database.getActiveReferenceByBarcode(barcode);
   }

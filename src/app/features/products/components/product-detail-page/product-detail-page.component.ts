@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
 import {
   sortReferencesForDisplay,
   type ProductCatalogItem,
@@ -13,18 +14,21 @@ import { ProductsService } from '../../services/products.service';
 
 @Component({
   selector: 'app-product-detail-page',
-  imports: [RouterLink, PriorityBadgeComponent, ReferenceRowComponent],
+  imports: [RouterLink, PriorityBadgeComponent, ReferenceRowComponent, ConfirmDialogComponent],
   templateUrl: './product-detail-page.component.html',
   styleUrl: './product-detail-page.component.scss',
 })
 export class ProductDetailPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly productsService = inject(ProductsService);
 
   readonly catalogItem = signal<ProductCatalogItem | undefined>(undefined);
   readonly references = signal<ProductReference[]>([]);
   readonly loading = signal(true);
   readonly loadError = signal<string | null>(null);
+  readonly showArchiveConfirm = signal(false);
+  readonly archiving = signal(false);
 
   private productId: string | null = null;
 
@@ -47,6 +51,30 @@ export class ProductDetailPageComponent implements OnInit {
 
     await this.productsService.setPreferredReference(this.productId, referenceId);
     await this.load();
+  }
+
+  openArchiveConfirm(): void {
+    this.showArchiveConfirm.set(true);
+  }
+
+  closeArchiveConfirm(): void {
+    this.showArchiveConfirm.set(false);
+  }
+
+  async confirmArchive(): Promise<void> {
+    if (!this.productId) {
+      return;
+    }
+
+    this.archiving.set(true);
+
+    try {
+      await this.productsService.archiveProduct(this.productId);
+      this.showArchiveConfirm.set(false);
+      await this.router.navigate(['/products']);
+    } finally {
+      this.archiving.set(false);
+    }
   }
 
   private async load(): Promise<void> {

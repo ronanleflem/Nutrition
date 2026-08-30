@@ -169,6 +169,74 @@ export class DatabaseService {
     return reference;
   }
 
+  async findReferenceByBarcode(
+    barcode: string,
+  ): Promise<{ reference: ProductReference; product: Product } | undefined> {
+    await this.initialize();
+
+    const normalized = barcode.trim();
+    if (!normalized) {
+      return undefined;
+    }
+
+    const reference = await this.db!.productReferences.where('barcode').equals(normalized).first();
+    if (!reference || !isActiveProductReference(reference)) {
+      return undefined;
+    }
+
+    const product = await this.db!.products.get(reference.productId);
+    if (!product) {
+      return undefined;
+    }
+
+    return { reference, product };
+  }
+
+  async archiveProduct(id: string): Promise<Product> {
+    await this.initialize();
+
+    const existing = await this.db!.products.get(id);
+    if (!existing || !isActiveProduct(existing)) {
+      throw new Error(`Produit introuvable : ${id}`);
+    }
+
+    const updated: Product = {
+      ...existing,
+      deletedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.db!.products.put(updated);
+    return updated;
+  }
+
+  async restoreProduct(id: string): Promise<Product> {
+    await this.initialize();
+
+    const existing = await this.db!.products.get(id);
+    if (!existing || isActiveProduct(existing)) {
+      throw new Error(`Produit archivé introuvable : ${id}`);
+    }
+
+    const updated: Product = {
+      ...existing,
+      deletedAt: null,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.db!.products.put(updated);
+    return updated;
+  }
+
+  async listArchivedProducts(): Promise<Product[]> {
+    await this.initialize();
+
+    const products = await this.db!.products.toArray();
+    return products
+      .filter((product) => !isActiveProduct(product))
+      .sort((left, right) => left.name.localeCompare(right.name, 'fr', { sensitivity: 'base' }));
+  }
+
   async createProductReference(input: CreateProductReferenceInput): Promise<ProductReference> {
     await this.initialize();
 
