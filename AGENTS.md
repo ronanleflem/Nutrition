@@ -27,7 +27,7 @@ PWA Angular personnelle : garde-manger, recettes, planification repas, liste de 
 
 - Installer BMAD : `npx bmad-method install` (déjà fait ; modules core + bmm, outil cursor)
 - Scripts BMAD build : `uv run _bmad/scripts/...` — nécessite `uv` sur PATH
-- App Angular : TODO après story E1 setup — `npm start` / `ng serve` (à vérifier au premier refresh)
+- App Angular : `npm install` puis `npm start` (Node ≥ 22.22.3 requis pour Angular CLI 22)
 
 ## Conventions that differ from defaults
 

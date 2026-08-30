@@ -13,9 +13,21 @@ Application personnelle pour faciliter une alimentation saine : garde-manger, re
 
 | Composant | Technologie |
 |-----------|-------------|
-| Frontend | Angular PWA |
+| Frontend | Angular 22 PWA |
 | Stockage | IndexedDB |
 | Enrichissement | Open Food Facts (lecture seule) |
+
+## Application Angular
+
+Prérequis : Node.js ≥ 22.22.3 (Angular CLI 22).
+
+```bash
+npm install
+npm start      # dev server http://localhost:4200
+npm run build  # build production + service worker
+```
+
+Routes lazy disponibles : `/pantry`, `/products`, `/recipes`, `/plan`, `/shopping`, `/goals`, `/settings`.
 
 ## Démarrage BMAD
 
