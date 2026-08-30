@@ -60,6 +60,7 @@ src/app/
 | Addendum | `_bmad-output/planning-artifacts/brief-2026-08-30/addendum.md` |
 | PRD | `_bmad-output/planning-artifacts/prds/prd-Nutrition-2026-08-30/prd.md` |
 | PRD addendum | `_bmad-output/planning-artifacts/prds/prd-Nutrition-2026-08-30/addendum.md` |
+| Spec canonique | `_bmad-output/specs/spec-nutrition/SPEC.md` |
 | Architecture spine | `_bmad-output/planning-artifacts/architecture/architecture-Nutrition-2026-08-30/ARCHITECTURE-SPINE.md` |
 | Solution design | `_bmad-output/planning-artifacts/architecture/architecture-Nutrition-2026-08-30/SOLUTION-DESIGN.md` |
 

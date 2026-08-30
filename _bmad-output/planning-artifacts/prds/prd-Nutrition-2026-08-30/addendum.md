@@ -16,7 +16,7 @@ Détails techniques et décisions de transport pour `bmad-architecture` et `bmad
 
 | Couche | Choix |
 |--------|-------|
-| Framework | Angular 19+ (standalone components) |
+| Framework | Angular 22.1.4 (standalone components) |
 | PWA | `@angular/service-worker` |
 | DB | Dexie.js sur IndexedDB |
 | Scanner | `@zxing/ngx-scanner` |
@@ -24,18 +24,22 @@ Détails techniques et décisions de transport pour `bmad-architecture` et `bmad
 | Chiffrement export | Web Crypto API — PBKDF2 + AES-GCM |
 | State | Angular signals + services |
 
-## Schéma IndexedDB (draft)
+## Schéma IndexedDB
+
+> **Supersédé** par le SPEC canonique et l’architecture spine (Product + ProductReference, Recipe + RecipeVariant). Source de vérité implémentation :
+
+`_bmad-output/specs/spec-nutrition/data-model.md`
+
+Résumé MVP :
 
 ```
-products          id, name, brand, barcode?, kcal, protein, fat, carbs, fiber, ingredients, deletedAt?, createdAt
-pantryItems       id, productId, quantityG, expiryDate?, location?, updatedAt
-recipes           id, title, steps[], durationMin, portions, tags[], createdAt
-recipeIngredients id, recipeId, productId, quantityG
-mealPlanEntries   id, date (ISO), slot (breakfast|lunch|dinner), recipeId
-shoppingListItems id, productId, quantityG, checked, source (auto|manual), createdAt
-macroGoals        id (singleton), kcal?, proteinG?, fatG?, carbsG?, fiberG?
-appSettings       id (singleton), lastExportAt?, theme ('dark')
+products, productReferences
+recipes, recipeVariants, recipeIngredients (variantId)
+pantryItems, mealPlanEntries (+ recipeVariantId?)
+shoppingListItems, macroGoals, appSettings
 ```
+
+Voir aussi `ARCHITECTURE-SPINE.md` (AD-3, AD-4, AD-13, AD-14).
 
 ## Format export JSON
 
@@ -46,8 +50,9 @@ appSettings       id (singleton), lastExportAt?, theme ('dark')
   "app": "nutrition",
   "data": {
     "products": [],
-    "pantryItems": [],
+    "productReferences": [],
     "recipes": [],
+    "recipeVariants": [],
     "recipeIngredients": [],
     "mealPlanEntries": [],
     "shoppingListItems": [],

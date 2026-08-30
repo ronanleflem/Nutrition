@@ -16,6 +16,7 @@ sources:
   - ../../project-context.md
 companions:
   - SOLUTION-DESIGN.md
+  - ../../specs/spec-nutrition/SPEC.md
 ---
 
 # Architecture Spine — Nutrition
