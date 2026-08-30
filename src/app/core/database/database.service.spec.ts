@@ -245,4 +245,22 @@ describe('DatabaseService', () => {
     const catalog = await service.listProductCatalog();
     expect(catalog.map((item) => item.product.name)).toEqual(['Skyr', 'Wrap']);
   });
+
+  it('finds an active reference by barcode', async () => {
+    const product = await service.createProduct({ name: 'Nutella' });
+    const reference = await service.createProductReference({
+      productId: product.id,
+      store: 'auchan',
+      label: 'Nutella pot',
+      barcode: '3017620422003',
+      kcalPer100g: 539,
+      proteinPer100g: 6.3,
+      fatPer100g: 30.9,
+      carbsPer100g: 57.5,
+    });
+
+    const found = await service.getActiveReferenceByBarcode('3017620422003');
+
+    expect(found?.id).toBe(reference.id);
+  });
 });

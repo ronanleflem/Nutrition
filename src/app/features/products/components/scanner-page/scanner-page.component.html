@@ -1,0 +1,63 @@
+<section class="scanner-page">
+  <header class="scanner-page__header">
+    <a class="scanner-page__close" routerLink="/products" aria-label="Fermer le scanner">✕</a>
+    <h1 class="scanner-page__title">Scanner</h1>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="scanner-page__error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (cameraEnabled() && !cameraDenied()) {
+    <div class="scanner-page__viewport">
+      <zxing-scanner
+        class="scanner-page__camera"
+        [autostart]="true"
+        (scanSuccess)="onScanSuccess($event)"
+        (permissionResponse)="onPermissionResponse($event)"
+        (camerasNotFound)="onCamerasNotFound()"
+        (scanError)="onScanError()"
+      />
+      <p class="scanner-page__hint">Placez le code-barres dans le cadre</p>
+    </div>
+  } @else if (!isIos()) {
+    <p class="scanner-page__fallback-message" role="status">
+      Caméra indisponible — saisissez le code manuellement.
+    </p>
+  }
+
+  <div class="scanner-page__manual">
+    <h2 class="scanner-page__manual-title">Saisir le code</h2>
+    <label class="scanner-page__manual-field">
+      <span class="visually-hidden">Code-barres EAN</span>
+      <input
+        class="scanner-page__manual-input"
+        type="text"
+        inputmode="numeric"
+        placeholder="EAN-8 ou EAN-13"
+        [disabled]="resolving()"
+        [ngModel]="manualBarcode()"
+        (ngModelChange)="manualBarcode.set($event)"
+      />
+    </label>
+  </div>
+
+  <div class="scanner-page__actions">
+  <button
+    class="scanner-page__button scanner-page__button--primary"
+    type="button"
+    [disabled]="resolving() || !manualBarcode().trim()"
+    (click)="submitManualBarcode()"
+  >
+    {{ resolving() ? 'Recherche…' : 'Valider le code' }}
+  </button>
+  <button
+    class="scanner-page__button scanner-page__button--secondary"
+    type="button"
+    [disabled]="resolving()"
+    (click)="openManualEntry()"
+  >
+    Créer sans recherche
+  </button>
+  </div>
+</section>

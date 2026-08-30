@@ -10,7 +10,6 @@ import { NUTRITION_DB_NAME } from '../../core/database/nutrition-database';
 import { deleteNutritionDatabase } from '../../core/database/nutrition-database.testing';
 import { ProductsService } from './services/products.service';
 import { ProductsPageComponent } from './products-page.component';
-import { PRODUCTS_ROUTES } from './products.routes';
 
 describe('ProductsPageComponent', () => {
   let fixture: ComponentFixture<ProductsPageComponent>;
@@ -23,7 +22,12 @@ describe('ProductsPageComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [ProductsPageComponent],
-      providers: [provideRouter([{ path: 'products', children: PRODUCTS_ROUTES }])],
+      providers: [
+        provideRouter([
+          { path: 'products', children: [{ path: '', component: ProductsPageComponent }] },
+          { path: 'products/scan', component: ProductsPageComponent },
+        ]),
+      ],
     }).compileComponents();
 
     database = TestBed.inject(DatabaseService);
@@ -34,6 +38,7 @@ describe('ProductsPageComponent', () => {
   });
 
   afterEach(async () => {
+    fixture.destroy();
     await database.closeForTests();
     await deleteNutritionDatabase();
   });
@@ -101,6 +106,15 @@ describe('ProductsPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'Aucun produit ne correspond à votre recherche.',
     );
+  });
+
+  it('shows scan FAB linking to scanner', async () => {
+    fixture.detectChanges();
+    await waitForLoad();
+
+    const fab = fixture.debugElement.query(By.css('.products-page__fab'));
+    expect(fab).toBeTruthy();
+    expect(fab.nativeElement.textContent).toContain('Scan');
   });
 
   it('displays score and macros when preferred reference exists', async () => {

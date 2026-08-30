@@ -72,4 +72,8 @@ export class ProductsService {
     await this.loadCatalog();
     return product;
   }
+
+  async getReferenceByBarcode(barcode: string): Promise<ProductReference | undefined> {
+    return this.database.getActiveReferenceByBarcode(barcode);
+  }
 }

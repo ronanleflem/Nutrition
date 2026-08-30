@@ -153,6 +153,22 @@ export class DatabaseService {
     return reference;
   }
 
+  async getActiveReferenceByBarcode(barcode: string): Promise<ProductReference | undefined> {
+    await this.initialize();
+
+    const normalized = barcode.trim();
+    if (!normalized) {
+      return undefined;
+    }
+
+    const reference = await this.db!.productReferences.where('barcode').equals(normalized).first();
+    if (!reference || !isActiveProductReference(reference)) {
+      return undefined;
+    }
+
+    return reference;
+  }
+
   async createProductReference(input: CreateProductReferenceInput): Promise<ProductReference> {
     await this.initialize();
 

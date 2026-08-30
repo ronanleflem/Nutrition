@@ -1,0 +1,122 @@
+<section class="scan-reference-page">
+  <header class="scan-reference-page__header">
+    <a class="scan-reference-page__back" routerLink="/products/scan">← Scanner</a>
+    <h1 class="scan-reference-page__title">Nouvelle référence</h1>
+  </header>
+
+  @if (statusMessage(); as message) {
+    <p class="scan-reference-page__banner" role="status">{{ message }}</p>
+  }
+
+  <form class="reference-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <fieldset class="scan-reference-page__product">
+      <legend class="reference-form__label">Produit générique</legend>
+      <div class="scan-reference-page__mode">
+        <button
+          class="scan-reference-page__mode-button"
+          type="button"
+          [class.scan-reference-page__mode-button--active]="productMode() === 'existing'"
+          [disabled]="products().length === 0"
+          (click)="setProductMode('existing')"
+        >
+          Produit existant
+        </button>
+        <button
+          class="scan-reference-page__mode-button"
+          type="button"
+          [class.scan-reference-page__mode-button--active]="productMode() === 'new'"
+          (click)="setProductMode('new')"
+        >
+          Nouveau produit
+        </button>
+      </div>
+
+      @if (productMode() === 'existing') {
+        <label class="reference-form__field">
+          <span class="reference-form__label">Sélectionner un produit *</span>
+          <select class="reference-form__input" formControlName="productId">
+            <option value="">Sélectionner…</option>
+            @for (product of products(); track product.id) {
+              <option [value]="product.id">{{ product.name }}</option>
+            }
+          </select>
+        </label>
+      } @else {
+        <label class="reference-form__field">
+          <span class="reference-form__label">Nom du produit *</span>
+          <input class="reference-form__input" type="text" formControlName="newProductName" />
+        </label>
+      }
+    </fieldset>
+
+    <label class="reference-form__field">
+      <span class="reference-form__label">Enseigne *</span>
+      <select class="reference-form__input" formControlName="store">
+        <option value="">Sélectionner…</option>
+        @for (store of stores; track store) {
+          <option [value]="store">{{ storeLabels[store] }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="reference-form__field">
+      <span class="reference-form__label">Libellé *</span>
+      <input class="reference-form__input" type="text" formControlName="label" />
+    </label>
+
+    <label class="reference-form__field">
+      <span class="reference-form__label">Marque</span>
+      <input class="reference-form__input" type="text" formControlName="brand" />
+    </label>
+
+    <label class="reference-form__field">
+      <span class="reference-form__label">Code-barres</span>
+      <input class="reference-form__input" type="text" formControlName="barcode" inputmode="numeric" readonly />
+    </label>
+
+    <fieldset class="reference-form__macros">
+      <legend class="reference-form__label">Macros pour 100 g *</legend>
+      <label class="reference-form__field">
+        <span class="reference-form__sublabel">Énergie (kcal)</span>
+        <input class="reference-form__input" type="number" min="0" step="0.1" formControlName="kcalPer100g" />
+      </label>
+      <label class="reference-form__field">
+        <span class="reference-form__sublabel">Protéines (g)</span>
+        <input class="reference-form__input" type="number" min="0" step="0.1" formControlName="proteinPer100g" />
+      </label>
+      <label class="reference-form__field">
+        <span class="reference-form__sublabel">Lipides (g)</span>
+        <input class="reference-form__input" type="number" min="0" step="0.1" formControlName="fatPer100g" />
+      </label>
+      <label class="reference-form__field">
+        <span class="reference-form__sublabel">Glucides (g)</span>
+        <input class="reference-form__input" type="number" min="0" step="0.1" formControlName="carbsPer100g" />
+      </label>
+      <label class="reference-form__field">
+        <span class="reference-form__sublabel">Fibres (g)</span>
+        <input class="reference-form__input" type="number" min="0" step="0.1" formControlName="fiberPer100g" />
+      </label>
+      <label class="reference-form__field">
+        <span class="reference-form__sublabel">Sel (g)</span>
+        <input class="reference-form__input" type="number" min="0" step="0.01" formControlName="saltPer100g" />
+      </label>
+    </fieldset>
+
+    <label class="reference-form__field">
+      <span class="reference-form__label">Ingrédients</span>
+      <textarea class="reference-form__textarea" formControlName="ingredients" rows="3"></textarea>
+    </label>
+
+    <label class="reference-form__field">
+      <span class="reference-form__label">Notes</span>
+      <textarea class="reference-form__textarea" formControlName="notes" rows="2"></textarea>
+    </label>
+
+    <div class="reference-form__actions">
+      <a class="reference-form__button reference-form__button--secondary" routerLink="/products">Annuler</a>
+      <button class="reference-form__button reference-form__button--primary" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Enregistrement…' : 'Créer la référence' }}
+      </button>
+    </div>
+  </form>
+</section>
