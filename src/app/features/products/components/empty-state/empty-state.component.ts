@@ -8,7 +8,7 @@ import { RouterLink } from '@angular/router';
     <div class="empty-state">
       <p class="empty-state__message">{{ message() }}</p>
       @if (showCta()) {
-        <a class="empty-state__cta" routerLink="/products/new">{{ ctaLabel() }}</a>
+        <a class="empty-state__cta" [routerLink]="ctaLink()">{{ ctaLabel() }}</a>
       }
     </div>
   `,
@@ -18,4 +18,5 @@ export class EmptyStateComponent {
   readonly message = input('Aucun produit dans votre catalogue.');
   readonly showCta = input(true);
   readonly ctaLabel = input('Ajouter un produit');
+  readonly ctaLink = input('/products/new');
 }

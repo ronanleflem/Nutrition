@@ -1,0 +1,24 @@
+<section class="recipes-page">
+  @if (loading()) {
+    <p class="recipes-page__status" role="status">Chargement…</p>
+  } @else if (!hasRecipes()) {
+    <app-empty-state
+      message="Aucune recette pour le moment."
+      ctaLabel="Créer une recette"
+      ctaLink="/recipes/new"
+    />
+  } @else {
+    <ul class="recipes-page__list" aria-label="Recettes">
+      @for (item of recipes(); track item.recipe.id) {
+        <li>
+          <a class="recipes-page__card" [routerLink]="['/recipes', item.recipe.id]">
+            <span class="recipes-page__title">{{ item.recipe.title }}</span>
+            <span class="recipes-page__subtitle">{{ item.defaultVariantName }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+
+  <a class="recipes-page__fab" routerLink="/recipes/new" aria-label="Créer une recette">+</a>
+</section>

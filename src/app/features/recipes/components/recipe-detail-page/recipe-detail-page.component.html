@@ -1,0 +1,121 @@
+@if (loading()) {
+  <p class="recipe-detail__status" role="status">Chargement…</p>
+} @else if (loadError()) {
+  <p class="recipe-detail__error" role="alert">{{ loadError() }}</p>
+  <a class="recipe-detail__back" routerLink="/recipes">Retour aux recettes</a>
+} @else if (detail(); as current) {
+  <header class="recipe-detail__header">
+    <div class="recipe-detail__header-row">
+      <h1 class="recipe-detail__title">{{ current.recipe.title }}</h1>
+      <a class="recipe-detail__edit-link" [routerLink]="['/recipes', current.recipe.id, 'edit']">Modifier</a>
+    </div>
+    @if (current.recipe.durationMin) {
+      <p class="recipe-detail__meta">{{ current.recipe.durationMin }} min · {{ current.recipe.defaultPortions }} portions</p>
+    } @else {
+      <p class="recipe-detail__meta">{{ current.recipe.defaultPortions }} portions</p>
+    }
+    @if (current.recipe.tags?.length) {
+      <p class="recipe-detail__tags">{{ current.recipe.tags.join(' · ') }}</p>
+    }
+    @if (current.recipe.notes) {
+      <section class="recipe-detail__notes" aria-labelledby="recipe-notes-title">
+        <h2 id="recipe-notes-title" class="recipe-detail__section-title">Notes</h2>
+        <p class="recipe-detail__notes-text">{{ current.recipe.notes }}</p>
+      </section>
+    }
+  </header>
+
+  <app-variant-chip-row
+    [variants]="current.variants"
+    [selectedVariantId]="selectedVariantId() ?? current.recipe.defaultVariantId"
+    [defaultVariantId]="current.recipe.defaultVariantId"
+    (selectedVariantIdChange)="onVariantSelected($event)"
+  />
+
+  @if (activeVariant(); as variant) {
+    <section
+      class="recipe-detail__panel"
+      role="tabpanel"
+      [id]="'variant-panel-' + variant.id"
+      [attr.aria-labelledby]="'variant-tab-' + variant.id"
+    >
+      <div class="recipe-detail__rating-row">
+        <span class="recipe-detail__label">Votre note</span>
+        <app-star-rating
+          [value]="variant.rating"
+          [readonly]="savingRating()"
+          (valueChange)="onRatingChange($event)"
+        />
+      </div>
+
+      @if (!isDefaultVariant()) {
+        <button
+          type="button"
+          class="recipe-detail__default-button"
+          [disabled]="savingDefault()"
+          (click)="setAsDefault()"
+        >
+          Définir comme variante par défaut
+        </button>
+      }
+
+      @if (activeVariantMacros(); as macros) {
+        <app-recipe-macros-panel
+          [breakdown]="macros"
+          [portions]="current.recipe.defaultPortions"
+        />
+      }
+
+      <h2 class="recipe-detail__section-title">Ingrédients</h2>
+      <ul class="recipe-detail__ingredients">
+        @for (ingredient of variant.ingredients; track ingredient.id) {
+          <li class="recipe-detail__ingredient">
+            <span class="recipe-detail__ingredient-name">
+              {{ ingredient.productName }}
+              @if (ingredient.productArchived) {
+                <span class="recipe-detail__archived-badge">Archivé</span>
+              }
+              @if (ingredient.slotLabel) {
+                <span class="recipe-detail__slot">({{ ingredient.slotLabel }})</span>
+              }
+            </span>
+            <span class="recipe-detail__ingredient-qty">{{ ingredient.quantityG }} g</span>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <section class="recipe-detail__steps" aria-labelledby="recipe-steps-title">
+    <h2 id="recipe-steps-title" class="recipe-detail__section-title">Étapes</h2>
+    <ol class="recipe-detail__steps-list">
+      @for (step of current.recipe.steps; track $index) {
+        <li>{{ step }}</li>
+      }
+    </ol>
+  </section>
+
+  <a class="recipe-detail__add-variant" [routerLink]="['/recipes', current.recipe.id, 'variants', 'new']">
+    Ajouter une variante
+  </a>
+
+  <button type="button" class="recipe-detail__delete-button" (click)="openDeleteConfirm()">
+    Supprimer la recette
+  </button>
+
+  @if (showDeleteConfirm()) {
+    <app-confirm-dialog
+      title="Supprimer la recette"
+      [message]="deleteConfirmMessage()"
+      confirmLabel="Supprimer"
+      cancelLabel="Annuler"
+      [confirmDisabled]="deleting()"
+      (confirmed)="confirmDelete()"
+      (cancelled)="closeDeleteConfirm()"
+    />
+  }
+
+  @if (actionError()) {
+    <p class="recipe-detail__error" role="alert">{{ actionError() }}</p>
+  }
+}

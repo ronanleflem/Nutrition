@@ -8,6 +8,11 @@ import {
   createDefaultAppSettings,
 } from '../models/app-settings';
 import {
+  createMealPlanEntry,
+  type CreateMealPlanEntryInput,
+  type MealPlanEntry,
+} from '../models/meal-plan-entry';
+import {
   createPantryItem,
   type PantryItem,
   type PantryItemWithProduct,
@@ -19,6 +24,7 @@ import {
 import {
   createProduct,
   isActiveProduct,
+  isArchivedProduct,
   type CreateProductInput,
   type Product,
   type UpdateProductInput,
@@ -33,6 +39,15 @@ import {
   type ProductReference,
   type UpdateProductReferenceInput,
 } from '../models/product-reference';
+import {
+  type RecipeDetail,
+  type RecipeVariantDetail,
+  sortVariantsByOrder,
+} from '../models/recipe-detail';
+import { createRecipe, type CreateRecipeInput, type Recipe, type UpdateRecipeInput } from '../models/recipe';
+import { createRecipeIngredient, type RecipeIngredient } from '../models/recipe-ingredient';
+import type { RecipeListItem } from '../models/recipe-list-item';
+import { createRecipeVariant } from '../models/recipe-variant';
 import { NutritionalScoreService } from '../scoring/nutritional-score.service';
 import { NutritionDatabase } from './nutrition-database';
 
@@ -47,6 +62,38 @@ export interface PantryItemUpdate {
   quantityG?: number;
   expiryDate?: string | null;
   location?: string | null;
+}
+
+export interface CreateRecipeWithFirstVariantInput {
+  recipe: CreateRecipeInput;
+  variantName: string;
+  ingredients: Array<{
+    productId: string;
+    quantityG: number;
+    slotLabel?: string;
+  }>;
+}
+
+export interface CreateRecipeResult {
+  recipe: Recipe;
+  variantId: string;
+  ingredients: RecipeIngredient[];
+}
+
+export interface AddRecipeVariantInput {
+  recipeId: string;
+  name: string;
+  ingredients: Array<{
+    productId: string;
+    quantityG: number;
+    slotLabel?: string;
+  }>;
+  rating?: number;
+}
+
+export interface AddRecipeVariantResult {
+  variantId: string;
+  ingredients: RecipeIngredient[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -420,6 +467,358 @@ export class DatabaseService {
     await this.db!.pantryItems.delete(itemId);
   }
 
+  async listRecipes(): Promise<RecipeListItem[]> {
+    await this.initialize();
+
+    const recipes = await this.db!.recipes.orderBy('createdAt').reverse().toArray();
+    if (recipes.length === 0) {
+      return [];
+    }
+
+    const variantIds = recipes.map((recipe) => recipe.defaultVariantId);
+    const variants = await this.db!.recipeVariants.bulkGet(variantIds);
+    const variantMap = new Map(
+      variants.filter((variant) => variant != null).map((variant) => [variant!.id, variant!]),
+    );
+
+    const items = recipes.map((recipe) => ({
+      recipe,
+      defaultVariantName: variantMap.get(recipe.defaultVariantId)?.name ?? 'Variante',
+    }));
+
+    return items;
+  }
+
+  async getRecipeDetail(recipeId: string): Promise<RecipeDetail | undefined> {
+    await this.initialize();
+
+    const recipe = await this.db!.recipes.get(recipeId);
+    if (!recipe) {
+      return undefined;
+    }
+
+    const variants = sortVariantsByOrder(
+      await this.db!.recipeVariants.where('recipeId').equals(recipeId).toArray(),
+    );
+    if (variants.length === 0) {
+      return undefined;
+    }
+
+    const variantIds = variants.map((variant) => variant.id);
+    const allIngredients = await this.db!.recipeIngredients
+      .where('variantId')
+      .anyOf(variantIds)
+      .toArray();
+
+    const productIds = [...new Set(allIngredients.map((ingredient) => ingredient.productId))];
+    const products = await this.db!.products.bulkGet(productIds);
+    const productMap = new Map(
+      products.filter((product): product is Product => product != null).map((product) => [product.id, product]),
+    );
+
+    const preferredReferenceIds = [
+      ...new Set(
+        products
+          .filter((product): product is Product => product != null && !!product.preferredReferenceId)
+          .map((product) => product.preferredReferenceId!),
+      ),
+    ];
+    const preferredReferences = await this.db!.productReferences.bulkGet(preferredReferenceIds);
+    const referenceMap = new Map(
+      preferredReferences
+        .filter(
+          (reference): reference is ProductReference =>
+            reference != null && isActiveProductReference(reference),
+        )
+        .map((reference) => [reference.id, reference]),
+    );
+
+    const ingredientsByVariant = new Map<string, RecipeVariantDetail['ingredients']>();
+    for (const variant of variants) {
+      ingredientsByVariant.set(variant.id, []);
+    }
+
+    for (const ingredient of allIngredients) {
+      const product = productMap.get(ingredient.productId);
+      const preferredReference = product?.preferredReferenceId
+        ? referenceMap.get(product.preferredReferenceId)
+        : undefined;
+
+      ingredientsByVariant.get(ingredient.variantId)?.push({
+        ...ingredient,
+        productName: product?.name ?? 'Produit inconnu',
+        productArchived: product ? isArchivedProduct(product) : false,
+        macrosPer100g: preferredReference
+          ? {
+              kcalPer100g: preferredReference.kcalPer100g,
+              proteinPer100g: preferredReference.proteinPer100g,
+              fatPer100g: preferredReference.fatPer100g,
+              carbsPer100g: preferredReference.carbsPer100g,
+              fiberPer100g: preferredReference.fiberPer100g,
+              saltPer100g: preferredReference.saltPer100g,
+            }
+          : undefined,
+      });
+    }
+
+    const variantDetails: RecipeVariantDetail[] = variants.map((variant) => ({
+      ...variant,
+      ingredients: ingredientsByVariant.get(variant.id) ?? [],
+    }));
+
+    return { recipe, variants: variantDetails };
+  }
+
+  async addRecipeVariant(input: AddRecipeVariantInput): Promise<AddRecipeVariantResult> {
+    await this.initialize();
+
+    const recipe = await this.db!.recipes.get(input.recipeId);
+    if (!recipe) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const variantName = input.name.trim();
+    if (!variantName) {
+      throw new Error('Le nom de la variante est obligatoire.');
+    }
+
+    if (input.rating != null && (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 5)) {
+      throw new Error('La note doit être comprise entre 1 et 5 étoiles.');
+    }
+
+    await this.validateRecipeIngredients(input.ingredients);
+
+    const existingVariants = await this.db!.recipeVariants
+      .where('recipeId')
+      .equals(input.recipeId)
+      .toArray();
+    const nextSortOrder =
+      existingVariants.reduce((max, variant) => Math.max(max, variant.sortOrder ?? 0), 0) + 1;
+
+    const variant = createRecipeVariant({
+      recipeId: input.recipeId,
+      name: variantName,
+      sortOrder: nextSortOrder,
+    });
+    if (input.rating != null) {
+      variant.rating = input.rating;
+    }
+
+    const ingredients = input.ingredients.map((ingredient) =>
+      createRecipeIngredient({
+        variantId: variant.id,
+        productId: ingredient.productId,
+        quantityG: ingredient.quantityG,
+        slotLabel: ingredient.slotLabel,
+      }),
+    );
+
+    await this.db!.transaction('rw', this.db!.recipeVariants, this.db!.recipeIngredients, async () => {
+      await this.db!.recipeVariants.put(variant);
+      await this.db!.recipeIngredients.bulkPut(ingredients);
+    });
+
+    return { variantId: variant.id, ingredients };
+  }
+
+  async updateVariantRating(variantId: string, rating: number | null): Promise<void> {
+    await this.initialize();
+
+    const variant = await this.db!.recipeVariants.get(variantId);
+    if (!variant) {
+      throw new Error('Variante introuvable.');
+    }
+
+    if (rating != null && (!Number.isInteger(rating) || rating < 1 || rating > 5)) {
+      throw new Error('La note doit être comprise entre 1 et 5 étoiles.');
+    }
+
+    const updated = {
+      ...variant,
+      rating: rating ?? undefined,
+    };
+
+    if (rating == null) {
+      delete updated.rating;
+    }
+
+    await this.db!.recipeVariants.put(updated);
+  }
+
+  async setDefaultVariant(recipeId: string, variantId: string): Promise<Recipe> {
+    await this.initialize();
+
+    const recipe = await this.db!.recipes.get(recipeId);
+    if (!recipe) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const variant = await this.db!.recipeVariants.get(variantId);
+    if (!variant || variant.recipeId !== recipeId) {
+      throw new Error('Variante introuvable pour cette recette.');
+    }
+
+    const updated: Recipe = {
+      ...recipe,
+      defaultVariantId: variantId,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.db!.recipes.put(updated);
+    return updated;
+  }
+
+  async createRecipeWithFirstVariant(
+    input: CreateRecipeWithFirstVariantInput,
+  ): Promise<CreateRecipeResult> {
+    await this.initialize();
+
+    const title = input.recipe.title.trim();
+    if (!title) {
+      throw new Error('Le titre de la recette est obligatoire.');
+    }
+
+    const steps = input.recipe.steps.map((step) => step.trim()).filter(Boolean);
+    if (steps.length === 0) {
+      throw new Error('Au moins une étape est requise.');
+    }
+
+    if (!Number.isFinite(input.recipe.defaultPortions) || input.recipe.defaultPortions <= 0) {
+      throw new Error('Le nombre de portions doit être supérieur à 0.');
+    }
+
+    const durationMin = this.normalizeDurationMin(input.recipe.durationMin);
+
+    const variantName = input.variantName.trim();
+    if (!variantName) {
+      throw new Error('Le nom de la variante est obligatoire.');
+    }
+
+    if (input.ingredients.length === 0) {
+      throw new Error('Au moins un ingrédient est requis.');
+    }
+
+    await this.validateRecipeIngredients(input.ingredients);
+
+    const recipeId = crypto.randomUUID();
+    const variant = createRecipeVariant({
+      recipeId,
+      name: variantName,
+    });
+    const recipe = createRecipe(
+      {
+        ...input.recipe,
+        title,
+        steps,
+        durationMin,
+      },
+      variant.id,
+    );
+    recipe.id = recipeId;
+
+    const ingredients = input.ingredients.map((ingredient) =>
+      createRecipeIngredient({
+        variantId: variant.id,
+        productId: ingredient.productId,
+        quantityG: ingredient.quantityG,
+        slotLabel: ingredient.slotLabel,
+      }),
+    );
+
+    await this.db!.transaction('rw', this.db!.recipes, this.db!.recipeVariants, this.db!.recipeIngredients, async () => {
+      await this.db!.recipes.put(recipe);
+      await this.db!.recipeVariants.put(variant);
+      await this.db!.recipeIngredients.bulkPut(ingredients);
+    });
+
+    return { recipe, variantId: variant.id, ingredients };
+  }
+
+  async updateRecipe(recipeId: string, input: UpdateRecipeInput): Promise<Recipe> {
+    await this.initialize();
+
+    const existing = await this.db!.recipes.get(recipeId);
+    if (!existing) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const title = input.title.trim();
+    if (!title) {
+      throw new Error('Le titre de la recette est obligatoire.');
+    }
+
+    const steps = input.steps.map((step) => step.trim()).filter(Boolean);
+    if (steps.length === 0) {
+      throw new Error('Au moins une étape est requise.');
+    }
+
+    if (!Number.isFinite(input.defaultPortions) || input.defaultPortions <= 0) {
+      throw new Error('Le nombre de portions doit être supérieur à 0.');
+    }
+
+    const durationMin = this.normalizeDurationMin(input.durationMin);
+
+    const updated: Recipe = {
+      ...existing,
+      title,
+      steps,
+      durationMin,
+      defaultPortions: input.defaultPortions,
+      tags: input.tags?.map((tag) => tag.trim()).filter(Boolean),
+      notes: input.notes?.trim() || undefined,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.db!.recipes.put(updated);
+    return updated;
+  }
+
+  async countMealPlanEntriesForRecipe(recipeId: string): Promise<number> {
+    await this.initialize();
+    return this.db!.mealPlanEntries.where('recipeId').equals(recipeId).count();
+  }
+
+  async createMealPlanEntry(input: CreateMealPlanEntryInput): Promise<MealPlanEntry> {
+    await this.initialize();
+
+    const recipe = await this.db!.recipes.get(input.recipeId);
+    if (!recipe) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const entry = createMealPlanEntry(input);
+    await this.db!.mealPlanEntries.put(entry);
+    return entry;
+  }
+
+  async deleteRecipe(recipeId: string): Promise<void> {
+    await this.initialize();
+
+    const recipe = await this.db!.recipes.get(recipeId);
+    if (!recipe) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const variants = await this.db!.recipeVariants.where('recipeId').equals(recipeId).toArray();
+    const variantIds = variants.map((variant) => variant.id);
+
+    await this.db!.transaction(
+      'rw',
+      this.db!.recipes,
+      this.db!.recipeVariants,
+      this.db!.recipeIngredients,
+      this.db!.mealPlanEntries,
+      async () => {
+        await this.db!.mealPlanEntries.where('recipeId').equals(recipeId).delete();
+        if (variantIds.length > 0) {
+          await this.db!.recipeIngredients.where('variantId').anyOf(variantIds).delete();
+        }
+        await this.db!.recipeVariants.where('recipeId').equals(recipeId).delete();
+        await this.db!.recipes.delete(recipeId);
+      },
+    );
+  }
+
   /** Test helper to reset in-memory state after closing the Dexie connection. */
   async closeForTests(): Promise<void> {
     if (this.db) {
@@ -428,6 +827,43 @@ export class DatabaseService {
 
     this.db = null;
     this.initPromise = null;
+  }
+
+  private normalizeDurationMin(value: number | undefined): number | undefined {
+    if (value == null) {
+      return undefined;
+    }
+
+    if (!Number.isFinite(value) || value < 1) {
+      throw new Error('La durée doit être un nombre entier supérieur ou égal à 1 minute.');
+    }
+
+    return Math.floor(value);
+  }
+
+  private async validateRecipeIngredients(
+    ingredients: Array<{ productId: string; quantityG: number }>,
+  ): Promise<void> {
+    if (ingredients.length === 0) {
+      throw new Error('Au moins un ingrédient est requis.');
+    }
+
+    for (const ingredient of ingredients) {
+      if (!Number.isFinite(ingredient.quantityG) || ingredient.quantityG <= 0) {
+        throw new Error('Chaque ingrédient doit avoir une quantité en grammes supérieure à 0.');
+      }
+
+      const product = await this.getProduct(ingredient.productId);
+      if (!product) {
+        throw new Error('Produit introuvable ou archivé.');
+      }
+
+      if (!product.preferredReferenceId) {
+        throw new Error(
+          `Le produit « ${product.name} » n'a pas de référence préférée. Définissez-en une avant d'ajouter l'ingrédient.`,
+        );
+      }
+    }
   }
 
   private async syncProductStoresFromReferences(productId: string): Promise<void> {
