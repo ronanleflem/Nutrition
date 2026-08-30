@@ -25,7 +25,7 @@ describe('app routes', () => {
   });
 
   const lazyRoutes = [
-  { path: '/pantry', text: 'Surface en construction.' },
+  { path: '/pantry', text: '+' },
   { path: '/products', text: 'Surface en construction.' },
   { path: '/recipes', text: 'Surface en construction.' },
   { path: '/plan', text: 'Surface en construction.' },
