@@ -819,6 +819,19 @@ export class DatabaseService {
     return this.db!.mealPlanEntries.where('recipeId').equals(recipeId).count();
   }
 
+  async listMealPlanEntriesByDate(date: string): Promise<MealPlanEntry[]> {
+    await this.initialize();
+
+    const entries = await this.db!.mealPlanEntries.where('date').equals(date).toArray();
+    const slotOrder: Record<MealPlanEntry['slot'], number> = {
+      breakfast: 0,
+      lunch: 1,
+      dinner: 2,
+    };
+
+    return entries.sort((left, right) => slotOrder[left.slot] - slotOrder[right.slot]);
+  }
+
   async createMealPlanEntry(input: CreateMealPlanEntryInput): Promise<MealPlanEntry> {
     await this.initialize();
 

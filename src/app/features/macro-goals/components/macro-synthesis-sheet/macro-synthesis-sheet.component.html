@@ -1,0 +1,35 @@
+<div class="sheet-backdrop" data-backdrop="true" (click)="onBackdropClick($event)">
+  <section
+    class="sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Repas du jour"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="sheet__header">
+      <h2 class="sheet__title">Repas du jour</h2>
+      <button type="button" class="sheet__close" aria-label="Fermer" (click)="closed.emit()">×</button>
+    </header>
+
+    <p class="sheet__date">{{ dateLabel() }}</p>
+
+    @if (meals().length === 0) {
+      <p class="sheet__empty">Aucun repas planifié.</p>
+    } @else {
+      <ul class="sheet__meals">
+        @for (meal of meals(); track meal.entryId) {
+          <li class="sheet__meal">
+            <div class="sheet__meal-main">
+              <span class="sheet__meal-slot">{{ meal.slotLabel }}</span>
+              <span class="sheet__meal-title">{{ meal.recipeTitle }} · {{ meal.variantName }}</span>
+            </div>
+            <span class="sheet__meal-macros">{{ formatMealMacros(meal) }}</span>
+            @if (meal.incomplete) {
+              <span class="sheet__meal-warning">Données macros incomplètes</span>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</div>

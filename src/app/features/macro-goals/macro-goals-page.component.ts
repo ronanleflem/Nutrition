@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -7,6 +7,7 @@ import {
 } from '@angular/forms';
 
 import type { UpdateMacroGoalsInput } from '../../core/models/macro-goals';
+import { MacroSynthesisSectionComponent } from './components/macro-synthesis-section/macro-synthesis-section.component';
 import { MacroGoalsService } from './services/macro-goals.service';
 
 function optionalMinZeroValidator(control: AbstractControl): ValidationErrors | null {
@@ -20,13 +21,14 @@ function optionalMinZeroValidator(control: AbstractControl): ValidationErrors | 
 
 @Component({
   selector: 'app-macro-goals-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, MacroSynthesisSectionComponent],
   templateUrl: './macro-goals-page.component.html',
   styleUrl: './macro-goals-page.component.scss',
 })
 export class MacroGoalsPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   readonly macroGoalsService = inject(MacroGoalsService);
+  private readonly synthesisSection = viewChild(MacroSynthesisSectionComponent);
 
   readonly saving = signal(false);
   readonly saved = signal(false);
@@ -67,6 +69,7 @@ export class MacroGoalsPageComponent implements OnInit {
 
       await this.macroGoalsService.save(payload);
       this.saved.set(true);
+      await this.synthesisSection()?.reload();
     } catch {
       this.submitError.set('Impossible d’enregistrer les objectifs.');
     } finally {

@@ -1,0 +1,22 @@
+<button
+  type="button"
+  class="macro-bar"
+  [attr.aria-label]="bar().ariaLabel"
+  (click)="onBarTap()"
+>
+  <div class="macro-bar__label">
+    <span>{{ bar().label }}</span>
+    <span class="macro-bar__value">{{ bar().valueLabel }}</span>
+  </div>
+  <div class="macro-bar__track" aria-hidden="true">
+    @if (bar().goal != null) {
+      <div
+        class="macro-bar__fill"
+        [class.macro-bar__fill--under]="bar().state === 'under'"
+        [class.macro-bar__fill--met]="bar().state === 'met'"
+        [class.macro-bar__fill--over]="bar().state === 'over'"
+        [style.width.%]="bar().fillPercent"
+      ></div>
+    }
+  </div>
+</button>

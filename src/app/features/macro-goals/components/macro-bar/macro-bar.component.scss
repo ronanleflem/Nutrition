@@ -1,0 +1,49 @@
+.macro-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.macro-bar__label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: var(--font-size-meta);
+}
+
+.macro-bar__value {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-secondary);
+}
+
+.macro-bar__track {
+  height: 8px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: var(--color-surface-overlay);
+}
+
+.macro-bar__fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.2s ease;
+}
+
+.macro-bar__fill--under {
+  background: var(--color-macro-under);
+}
+
+.macro-bar__fill--met {
+  background: var(--color-macro-met);
+}
+
+.macro-bar__fill--over {
+  background: var(--color-macro-over);
+}

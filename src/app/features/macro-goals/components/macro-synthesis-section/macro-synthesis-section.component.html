@@ -1,0 +1,41 @@
+<section class="macro-synthesis" id="synthesis">
+  <div class="macro-synthesis__header">
+    <div>
+      <h2 class="macro-synthesis__title">Synthèse macros</h2>
+      <p class="macro-synthesis__date">{{ dateLabel() }}</p>
+    </div>
+    <div class="macro-synthesis__nav">
+      <button type="button" class="macro-synthesis__nav-btn" aria-label="Jour précédent" (click)="previousDay()">
+        ‹
+      </button>
+      <button type="button" class="macro-synthesis__today" (click)="goToToday()">Aujourd’hui</button>
+      <button type="button" class="macro-synthesis__nav-btn" aria-label="Jour suivant" (click)="nextDay()">
+        ›
+      </button>
+    </div>
+  </div>
+
+  @if (loadError()) {
+    <p class="macro-synthesis__error" role="alert">{{ loadError() }}</p>
+  } @else if (loading()) {
+    <p class="macro-synthesis__loading">Chargement…</p>
+  } @else if (synthesis(); as data) {
+    <app-macro-bar-group [bars]="data.bars" (barTapped)="openMealSheet()" />
+
+    @if (!data.hasMeals) {
+      <p class="macro-synthesis__empty">Aucun repas planifié</p>
+    }
+
+    @if (data.incomplete) {
+      <p class="macro-synthesis__warning">Certaines données macros sont incomplètes.</p>
+    }
+  }
+
+  @if (sheetOpen() && synthesis(); as data) {
+    <app-macro-synthesis-sheet
+      [dateLabel]="dateLabel()"
+      [meals]="data.meals"
+      (closed)="closeMealSheet()"
+    />
+  }
+</section>
