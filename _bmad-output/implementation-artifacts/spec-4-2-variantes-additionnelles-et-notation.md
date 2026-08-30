@@ -67,16 +67,16 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/app/core/models/recipe-detail.ts` — detail view types.
-- [ ] `src/app/core/database/database.service.ts` — detail, add variant, rating, set default.
-- [ ] `src/app/core/database/database.service.recipes.spec.ts` — 4.2 matrix tests.
-- [ ] `src/app/features/recipes/components/variant-chip-row/` — chip row component.
-- [ ] `src/app/features/recipes/components/star-rating/` — star rating component.
-- [ ] `src/app/features/recipes/components/recipe-detail-page/` — detail page with segments.
-- [ ] `src/app/features/recipes/components/recipe-variant-form-page/` — add variant form.
-- [ ] `src/app/features/recipes/recipes.routes.ts` — new routes.
-- [ ] `src/app/features/recipes/recipes-page.component.html` — navigable list cards.
-- [ ] `src/app/features/recipes/services/recipes.service.ts` — service methods.
+- [x] `src/app/core/models/recipe-detail.ts` — detail view types.
+- [x] `src/app/core/database/database.service.ts` — detail, add variant, rating, set default.
+- [x] `src/app/core/database/database.service.recipes.spec.ts` — 4.2 matrix tests.
+- [x] `src/app/features/recipes/components/variant-chip-row/` — chip row component.
+- [x] `src/app/features/recipes/components/star-rating/` — star rating component.
+- [x] `src/app/features/recipes/components/recipe-detail-page/` — detail page with segments.
+- [x] `src/app/features/recipes/components/recipe-variant-form-page/` — add variant form.
+- [x] `src/app/features/recipes/recipes.routes.ts` — new routes.
+- [x] `src/app/features/recipes/recipes-page.component.html` — navigable list cards.
+- [x] `src/app/features/recipes/services/recipes.service.ts` — service methods.
 
 **Acceptance Criteria:**
 - Given an existing recipe, when I add a named variant with ingredients, then a new variant and its ingredients are persisted.

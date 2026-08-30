@@ -1,0 +1,20 @@
+<section class="recipe-macros" aria-labelledby="recipe-macros-title">
+  <h2 id="recipe-macros-title" class="recipe-macros__title">Macros nutritionnelles</h2>
+
+  @if (breakdown().incomplete) {
+    <p class="recipe-macros__notice" role="status">
+      Calcul partiel : certains ingrédients n’ont pas de référence préférée avec macros.
+    </p>
+  }
+
+  <div class="recipe-macros__rows">
+    <div class="recipe-macros__row">
+      <span class="recipe-macros__label">Total recette</span>
+      <span class="recipe-macros__value">{{ totalLine() }}</span>
+    </div>
+    <div class="recipe-macros__row recipe-macros__row--highlight">
+      <span class="recipe-macros__label">Par portion ({{ portions() }})</span>
+      <span class="recipe-macros__value">{{ perPortionLine() }}</span>
+    </div>
+  </div>
+</section>

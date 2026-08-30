@@ -1,9 +1,11 @@
+import type { ProductReferenceMacros } from './product-reference';
 import type { Recipe } from './recipe';
 import type { RecipeIngredient } from './recipe-ingredient';
 import type { RecipeVariant } from './recipe-variant';
 
 export interface RecipeIngredientWithProduct extends RecipeIngredient {
   productName: string;
+  macrosPer100g?: ProductReferenceMacros;
 }
 
 export interface RecipeVariantDetail extends RecipeVariant {

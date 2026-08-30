@@ -227,4 +227,20 @@ describe('DatabaseService recipes', () => {
       /variante introuvable/i,
     );
   });
+
+  it('enriches recipe detail ingredients with preferred reference macros', async () => {
+    const { recipeId } = await createSampleRecipe();
+
+    const detail = await service.getRecipeDetail(recipeId);
+    const ingredient = detail?.variants[0]?.ingredients[0];
+
+    expect(ingredient?.macrosPer100g).toEqual({
+      kcalPer100g: 100,
+      proteinPer100g: 10,
+      fatPer100g: 5,
+      carbsPer100g: 12,
+      fiberPer100g: undefined,
+      saltPer100g: undefined,
+    });
+  });
 });

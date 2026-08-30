@@ -2,13 +2,15 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import type { RecipeDetail, RecipeVariantDetail } from '../../../../core/models/recipe-detail';
+import { RecipeMacroService } from '../../../../core/scoring/recipe-macro.service';
 import { RecipesService } from '../../services/recipes.service';
+import { RecipeMacrosPanelComponent } from '../recipe-macros-panel/recipe-macros-panel.component';
 import { StarRatingComponent } from '../star-rating/star-rating.component';
 import { VariantChipRowComponent } from '../variant-chip-row/variant-chip-row.component';
 
 @Component({
   selector: 'app-recipe-detail-page',
-  imports: [RouterLink, VariantChipRowComponent, StarRatingComponent],
+  imports: [RouterLink, VariantChipRowComponent, StarRatingComponent, RecipeMacrosPanelComponent],
   templateUrl: './recipe-detail-page.component.html',
   styleUrl: './recipe-detail-page.component.scss',
 })
@@ -16,6 +18,7 @@ export class RecipeDetailPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly recipesService = inject(RecipesService);
+  private readonly recipeMacroService = inject(RecipeMacroService);
 
   readonly detail = signal<RecipeDetail | null>(null);
   readonly loading = signal(true);
@@ -39,6 +42,16 @@ export class RecipeDetailPageComponent implements OnInit {
     const current = this.detail();
     const active = this.activeVariant();
     return !!current && !!active && current.recipe.defaultVariantId === active.id;
+  });
+
+  readonly activeVariantMacros = computed(() => {
+    const current = this.detail();
+    const active = this.activeVariant();
+    if (!current || !active) {
+      return null;
+    }
+
+    return this.recipeMacroService.calculateForVariant(active, current.recipe.defaultPortions);
   });
 
   private recipeId: string | null = null;

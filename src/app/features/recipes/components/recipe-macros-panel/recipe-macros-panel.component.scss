@@ -1,0 +1,51 @@
+.recipe-macros {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recipe-macros__title {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+}
+
+.recipe-macros__notice {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(245, 197, 66, 0.12);
+  border: 1px solid rgba(245, 197, 66, 0.35);
+  color: var(--color-ink-primary);
+  font-size: var(--font-size-meta);
+}
+
+.recipe-macros__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recipe-macros__row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-base);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.recipe-macros__row--highlight {
+  border-color: var(--color-accent-positive);
+}
+
+.recipe-macros__label {
+  font-size: var(--font-size-meta);
+  color: var(--color-ink-secondary);
+}
+
+.recipe-macros__value {
+  color: var(--color-ink-primary);
+  line-height: 1.4;
+}

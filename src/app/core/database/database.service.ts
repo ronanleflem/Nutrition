@@ -513,6 +513,20 @@ export class DatabaseService {
       products.filter((product): product is Product => product != null).map((product) => [product.id, product]),
     );
 
+    const preferredReferenceIds = [
+      ...new Set(
+        products
+          .filter((product): product is Product => product != null && !!product.preferredReferenceId)
+          .map((product) => product.preferredReferenceId!),
+      ),
+    ];
+    const preferredReferences = await this.db!.productReferences.bulkGet(preferredReferenceIds);
+    const referenceMap = new Map(
+      preferredReferences
+        .filter((reference) => reference != null)
+        .map((reference) => [reference!.id, reference!]),
+    );
+
     const ingredientsByVariant = new Map<string, RecipeVariantDetail['ingredients']>();
     for (const variant of variants) {
       ingredientsByVariant.set(variant.id, []);
@@ -520,9 +534,23 @@ export class DatabaseService {
 
     for (const ingredient of allIngredients) {
       const product = productMap.get(ingredient.productId);
+      const preferredReference = product?.preferredReferenceId
+        ? referenceMap.get(product.preferredReferenceId)
+        : undefined;
+
       ingredientsByVariant.get(ingredient.variantId)?.push({
         ...ingredient,
         productName: product?.name ?? 'Produit inconnu',
+        macrosPer100g: preferredReference
+          ? {
+              kcalPer100g: preferredReference.kcalPer100g,
+              proteinPer100g: preferredReference.proteinPer100g,
+              fatPer100g: preferredReference.fatPer100g,
+              carbsPer100g: preferredReference.carbsPer100g,
+              fiberPer100g: preferredReference.fiberPer100g,
+              saltPer100g: preferredReference.saltPer100g,
+            }
+          : undefined,
       });
     }
 

@@ -45,6 +45,13 @@
         </button>
       }
 
+      @if (activeVariantMacros(); as macros) {
+        <app-recipe-macros-panel
+          [breakdown]="macros"
+          [portions]="current.recipe.defaultPortions"
+        />
+      }
+
       <h2 class="recipe-detail__section-title">Ingrédients</h2>
       <ul class="recipe-detail__ingredients">
         @for (ingredient of variant.ingredients; track ingredient.id) {
