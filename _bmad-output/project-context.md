@@ -34,6 +34,7 @@
 9. **Unités** — grammes uniquement ; macros produits normalisées pour 100 g.
 10. **Scan code-barres** — `@zxing/ngx-scanner` + lookup Open Food Facts ; toujours proposer saisie manuelle en repli (iOS).
 11. **Objectifs macros** — entité `MacroGoals` locale ; comparer le total du plan de repas du jour aux cibles.
+12. **Thème UI** — sombre par défaut ; palette contrastée pour usage magasin (lisibilité, OLED).
 
 ## Structure cible (features)
 
@@ -56,7 +57,8 @@ src/app/
 |----------|--------|
 | Brief | `_bmad-output/planning-artifacts/brief-2026-08-30/brief.md` |
 | Addendum | `_bmad-output/planning-artifacts/brief-2026-08-30/addendum.md` |
-| PRD | `_bmad-output/planning-artifacts/prd.md` (à créer) |
+| PRD | `_bmad-output/planning-artifacts/prds/prd-Nutrition-2026-08-30/prd.md` |
+| PRD addendum | `_bmad-output/planning-artifacts/prds/prd-Nutrition-2026-08-30/addendum.md` |
 | Architecture | `_bmad-output/planning-artifacts/ARCHITECTURE-SPINE.md` (à créer) |
 
 ## Hors scope MVP

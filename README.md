@@ -31,6 +31,7 @@ Dans Cursor, invoquer les skills :
 | Document | Chemin |
 |----------|--------|
 | Brief produit | `_bmad-output/planning-artifacts/brief-2026-08-30/brief.md` |
+| PRD | `_bmad-output/planning-artifacts/prds/prd-Nutrition-2026-08-30/prd.md` |
 | Contexte projet | `_bmad-output/project-context.md` |
 | Instructions agents | `AGENTS.md` |
 

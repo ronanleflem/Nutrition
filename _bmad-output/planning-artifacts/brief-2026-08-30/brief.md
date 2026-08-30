@@ -82,6 +82,7 @@ Pas de « moat » technique revendiqué : l’avantage est l’**alignement exac
 - Planification repas (semaine courante)
 - Liste de courses auto + édition manuelle
 - Import / export chiffré (Web Crypto API)
+- **Thème sombre par défaut** (usage magasin, OLED)
 
 ### Explicitement hors MVP
 

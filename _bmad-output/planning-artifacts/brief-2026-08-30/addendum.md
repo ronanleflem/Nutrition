@@ -97,7 +97,8 @@ Contenu de profondeur pour les phases PRD et architecture. Non inclus dans le br
 | 2 | Unités en grammes uniquement (macros exprimées pour 100 g) |
 | 3 | Objectifs macros personnels au MVP : kcal, protéines, lipides, glucides, fibres |
 | 4 | Synthèse plan de repas vs objectifs — pas de journal MyFitnessPal |
+| 5 | Thème sombre par défaut (usage magasin, OLED) ; thème clair optionnel en paramètres post-MVP |
 
-## Questions ouvertes (pour PRD)
+## Questions ouvertes
 
-1. Design : thème sombre par défaut pour usage magasin ?
+_Aucune — prêt pour architecture._
