@@ -75,17 +75,20 @@ Pas de « moat » technique revendiqué : l’avantage est l’**alignement exac
 ### Dans le MVP
 
 - PWA Angular, stockage local (IndexedDB)
-- CRUD produits, garde-manger, recettes
-- Planification repas (semiane courante)
+- CRUD produits, garde-manger, recettes (quantités en **grammes** uniquement)
+- Scan code-barres caméra + recherche Open Food Facts, avec **saisie manuelle en repli**
+- Objectifs macros personnels (kcal, protéines, lipides, glucides, fibres / jour)
+- Synthèse macros du plan de repas vs objectifs (pas de journal alimentaire repas par repas)
+- Planification repas (semaine courante)
 - Liste de courses auto + édition manuelle
 - Import / export chiffré (Web Crypto API)
-- Consultation Open Food Facts (code-barres, lecture seule)
 
 ### Explicitement hors MVP
 
 - Backend / sync multi-appareils
 - Comptes utilisateurs et authentification
-- Suivi calorique journalier type MyFitnessPal
+- Journal alimentaire détaillé type MyFitnessPal (saisie de chaque bouchée consommée)
+- Unités pièces / cuillères / volumes
 - Commande en ligne, budget, partage familial
 - IA génération de recettes
 - App native (React Native, Flutter)

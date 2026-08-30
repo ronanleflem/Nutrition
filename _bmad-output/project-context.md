@@ -7,7 +7,8 @@
 
 - Application **personnelle** de nutrition : garde-manger, recettes, planification, liste de courses.
 - **Single-user**, France, français.
-- Pas de suivi calorique journalier type MyFitnessPal au MVP.
+- Objectifs macros journaliers (kcal, P/L/G, fibres) + synthèse plan vs objectifs au MVP.
+- Pas de journal alimentaire repas-par-repas type MyFitnessPal au MVP.
 
 ## Stack (décidée)
 
@@ -30,6 +31,9 @@
 6. **Pas d’auth** — pas de login, pas de JWT, pas de compte.
 7. **Conventions Angular** — standalone components, signals où pertinent, lazy routes par feature.
 8. **Langue** — UI et messages en français.
+9. **Unités** — grammes uniquement ; macros produits normalisées pour 100 g.
+10. **Scan code-barres** — `@zxing/ngx-scanner` + lookup Open Food Facts ; toujours proposer saisie manuelle en repli (iOS).
+11. **Objectifs macros** — entité `MacroGoals` locale ; comparer le total du plan de repas du jour aux cibles.
 
 ## Structure cible (features)
 
@@ -42,6 +46,7 @@ src/app/
     recipes/
     meal-plan/
     shopping-list/
+    macro-goals/  # objectifs journaliers + synthèse plan
     settings/     # export, import, about
 ```
 

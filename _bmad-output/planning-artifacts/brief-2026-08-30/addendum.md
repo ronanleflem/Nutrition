@@ -13,6 +13,9 @@ Contenu de profondeur pour les phases PRD et architecture. Non inclus dans le br
 | Utilisateur | Single-user | Pas d’auth multi-compte au MVP |
 | APIs externes | Open Food Facts (lecture seule) | Enrichissement produit ; pas d’envoi de données perso |
 | Langue | Français (UI + docs) | Usage personnel France |
+| Unités | Grammes uniquement | Simplicité MVP ; pièces/cuillères en v1.1 |
+| Scan code-barres | MVP avec repli manuel | `@zxing/ngx-scanner` + API OFF |
+| Objectifs macros | MVP | Cibles journalières ; synthèse plan vs objectifs |
 
 ## Architecture cible (haute niveau)
 
@@ -36,10 +39,11 @@ Contenu de profondeur pour les phases PRD et architecture. Non inclus dans le br
 
 ## Modèle de données (draft)
 
-- `Product` — nom, marque, barcode?, macros (kcal, protéines, lipides, glucides), ingrédients, tags santé
-- `PantryItem` — productId, quantité, unité, DLC?, emplacement?
+- `Product` — nom, marque, barcode?, macros pour 100 g (kcal, protéines, lipides, glucides, fibres), ingrédients, tags santé
+- `MacroGoals` — kcal, protéines, lipides, glucides, fibres (cibles journalières, grammes sauf kcal)
+- `PantryItem` — productId, quantité (g), DLC?, emplacement?
 - `Recipe` — titre, étapes, temps, portions, tags
-- `RecipeIngredient` — recipeId, productId, quantité, unité
+- `RecipeIngredient` — recipeId, productId, quantité (g)
 - `MealPlanEntry` — date, slot (petit-déj/déj/dîner), recipeId
 - `ShoppingListItem` — productId, quantité, coché, source (auto|manuel)
 
@@ -71,9 +75,29 @@ Contenu de profondeur pour les phases PRD et architecture. Non inclus dans le br
 | Sync fichier Dropbox | Fichier non chiffré = risque compte cloud |
 | SQLite sync serveur maison | Complexité réseau ; phase 2+ si besoin |
 
+## Scan code-barres — faisabilité MVP
+
+| Aspect | Détail |
+|--------|--------|
+| Librairie | `@zxing/ngx-scanner` (Angular, caméra via `getUserMedia`) |
+| API produit | `GET https://world.openfoodfacts.org/api/v2/product/{barcode}` |
+| Effort estimé | 1 story scanner + 1 story lookup OFF + repli manuel |
+| Android Chrome PWA | Bon support, usage principal attendu |
+| iOS Safari | Support partiel ; repli saisie manuelle obligatoire |
+| Prérequis | HTTPS (ou localhost en dev), permission caméra |
+| Offline | Scan local possible ; lookup OFF nécessite réseau |
+
+**Verdict** : faisable au MVP sans app native. Le repli manuel n’est pas un plan B optionnel — c’est une exigence produit.
+
+## Décisions produit validées (2026-08-30)
+
+| # | Décision |
+|---|----------|
+| 1 | Scan code-barres au MVP, avec saisie manuelle + recherche OFF en repli |
+| 2 | Unités en grammes uniquement (macros exprimées pour 100 g) |
+| 3 | Objectifs macros personnels au MVP : kcal, protéines, lipides, glucides, fibres |
+| 4 | Synthèse plan de repas vs objectifs — pas de journal MyFitnessPal |
+
 ## Questions ouvertes (pour PRD)
 
-1. Scan code-barres caméra dès MVP ou saisie manuelle + recherche OFF ?
-2. Unités : grammes uniquement ou support pièces / cuillères ?
-3. Objectifs macros personnels (ex. 150g protéines/jour) — MVP ou v1.1 ?
-4. Design : thème sombre par défaut pour usage magasin ?
+1. Design : thème sombre par défaut pour usage magasin ?
