@@ -76,3 +76,13 @@ context:
 **Commands:**
 - `npm run build` — expected: production build succeeds.
 - `npm test` — expected: all tests pass.
+
+### Review Findings
+
+- [ ] [Review][Patch] Bandeau macros basé sur `preferredReferenceId` seul, pas sur résolution réelle [`src/app/features/products/components/product-detail-page/product-detail-page.component.html:28-31`]
+- [ ] [Review][Patch] Code-barres : normalisation chiffres au scan mais `trim` seul en DB [`src/app/core/database/database.service.ts:159-164`, `src/app/core/barcode/ean.ts:27-28`]
+- [ ] [Review][Patch] Formulaire référence : pas de validation EAN contrairement au scanner [`src/app/features/products/components/reference-form-page/reference-form-page.component.ts:34`]
+- [ ] [Review][Patch] Détail / formulaire référence : `route.snapshot` sans réabonnement `paramMap` [`src/app/features/products/components/product-detail-page/product-detail-page.component.ts:84`, `reference-form-page.component.ts:91-92`]
+- [ ] [Review][Patch] Erreurs DB silencieuses (préférence, archive, formulaires) [`product-detail-page.component.ts:47-77`, `reference-form-page.component.ts:74-87`]
+- [x] [Review][Defer] Première référence non auto-désignée préférée — amélioration UX hors AC strict
+- [x] [Review][Defer] Badge « Préférée » non testé en composant — dette tests

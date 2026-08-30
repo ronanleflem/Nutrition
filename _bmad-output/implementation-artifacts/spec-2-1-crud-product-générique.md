@@ -93,3 +93,9 @@ context:
 **Commands:**
 - `npm run build` — expected: production build succeeds.
 - `npm test` — expected: all tests pass including new product specs.
+
+### Review Findings
+
+- [ ] [Review][Patch] Formulaire produit : erreurs DB silencieuses [`src/app/features/products/components/product-form-page/product-form-page.component.ts:72-85`]
+- [ ] [Review][Patch] Édition produit : `route.snapshot` sans réabonnement `paramMap` [`src/app/features/products/components/product-form-page/product-form-page.component.ts:33-54`]
+- [x] [Review][Defer] Couverture tests `ProductFormPageComponent` absente — dette de tests, pré-existant au périmètre review

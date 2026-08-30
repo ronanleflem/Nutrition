@@ -89,3 +89,14 @@ context:
 **Commands:**
 - `npm run build` — expected: production build succeeds.
 - `npm test` — expected: all tests pass.
+
+### Review Findings
+
+- [ ] [Review][Patch] Formulaire scan : mode « produit existant » bloqué par `newProductName` requis [`src/app/features/products/components/scan-reference-page/scan-reference-page.component.ts:33`, `:77-88`]
+- [ ] [Review][Patch] `scanLocked` non libéré si `resolveBarcode` lève une exception [`src/app/features/products/components/scanner-page/scanner-page.component.ts:57-64`]
+- [ ] [Review][Patch] OFF : énergie en kJ (`energy_100g`) non convertie en kcal [`src/app/core/off-api/off-api.service.ts:77`]
+- [ ] [Review][Patch] Cache session OFF fige les `network_error` (pas de retry) [`src/app/core/off-api/off-api.service.ts:35-38`, `:52-55`]
+- [ ] [Review][Decision] `network_error` OFF mappé sur statut `offline` (message « Pas de connexion ») alors que l'appareil est en ligne [`src/app/features/products/services/scan.service.ts:66-71`] — conserver ce regroupement UX ou distinguer erreur réseau / hors-ligne ?
+- [x] [Review][Defer] Flux scan → référence préférée non proposée automatiquement — hors AC
+- [x] [Review][Defer] Suggestion produit OFF : sélectionne toujours `products[0]` — amélioration UX
+- [x] [Review][Defer] Chemins invalid-EAN, OFF inconnu, caméra refusée, `restorePendingProduct` — gaps de tests documentés

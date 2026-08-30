@@ -67,3 +67,7 @@ context:
 **Commands:**
 - `npm run build` — expected: production build succeeds.
 - `npm test` — expected: all tests pass.
+
+### Review Findings
+
+- [x] [Review][Defer] Couverture tests page détail (banner préférence, tri références) — dette tests, comportement implémenté
