@@ -1,0 +1,144 @@
+<form class="recipe-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  @if (submitError()) {
+    <p class="recipe-form__error" role="alert">{{ submitError() }}</p>
+  }
+  @if (ingredientError()) {
+    <div class="recipe-form__banner" role="alert">
+      <p>{{ ingredientError() }}</p>
+      @if (blockedProduct(); as product) {
+        <a class="recipe-form__banner-link" [routerLink]="['/products', product.id]">
+          Ouvrir le produit
+        </a>
+      }
+    </div>
+  }
+
+  <label class="recipe-form__field">
+    <span class="recipe-form__label">Titre *</span>
+    <input class="recipe-form__input" type="text" formControlName="title" autocomplete="off" />
+    @if (form.controls.title.touched && form.controls.title.invalid) {
+      <span class="recipe-form__error">Le titre est obligatoire.</span>
+    }
+  </label>
+
+  <label class="recipe-form__field">
+    <span class="recipe-form__label">Nom de la première variante *</span>
+    <input class="recipe-form__input" type="text" formControlName="variantName" autocomplete="off" />
+    @if (form.controls.variantName.touched && form.controls.variantName.invalid) {
+      <span class="recipe-form__error">Le nom de la variante est obligatoire.</span>
+    }
+  </label>
+
+  <div class="recipe-form__row">
+    <label class="recipe-form__field">
+      <span class="recipe-form__label">Portions *</span>
+      <input class="recipe-form__input" type="number" min="1" formControlName="defaultPortions" />
+    </label>
+    <label class="recipe-form__field">
+      <span class="recipe-form__label">Durée (min)</span>
+      <input class="recipe-form__input" type="number" min="1" formControlName="durationMin" />
+    </label>
+  </div>
+
+  <label class="recipe-form__field">
+    <span class="recipe-form__label">Tags (séparés par des virgules)</span>
+    <input class="recipe-form__input" type="text" formControlName="tags" autocomplete="off" />
+  </label>
+
+  <label class="recipe-form__field">
+    <span class="recipe-form__label">Notes</span>
+    <textarea class="recipe-form__textarea" formControlName="notes" rows="3"></textarea>
+  </label>
+
+  <section class="recipe-form__section" aria-labelledby="recipe-steps-heading">
+    <div class="recipe-form__section-header">
+      <h2 id="recipe-steps-heading" class="recipe-form__section-title">Étapes *</h2>
+      <button type="button" class="recipe-form__link-button" (click)="addStep()">Ajouter une étape</button>
+    </div>
+    <div formArrayName="steps" class="recipe-form__list">
+      @for (step of steps.controls; track $index) {
+        <div class="recipe-form__list-item">
+          <label class="recipe-form__field recipe-form__field--grow">
+            <span class="recipe-form__label">Étape {{ $index + 1 }}</span>
+            <input class="recipe-form__input" type="text" [formControlName]="$index" />
+          </label>
+          @if (steps.length > 1) {
+            <button
+              type="button"
+              class="recipe-form__icon-button"
+              aria-label="Supprimer l'étape"
+              (click)="removeStep($index)"
+            >
+              ×
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="recipe-form__section" aria-labelledby="recipe-ingredients-heading">
+    <div class="recipe-form__section-header">
+      <h2 id="recipe-ingredients-heading" class="recipe-form__section-title">Ingrédients *</h2>
+      <button type="button" class="recipe-form__link-button" (click)="addIngredient()">
+        Ajouter un ingrédient
+      </button>
+    </div>
+
+    @if (eligibleProducts().length === 0) {
+      <p class="recipe-form__hint">
+        Aucun produit avec référence préférée. Ajoutez des produits au catalogue et définissez une référence préférée.
+        <a routerLink="/products">Aller au catalogue</a>
+      </p>
+    }
+
+    <div formArrayName="ingredients" class="recipe-form__list">
+      @for (ingredient of ingredients.controls; track $index) {
+        <div class="recipe-form__ingredient" [formGroupName]="$index">
+          <label class="recipe-form__field recipe-form__field--grow">
+            <span class="recipe-form__label">Produit</span>
+            <select
+              class="recipe-form__input"
+              formControlName="productId"
+              (change)="onProductChange($index)"
+            >
+              <option value="">Choisir un produit…</option>
+              @for (item of eligibleProducts(); track item.product.id) {
+                <option [value]="item.product.id">{{ item.product.name }}</option>
+              }
+            </select>
+          </label>
+          <label class="recipe-form__field">
+            <span class="recipe-form__label">Quantité (g)</span>
+            <input class="recipe-form__input" type="number" min="1" formControlName="quantityG" />
+          </label>
+          <label class="recipe-form__field recipe-form__field--grow">
+            <span class="recipe-form__label">Rôle (optionnel)</span>
+            <input class="recipe-form__input" type="text" formControlName="slotLabel" />
+          </label>
+          @if (ingredients.length > 1) {
+            <button
+              type="button"
+              class="recipe-form__icon-button"
+              aria-label="Supprimer l'ingrédient"
+              (click)="removeIngredient($index)"
+            >
+              ×
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <div class="recipe-form__actions">
+    <a class="recipe-form__button recipe-form__button--secondary" routerLink="/recipes">Annuler</a>
+    <button
+      class="recipe-form__button recipe-form__button--primary"
+      type="submit"
+      [disabled]="saving() || eligibleProducts().length === 0"
+    >
+      Créer la recette
+    </button>
+  </div>
+</form>

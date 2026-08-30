@@ -1,0 +1,165 @@
+.recipe-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.recipe-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recipe-form__field--grow {
+  flex: 1;
+}
+
+.recipe-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.recipe-form__label {
+  font-size: var(--font-size-meta);
+  color: var(--color-ink-secondary);
+}
+
+.recipe-form__input,
+.recipe-form__textarea {
+  width: 100%;
+  min-height: var(--spacing-touch-min);
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  font: inherit;
+}
+
+.recipe-form__textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.recipe-form__error {
+  color: #ef9a9a;
+  font-size: var(--font-size-meta);
+}
+
+.recipe-form__banner {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(239, 154, 154, 0.12);
+  border: 1px solid rgba(239, 154, 154, 0.35);
+  color: var(--color-ink-primary);
+  font-size: var(--font-size-meta);
+}
+
+.recipe-form__banner-link {
+  display: inline-flex;
+  margin-top: 8px;
+  color: var(--color-accent-positive);
+}
+
+.recipe-form__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recipe-form__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.recipe-form__section-title {
+  margin: 0;
+  font-size: var(--font-size-body);
+}
+
+.recipe-form__link-button {
+  min-height: var(--spacing-touch-min);
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  color: var(--color-accent-positive);
+  font: inherit;
+  cursor: pointer;
+}
+
+.recipe-form__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recipe-form__list-item,
+.recipe-form__ingredient {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.recipe-form__ingredient {
+  flex-wrap: wrap;
+}
+
+.recipe-form__icon-button {
+  min-width: var(--spacing-touch-min);
+  min-height: var(--spacing-touch-min);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.recipe-form__hint {
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-meta);
+}
+
+.recipe-form__hint a {
+  color: var(--color-accent-positive);
+}
+
+.recipe-form__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.recipe-form__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: var(--spacing-touch-min);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+
+.recipe-form__button--primary {
+  background: var(--color-accent-positive);
+  color: var(--color-surface-base);
+}
+
+.recipe-form__button--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.recipe-form__button--secondary {
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  border: 1px solid var(--color-border-subtle);
+}
