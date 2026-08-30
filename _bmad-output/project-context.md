@@ -59,7 +59,8 @@ src/app/
 | Addendum | `_bmad-output/planning-artifacts/brief-2026-08-30/addendum.md` |
 | PRD | `_bmad-output/planning-artifacts/prds/prd-Nutrition-2026-08-30/prd.md` |
 | PRD addendum | `_bmad-output/planning-artifacts/prds/prd-Nutrition-2026-08-30/addendum.md` |
-| Architecture | `_bmad-output/planning-artifacts/ARCHITECTURE-SPINE.md` (à créer) |
+| Architecture spine | `_bmad-output/planning-artifacts/architecture/architecture-Nutrition-2026-08-30/ARCHITECTURE-SPINE.md` |
+| Solution design | `_bmad-output/planning-artifacts/architecture/architecture-Nutrition-2026-08-30/SOLUTION-DESIGN.md` |
 
 ## Hors scope MVP
 
