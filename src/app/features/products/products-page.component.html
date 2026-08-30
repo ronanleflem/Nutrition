@@ -1,0 +1,43 @@
+<section class="products-page">
+  <div class="products-page__toolbar">
+    <a class="products-page__add" routerLink="/products/new">Ajouter un produit</a>
+  </div>
+
+  @if (hasCatalog()) {
+    <label class="products-page__search">
+      <span class="visually-hidden">Rechercher un produit</span>
+      <input
+        class="products-page__search-input"
+        type="search"
+        placeholder="Rechercher un produit…"
+        aria-label="Rechercher un produit"
+        [value]="searchQuery()"
+        (input)="onSearchInput($event)"
+      />
+    </label>
+  }
+
+  @if (loading()) {
+    <p class="products-page__status" role="status">Chargement…</p>
+  } @else if (!hasCatalog()) {
+    <app-empty-state />
+  } @else if (!hasFilteredResults()) {
+    <div class="products-page__no-results">
+      <p class="products-page__no-results-message">Aucun produit ne correspond à votre recherche.</p>
+      <button class="products-page__clear-search" type="button" (click)="clearSearch()">
+        Effacer la recherche
+      </button>
+    </div>
+  } @else {
+    <div class="products-page__list">
+      @for (item of filteredCatalog(); track item.product.id) {
+        <app-product-card [item]="item" />
+      }
+    </div>
+  }
+
+  <a class="products-page__fab" routerLink="/products/scan" aria-label="Scanner un code-barres">
+    <span aria-hidden="true">▮▮</span>
+    <span class="products-page__fab-label">Scan</span>
+  </a>
+</section>

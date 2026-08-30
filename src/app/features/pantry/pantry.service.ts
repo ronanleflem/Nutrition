@@ -68,7 +68,7 @@ export class PantryService {
   }
 
   async createProduct(name: string): Promise<Product> {
-    const product = await this.database.createProduct(name);
+    const product = await this.database.createProduct({ name });
     await this.refresh();
     return product;
   }

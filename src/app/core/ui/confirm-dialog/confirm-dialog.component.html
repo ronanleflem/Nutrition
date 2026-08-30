@@ -1,0 +1,20 @@
+<div class="confirm-dialog" role="dialog" aria-modal="true" [attr.aria-label]="title()">
+  <button class="confirm-dialog__backdrop" type="button" aria-label="Fermer" (click)="cancelled.emit()"></button>
+  <div class="confirm-dialog__panel">
+    <h2 class="confirm-dialog__title">{{ title() }}</h2>
+    <p class="confirm-dialog__message">{{ message() }}</p>
+    <div class="confirm-dialog__actions">
+      <button class="confirm-dialog__button confirm-dialog__button--secondary" type="button" (click)="cancelled.emit()">
+        {{ cancelLabel() }}
+      </button>
+      <button
+        class="confirm-dialog__button confirm-dialog__button--primary"
+        type="button"
+        [disabled]="confirmDisabled()"
+        (click)="confirmed.emit()"
+      >
+        {{ confirmLabel() }}
+      </button>
+    </div>
+  </div>
+</div>

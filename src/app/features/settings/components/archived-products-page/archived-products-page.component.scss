@@ -1,0 +1,97 @@
+.archived-products-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.archived-products-page__back {
+  color: var(--color-ink-secondary);
+  text-decoration: none;
+}
+
+.archived-products-page__title {
+  margin: 0;
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.archived-products-page__status,
+.archived-products-page__empty,
+.archived-products-page__error {
+  color: var(--color-ink-secondary);
+}
+
+.archived-products-page__error {
+  color: var(--color-danger, #c0392b);
+  margin-bottom: 12px;
+}
+
+.archived-products-page__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.archived-products-page__item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.archived-products-page__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.archived-products-page__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.archived-products-page__name {
+  font-weight: var(--font-weight-semibold);
+}
+
+.archived-products-page__category {
+  font-size: var(--font-size-meta);
+  color: var(--color-ink-secondary);
+}
+
+.archived-products-page__restore {
+  min-height: var(--spacing-touch-min);
+  padding: 0 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.archived-products-page__restore:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.archived-products-page__no-refs {
+  margin: 0;
+  font-size: var(--font-size-meta);
+  color: var(--color-ink-secondary);
+}
+
+.archived-products-page__references {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
