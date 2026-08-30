@@ -1,6 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
 import type { RecipeDetail, RecipeVariantDetail } from '../../../../core/models/recipe-detail';
 import { RecipeMacroService } from '../../../../core/scoring/recipe-macro.service';
 import { RecipesService } from '../../services/recipes.service';
@@ -10,7 +11,7 @@ import { VariantChipRowComponent } from '../variant-chip-row/variant-chip-row.co
 
 @Component({
   selector: 'app-recipe-detail-page',
-  imports: [RouterLink, VariantChipRowComponent, StarRatingComponent, RecipeMacrosPanelComponent],
+  imports: [RouterLink, VariantChipRowComponent, StarRatingComponent, RecipeMacrosPanelComponent, ConfirmDialogComponent],
   templateUrl: './recipe-detail-page.component.html',
   styleUrl: './recipe-detail-page.component.scss',
 })
@@ -27,6 +28,18 @@ export class RecipeDetailPageComponent implements OnInit {
   readonly selectedVariantId = signal<string | null>(null);
   readonly savingRating = signal(false);
   readonly savingDefault = signal(false);
+  readonly showDeleteConfirm = signal(false);
+  readonly deleting = signal(false);
+  readonly planEntryCount = signal(0);
+
+  readonly deleteConfirmMessage = computed(() => {
+    const count = this.planEntryCount();
+    if (count > 0) {
+      return `Cette recette est planifiée ${count} fois. La suppression retirera aussi ces entrées du plan. Continuer ?`;
+    }
+
+    return 'Supprimer définitivement cette recette et toutes ses variantes ?';
+  });
 
   readonly activeVariant = computed<RecipeVariantDetail | null>(() => {
     const current = this.detail();
@@ -82,6 +95,7 @@ export class RecipeDetailPageComponent implements OnInit {
       }
 
       this.detail.set(detail);
+      this.planEntryCount.set(await this.recipesService.countMealPlanEntries(recipeId));
       const selected =
         detail.variants.find((variant) => variant.id === detail.recipe.defaultVariantId)?.id ??
         detail.variants[0]?.id ??
@@ -138,6 +152,33 @@ export class RecipeDetailPageComponent implements OnInit {
       );
     } finally {
       this.savingDefault.set(false);
+    }
+  }
+
+  openDeleteConfirm(): void {
+    this.showDeleteConfirm.set(true);
+  }
+
+  closeDeleteConfirm(): void {
+    this.showDeleteConfirm.set(false);
+  }
+
+  async confirmDelete(): Promise<void> {
+    if (!this.recipeId || this.deleting()) {
+      return;
+    }
+
+    this.deleting.set(true);
+    this.actionError.set(null);
+
+    try {
+      await this.recipesService.deleteRecipe(this.recipeId);
+      this.showDeleteConfirm.set(false);
+      await this.router.navigate(['/recipes']);
+    } catch (error) {
+      this.actionError.set(error instanceof Error ? error.message : 'Suppression impossible.');
+    } finally {
+      this.deleting.set(false);
     }
   }
 }

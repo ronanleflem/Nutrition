@@ -20,6 +20,15 @@ export interface CreateRecipeInput {
   notes?: string;
 }
 
+export interface UpdateRecipeInput {
+  title: string;
+  steps: string[];
+  durationMin?: number;
+  defaultPortions: number;
+  tags?: string[];
+  notes?: string;
+}
+
 export function createRecipe(input: CreateRecipeInput, defaultVariantId: string): Recipe {
   const now = new Date().toISOString();
 

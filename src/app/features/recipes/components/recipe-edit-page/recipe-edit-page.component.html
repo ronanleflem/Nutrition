@@ -1,0 +1,82 @@
+@if (loading()) {
+  <p class="recipe-edit__status" role="status">Chargement…</p>
+} @else if (loadError()) {
+  <p class="recipe-edit__error" role="alert">{{ loadError() }}</p>
+  <a class="recipe-edit__back" [routerLink]="recipeId() ? ['/recipes', recipeId()] : ['/recipes']">
+    Retour
+  </a>
+} @else {
+  <form class="recipe-edit" [formGroup]="form" (ngSubmit)="onSubmit()">
+    @if (submitError()) {
+      <p class="recipe-edit__error" role="alert">{{ submitError() }}</p>
+    }
+
+    <label class="recipe-edit__field">
+      <span class="recipe-edit__label">Titre *</span>
+      <input class="recipe-edit__input" type="text" formControlName="title" autocomplete="off" />
+      @if (form.controls.title.touched && form.controls.title.invalid) {
+        <span class="recipe-edit__error">Le titre est obligatoire.</span>
+      }
+    </label>
+
+    <div class="recipe-edit__row">
+      <label class="recipe-edit__field">
+        <span class="recipe-edit__label">Portions *</span>
+        <input class="recipe-edit__input" type="number" min="1" formControlName="defaultPortions" />
+      </label>
+      <label class="recipe-edit__field">
+        <span class="recipe-edit__label">Durée (min)</span>
+        <input class="recipe-edit__input" type="number" min="1" formControlName="durationMin" />
+      </label>
+    </div>
+
+    <label class="recipe-edit__field">
+      <span class="recipe-edit__label">Tags (séparés par des virgules)</span>
+      <input class="recipe-edit__input" type="text" formControlName="tags" autocomplete="off" />
+    </label>
+
+    <label class="recipe-edit__field">
+      <span class="recipe-edit__label">Notes</span>
+      <textarea class="recipe-edit__textarea" formControlName="notes" rows="3"></textarea>
+    </label>
+
+    <section class="recipe-edit__section" aria-labelledby="recipe-edit-steps-heading">
+      <div class="recipe-edit__section-header">
+        <h2 id="recipe-edit-steps-heading" class="recipe-edit__section-title">Étapes *</h2>
+        <button type="button" class="recipe-edit__link-button" (click)="addStep()">Ajouter une étape</button>
+      </div>
+      <div formArrayName="steps" class="recipe-edit__list">
+        @for (step of steps.controls; track $index) {
+          <div class="recipe-edit__list-item">
+            <label class="recipe-edit__field recipe-edit__field--grow">
+              <span class="recipe-edit__label">Étape {{ $index + 1 }}</span>
+              <input class="recipe-edit__input" type="text" [formControlName]="$index" />
+            </label>
+            @if (steps.length > 1) {
+              <button
+                type="button"
+                class="recipe-edit__icon-button"
+                aria-label="Supprimer l'étape"
+                (click)="removeStep($index)"
+              >
+                ×
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    <div class="recipe-edit__actions">
+      <a
+        class="recipe-edit__button recipe-edit__button--secondary"
+        [routerLink]="recipeId() ? ['/recipes', recipeId()] : ['/recipes']"
+      >
+        Annuler
+      </a>
+      <button class="recipe-edit__button recipe-edit__button--primary" type="submit" [disabled]="saving()">
+        Enregistrer
+      </button>
+    </div>
+  </form>
+}

@@ -8,6 +8,11 @@ import {
   createDefaultAppSettings,
 } from '../models/app-settings';
 import {
+  createMealPlanEntry,
+  type CreateMealPlanEntryInput,
+  type MealPlanEntry,
+} from '../models/meal-plan-entry';
+import {
   createPantryItem,
   type PantryItem,
   type PantryItemWithProduct,
@@ -38,7 +43,7 @@ import {
   type RecipeVariantDetail,
   sortVariantsByOrder,
 } from '../models/recipe-detail';
-import { createRecipe, type CreateRecipeInput, type Recipe } from '../models/recipe';
+import { createRecipe, type CreateRecipeInput, type Recipe, type UpdateRecipeInput } from '../models/recipe';
 import { createRecipeIngredient, type RecipeIngredient } from '../models/recipe-ingredient';
 import {
   compareRecipeListItems,
@@ -722,6 +727,89 @@ export class DatabaseService {
     });
 
     return { recipe, variantId: variant.id, ingredients };
+  }
+
+  async updateRecipe(recipeId: string, input: UpdateRecipeInput): Promise<Recipe> {
+    await this.initialize();
+
+    const existing = await this.db!.recipes.get(recipeId);
+    if (!existing) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const title = input.title.trim();
+    if (!title) {
+      throw new Error('Le titre de la recette est obligatoire.');
+    }
+
+    const steps = input.steps.map((step) => step.trim()).filter(Boolean);
+    if (steps.length === 0) {
+      throw new Error('Au moins une étape est requise.');
+    }
+
+    if (!Number.isFinite(input.defaultPortions) || input.defaultPortions <= 0) {
+      throw new Error('Le nombre de portions doit être supérieur à 0.');
+    }
+
+    const updated: Recipe = {
+      ...existing,
+      title,
+      steps,
+      durationMin: input.durationMin,
+      defaultPortions: input.defaultPortions,
+      tags: input.tags?.map((tag) => tag.trim()).filter(Boolean),
+      notes: input.notes?.trim() || undefined,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.db!.recipes.put(updated);
+    return updated;
+  }
+
+  async countMealPlanEntriesForRecipe(recipeId: string): Promise<number> {
+    await this.initialize();
+    return this.db!.mealPlanEntries.where('recipeId').equals(recipeId).count();
+  }
+
+  async createMealPlanEntry(input: CreateMealPlanEntryInput): Promise<MealPlanEntry> {
+    await this.initialize();
+
+    const recipe = await this.db!.recipes.get(input.recipeId);
+    if (!recipe) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const entry = createMealPlanEntry(input);
+    await this.db!.mealPlanEntries.put(entry);
+    return entry;
+  }
+
+  async deleteRecipe(recipeId: string): Promise<void> {
+    await this.initialize();
+
+    const recipe = await this.db!.recipes.get(recipeId);
+    if (!recipe) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const variants = await this.db!.recipeVariants.where('recipeId').equals(recipeId).toArray();
+    const variantIds = variants.map((variant) => variant.id);
+
+    await this.db!.transaction(
+      'rw',
+      this.db!.recipes,
+      this.db!.recipeVariants,
+      this.db!.recipeIngredients,
+      this.db!.mealPlanEntries,
+      async () => {
+        await this.db!.mealPlanEntries.where('recipeId').equals(recipeId).delete();
+        if (variantIds.length > 0) {
+          await this.db!.recipeIngredients.where('variantId').anyOf(variantIds).delete();
+        }
+        await this.db!.recipeVariants.where('recipeId').equals(recipeId).delete();
+        await this.db!.recipes.delete(recipeId);
+      },
+    );
   }
 
   /** Test helper to reset in-memory state after closing the Dexie connection. */

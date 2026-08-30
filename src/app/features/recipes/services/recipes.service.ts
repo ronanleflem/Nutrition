@@ -10,6 +10,7 @@ import {
   type CreateRecipeWithFirstVariantInput,
   type CreateRecipeResult,
 } from '../../../core/database/database.service';
+import type { UpdateRecipeInput } from '../../../core/models/recipe';
 
 @Injectable({ providedIn: 'root' })
 export class RecipesService {
@@ -55,5 +56,20 @@ export class RecipesService {
     const recipe = await this.database.setDefaultVariant(recipeId, variantId);
     await this.loadRecipes();
     return recipe;
+  }
+
+  async updateRecipe(recipeId: string, input: UpdateRecipeInput): Promise<Recipe> {
+    const recipe = await this.database.updateRecipe(recipeId, input);
+    await this.loadRecipes();
+    return recipe;
+  }
+
+  async countMealPlanEntries(recipeId: string): Promise<number> {
+    return this.database.countMealPlanEntriesForRecipe(recipeId);
+  }
+
+  async deleteRecipe(recipeId: string): Promise<void> {
+    await this.database.deleteRecipe(recipeId);
+    await this.loadRecipes();
   }
 }

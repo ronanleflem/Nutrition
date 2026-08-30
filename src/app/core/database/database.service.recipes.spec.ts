@@ -243,4 +243,46 @@ describe('DatabaseService recipes', () => {
       saltPer100g: undefined,
     });
   });
+
+  it('updates recipe family metadata', async () => {
+    const { recipeId } = await createSampleRecipe();
+
+    const updated = await service.updateRecipe(recipeId, {
+      title: 'Wrap poulet épicé',
+      steps: ['Nouvelle étape'],
+      defaultPortions: 3,
+      tags: ['épicé'],
+      notes: 'Test',
+    });
+
+    expect(updated.title).toBe('Wrap poulet épicé');
+    expect(updated.steps).toEqual(['Nouvelle étape']);
+    expect(updated.defaultPortions).toBe(3);
+  });
+
+  it('deletes recipe with variants and ingredients', async () => {
+    const { recipeId } = await createSampleRecipe();
+
+    await service.deleteRecipe(recipeId);
+
+    expect(await service.getRecipeDetail(recipeId)).toBeUndefined();
+    expect(await service.listRecipes()).toHaveLength(0);
+  });
+
+  it('deletes recipe and associated meal plan entries', async () => {
+    const { recipeId } = await createSampleRecipe();
+
+    await service.createMealPlanEntry({
+      date: '2026-08-31',
+      slot: 'lunch',
+      recipeId,
+    });
+
+    expect(await service.countMealPlanEntriesForRecipe(recipeId)).toBe(1);
+
+    await service.deleteRecipe(recipeId);
+
+    expect(await service.countMealPlanEntriesForRecipe(recipeId)).toBe(0);
+    expect(await service.getRecipeDetail(recipeId)).toBeUndefined();
+  });
 });

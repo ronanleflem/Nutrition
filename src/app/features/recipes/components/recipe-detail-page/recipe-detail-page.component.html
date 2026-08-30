@@ -5,7 +5,10 @@
   <a class="recipe-detail__back" routerLink="/recipes">Retour aux recettes</a>
 } @else if (detail(); as current) {
   <header class="recipe-detail__header">
-    <h1 class="recipe-detail__title">{{ current.recipe.title }}</h1>
+    <div class="recipe-detail__header-row">
+      <h1 class="recipe-detail__title">{{ current.recipe.title }}</h1>
+      <a class="recipe-detail__edit-link" [routerLink]="['/recipes', current.recipe.id, 'edit']">Modifier</a>
+    </div>
     @if (current.recipe.durationMin) {
       <p class="recipe-detail__meta">{{ current.recipe.durationMin }} min · {{ current.recipe.defaultPortions }} portions</p>
     } @else {
@@ -81,6 +84,22 @@
   <a class="recipe-detail__add-variant" [routerLink]="['/recipes', current.recipe.id, 'variants', 'new']">
     Ajouter une variante
   </a>
+
+  <button type="button" class="recipe-detail__delete-button" (click)="openDeleteConfirm()">
+    Supprimer la recette
+  </button>
+
+  @if (showDeleteConfirm()) {
+    <app-confirm-dialog
+      title="Supprimer la recette"
+      [message]="deleteConfirmMessage()"
+      confirmLabel="Supprimer"
+      cancelLabel="Annuler"
+      [confirmDisabled]="deleting()"
+      (confirmed)="confirmDelete()"
+      (cancelled)="closeDeleteConfirm()"
+    />
+  }
 
   @if (actionError()) {
     <p class="recipe-detail__error" role="alert">{{ actionError() }}</p>

@@ -62,13 +62,13 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/app/core/models/recipe-macros.ts` — types and pure functions.
-- [ ] `src/app/core/scoring/recipe-macro.service.ts` — variant macro calculation.
-- [ ] `src/app/core/scoring/recipe-macro.service.spec.ts` — matrix tests.
-- [ ] `src/app/core/models/recipe-detail.ts` — ingredient macro source field.
-- [ ] `src/app/core/database/database.service.ts` — enrich detail with macros.
-- [ ] `src/app/features/recipes/components/recipe-macros-panel/` — UI panel.
-- [ ] `src/app/features/recipes/components/recipe-detail-page/` — display macros.
+- [x] `src/app/core/models/recipe-macros.ts` — types and pure functions.
+- [x] `src/app/core/scoring/recipe-macro.service.ts` — variant macro calculation.
+- [x] `src/app/core/scoring/recipe-macro.service.spec.ts` — matrix tests.
+- [x] `src/app/core/models/recipe-detail.ts` — ingredient macro source field.
+- [x] `src/app/core/database/database.service.ts` — enrich detail with macros.
+- [x] `src/app/features/recipes/components/recipe-macros-panel/` — UI panel.
+- [x] `src/app/features/recipes/components/recipe-detail-page/` — display macros.
 
 **Acceptance Criteria:**
 - Given a variant with ingredients linked to products with preferred references, when I view the detail page, then total and per-portion macros are shown.
