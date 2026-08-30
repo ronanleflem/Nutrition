@@ -50,9 +50,9 @@ development_status:
   2-5-archivage-et-restauration-produit: backlog
   epic-2-retrospective: optional
 
-  epic-3: in-progress
+  epic-3: done
   3-1-crud-garde-manger: done
-  3-2-alertes-dlc-et-filtres: backlog
+  3-2-alertes-dlc-et-filtres: done
   epic-3-retrospective: optional
 
   epic-4: backlog

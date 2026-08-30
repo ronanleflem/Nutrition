@@ -1,6 +1,12 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 
 import type { PantryItemWithProduct } from '../../core/models/pantry-item';
+import {
+  formatDisplayExpiry,
+  formatExpiryAlertLabel,
+  isExpiryAlert,
+} from './pantry-expiry.util';
+import type { PantryFilterMode, PantrySortMode } from './pantry-list.util';
 import { PantryAddSheetComponent } from './pantry-add-sheet.component';
 import { PantryService } from './pantry.service';
 
@@ -39,24 +45,33 @@ export class PantryPageComponent implements OnInit {
     this.closeSheet();
   }
 
+  onSortChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value as PantrySortMode;
+    this.pantry.setSortMode(value);
+  }
+
+  onFilterChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value as PantryFilterMode;
+    this.pantry.setFilterMode(value);
+  }
+
+  showAllItems(): void {
+    this.pantry.setFilterMode('all');
+  }
+
   formatQuantity(quantityG: number): string {
     return `${quantityG} g`;
   }
 
   formatExpiry(expiryDate?: string): string | null {
-    if (!expiryDate) {
-      return null;
-    }
+    return formatDisplayExpiry(expiryDate);
+  }
 
-    const date = new Date(expiryDate);
-    if (Number.isNaN(date.getTime())) {
-      return expiryDate;
-    }
+  hasExpiryAlert(expiryDate?: string): boolean {
+    return isExpiryAlert(expiryDate);
+  }
 
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    }).format(date);
+  expiryAlertLabel(expiryDate: string): string {
+    return formatExpiryAlertLabel(expiryDate);
   }
 }

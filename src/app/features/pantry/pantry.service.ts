@@ -3,6 +3,11 @@ import { Injectable, inject, signal } from '@angular/core';
 import { DatabaseService, type PantryItemInput } from '../../core/database/database.service';
 import type { PantryItemWithProduct } from '../../core/models/pantry-item';
 import type { Product } from '../../core/models/product';
+import {
+  applyPantryView,
+  type PantryFilterMode,
+  type PantrySortMode,
+} from './pantry-list.util';
 
 @Injectable({ providedIn: 'root' })
 export class PantryService {
@@ -11,6 +16,9 @@ export class PantryService {
   readonly items = signal<PantryItemWithProduct[]>([]);
   readonly products = signal<Product[]>([]);
   readonly loading = signal(false);
+  readonly sortMode = signal<PantrySortMode>('name');
+  readonly filterMode = signal<PantryFilterMode>('all');
+  readonly displayItems = signal<PantryItemWithProduct[]>([]);
 
   private refreshPromise: Promise<void> | null = null;
 
@@ -28,6 +36,16 @@ export class PantryService {
     }
   }
 
+  setSortMode(mode: PantrySortMode): void {
+    this.sortMode.set(mode);
+    this.recomputeDisplayItems();
+  }
+
+  setFilterMode(mode: PantryFilterMode): void {
+    this.filterMode.set(mode);
+    this.recomputeDisplayItems();
+  }
+
   private async loadPantryState(): Promise<void> {
     this.loading.set(true);
     try {
@@ -37,9 +55,16 @@ export class PantryService {
       ]);
       this.items.set(items);
       this.products.set(products);
+      this.recomputeDisplayItems();
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private recomputeDisplayItems(): void {
+    this.displayItems.set(
+      applyPantryView(this.items(), this.sortMode(), this.filterMode()),
+    );
   }
 
   async createProduct(name: string): Promise<Product> {

@@ -71,4 +71,66 @@ describe('PantryPageComponent', () => {
     expect(text).toContain('Lait');
     expect(text).toContain('500 g');
   });
+
+  it('shows expiry warning badge for near DLC', async () => {
+    const db = TestBed.inject(DatabaseService);
+    await db.initialize();
+    const near = await db.createProduct('Yaourt');
+    const far = await db.createProduct('Riz');
+
+    const soon = new Date();
+    soon.setDate(soon.getDate() + 2);
+    const later = new Date();
+    later.setDate(later.getDate() + 10);
+    const format = (date: Date) =>
+      `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+        date.getDate(),
+      ).padStart(2, '0')}`;
+
+    await db.addPantryItem({
+      productId: near.id,
+      quantityG: 200,
+      expiryDate: format(soon),
+    });
+    await db.addPantryItem({
+      productId: far.id,
+      quantityG: 500,
+      expiryDate: format(later),
+    });
+
+    const pantry = TestBed.inject(PantryService);
+    await pantry.refresh();
+
+    fixture = TestBed.createComponent(PantryHostComponent);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('DLC dans');
+    expect(fixture.nativeElement.querySelector('.pantry__badge')).toBeTruthy();
+  });
+
+  it('shows filtered empty state when no near-expiry items match', async () => {
+    const db = TestBed.inject(DatabaseService);
+    await db.initialize();
+    const product = await db.createProduct('Pâtes');
+    const later = new Date();
+    later.setDate(later.getDate() + 10);
+    const expiryDate = `${later.getFullYear()}-${String(later.getMonth() + 1).padStart(
+      2,
+      '0',
+    )}-${String(later.getDate()).padStart(2, '0')}`;
+
+    await db.addPantryItem({ productId: product.id, quantityG: 300, expiryDate });
+
+    const pantry = TestBed.inject(PantryService);
+    await pantry.refresh();
+    pantry.setFilterMode('expiring');
+
+    fixture = TestBed.createComponent(PantryHostComponent);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Aucun produit avec DLC proche');
+    expect(text).toContain('Afficher tout le stock');
+  });
 });

@@ -18,6 +18,8 @@ Users manage home stock in grams with optional expiry and location. Pantry lines
 - CRUD must feel instant (< 200 ms perceived) and work fully offline.
 - Quantities stored in grams only; no reference-level links on pantry rows.
 - Soft-deleted products must not appear as selectable for new pantry lines.
+- Visual warning when DLC is within 3 days (`accent-warning`); no alert without DLC.
+- Sort pantry by product name or DLC; filter to expiring-soon lines.
 
 ## Technical Decisions
 
@@ -26,13 +28,15 @@ Users manage home stock in grams with optional expiry and location. Pantry lines
 - IDs via `crypto.randomUUID()`; timestamps ISO 8601 UTC.
 - `pantryItems.productId` FK to `products.id` only (AD-4, AD-11).
 - Product soft delete via `deletedAt`; active lists filter `deletedAt == null`.
+- Expiry dates stored as `YYYY-MM-DD`; day-diff computed in local calendar days.
 
 ## UX & Interaction Patterns
 
 - `/pantry` is the default home surface — list stock with product name, quantity (g), optional DLC and emplacement.
 - Empty pantry list uses `EmptyState` with contextual CTA to add stock.
+- Filter/sort controls above list when stock exists; filtered-empty uses contextual EmptyState.
 - Add/edit via bottom sheet or inline form; French UI strings.
-- DLC warning badges and filters belong to story 3.2 — not this story.
+- DLC warning badge uses `#E8B86D` (`accent-warning`).
 
 ## Cross-Story Dependencies
 
