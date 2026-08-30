@@ -1,0 +1,58 @@
+<form class="product-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  @if (loadError()) {
+    <p class="product-form__error" role="alert">{{ loadError() }}</p>
+  }
+  @if (submitError()) {
+    <p class="product-form__error" role="alert">{{ submitError() }}</p>
+  }
+
+  <label class="product-form__field">
+    <span class="product-form__label">Nom *</span>
+    <input
+      class="product-form__input"
+      type="text"
+      formControlName="name"
+      autocomplete="off"
+      [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+    />
+    @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+      <span class="product-form__error">Le nom est obligatoire.</span>
+    }
+    @if (form.controls.name.touched && form.controls.name.hasError('pattern')) {
+      <span class="product-form__error">Le nom ne peut pas être vide.</span>
+    }
+  </label>
+
+  <label class="product-form__field">
+    <span class="product-form__label">Catégorie</span>
+    <input class="product-form__input" type="text" formControlName="category" autocomplete="off" />
+  </label>
+
+  <label class="product-form__field">
+    <span class="product-form__label">Priorité</span>
+    <select class="product-form__input" formControlName="priority">
+      <option value="">Aucune</option>
+      <option value="green">Verte</option>
+      <option value="yellow">Jaune</option>
+      <option value="gray">Grise</option>
+    </select>
+  </label>
+
+  <label class="product-form__field">
+    <span class="product-form__label">Notes</span>
+    <textarea class="product-form__textarea" formControlName="notes" rows="4"></textarea>
+  </label>
+
+  <div class="product-form__actions">
+    <a class="product-form__button product-form__button--secondary" routerLink="/products">
+      Annuler
+    </a>
+    <button
+      class="product-form__button product-form__button--primary"
+      type="submit"
+      [disabled]="saving() || !!loadError()"
+    >
+      {{ isEditMode() ? 'Enregistrer' : 'Créer' }}
+    </button>
+  </div>
+</form>

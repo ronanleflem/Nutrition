@@ -26,17 +26,19 @@ describe('app routes', () => {
 
   const lazyRoutes = [
   { path: '/pantry', text: 'Surface en construction.' },
-  { path: '/products', text: 'Surface en construction.' },
+  { path: '/products', text: 'Ajouter un produit' },
   { path: '/recipes', text: 'Surface en construction.' },
   { path: '/plan', text: 'Surface en construction.' },
   { path: '/shopping', text: 'Surface en construction.' },
   { path: '/goals', text: 'Surface en construction.' },
-  { path: '/settings', text: 'Surface en construction.' },
+  { path: '/settings', text: 'Produits archivés' },
   ];
 
   for (const route of lazyRoutes) {
     it(`loads lazy route ${route.path}`, async () => {
       await router.navigateByUrl(route.path);
+      fixture.detectChanges();
+      await fixture.whenStable();
       fixture.detectChanges();
 
       expect(fixture.nativeElement.textContent).toContain(route.text);

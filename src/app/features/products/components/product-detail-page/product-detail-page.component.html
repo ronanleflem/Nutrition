@@ -1,0 +1,67 @@
+<section class="product-detail">
+  @if (loading()) {
+    <p class="product-detail__status" role="status">Chargement…</p>
+  } @else if (loadError()) {
+    <p class="product-detail__error" role="alert">{{ loadError() }}</p>
+  } @else if (catalogItem(); as item) {
+    <header class="product-detail__header">
+      <div class="product-detail__title-row">
+        <app-priority-badge [priority]="item.product.priority" />
+        <h2 class="product-detail__title">{{ item.product.name }}</h2>
+      </div>
+      @if (item.product.category) {
+        <p class="product-detail__category">{{ item.product.category }}</p>
+      }
+      @if (item.preferredReference) {
+        <p class="product-detail__store">
+          Enseigne principale : {{ storeLabel(item.preferredReference.store) }}
+        </p>
+      }
+      <a class="product-detail__edit" [routerLink]="['/products', item.product.id, 'edit']">
+        Modifier le produit
+      </a>
+      <button class="product-detail__archive" type="button" (click)="openArchiveConfirm()">
+        Archiver le produit
+      </button>
+    </header>
+
+    @if (!item.preferredReference) {
+      <p class="product-detail__banner" role="status">
+        Choisir une référence pour les macros
+      </p>
+    }
+
+    <div class="product-detail__actions">
+      <a class="product-detail__add" [routerLink]="['/products', item.product.id, 'references', 'new']">
+        Ajouter une référence
+      </a>
+    </div>
+
+    @if (references().length === 0) {
+      <p class="product-detail__empty">Aucune référence enseigne pour ce produit.</p>
+    } @else {
+      <div class="product-detail__references">
+        @for (reference of references(); track reference.id) {
+          <app-reference-row
+            [reference]="reference"
+            [productId]="item.product.id"
+            [isPreferred]="item.product.preferredReferenceId === reference.id"
+            (setPreferred)="onSetPreferred($event)"
+          />
+        }
+      </div>
+    }
+  }
+
+  @if (showArchiveConfirm()) {
+    <app-confirm-dialog
+      title="Archiver ce produit ?"
+      message="Le produit disparaîtra du catalogue mais restera référencé dans vos recettes et votre garde-manger."
+      confirmLabel="Archiver"
+      cancelLabel="Annuler"
+      [confirmDisabled]="archiving()"
+      (confirmed)="confirmArchive()"
+      (cancelled)="closeArchiveConfirm()"
+    />
+  }
+</section>

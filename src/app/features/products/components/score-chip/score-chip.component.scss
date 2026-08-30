@@ -1,0 +1,12 @@
+.score-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-meta);
+  font-variant-numeric: tabular-nums;
+}
