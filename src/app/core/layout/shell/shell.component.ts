@@ -4,6 +4,7 @@ import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from 
 import { filter, map, startWith } from 'rxjs';
 
 import { BottomNavComponent } from '../bottom-nav/bottom-nav.component';
+import { NetworkStatusService } from '../../network/network-status.service';
 
 function getPageTitle(route: ActivatedRoute): string {
   let current: ActivatedRoute | null = route;
@@ -29,6 +30,7 @@ function getPageTitle(route: ActivatedRoute): string {
 export class ShellComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  protected readonly networkStatus = inject(NetworkStatusService);
 
   readonly pageTitle = toSignal(
     this.router.events.pipe(

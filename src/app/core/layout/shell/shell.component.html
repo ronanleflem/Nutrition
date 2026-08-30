@@ -15,6 +15,12 @@
     </a>
   </header>
 
+  @if (!networkStatus.isOnline()) {
+    <p class="shell__offline-banner" role="status">
+      Mode hors ligne — navigation et données locales disponibles.
+    </p>
+  }
+
   <main class="shell__content">
     <router-outlet />
   </main>

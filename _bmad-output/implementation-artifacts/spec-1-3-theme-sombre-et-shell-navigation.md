@@ -65,12 +65,12 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/styles/_tokens.scss` + `styles.scss` — dark theme tokens and base styles.
-- [ ] `theme.service.ts` — apply theme from DatabaseService.
-- [ ] `shell.component.ts` + `bottom-nav.component.ts` — layout shell.
-- [ ] `app.routes.ts` — shell parent route with title data.
-- [ ] `app.config.ts` — theme bootstrap.
-- [ ] Component tests for shell nav labels and settings link.
+- [x] `src/styles/_tokens.scss` + `styles.scss` — dark theme tokens and base styles.
+- [x] `theme.service.ts` — apply theme from DatabaseService.
+- [x] `shell.component.ts` + `bottom-nav.component.ts` — layout shell.
+- [x] `app.routes.ts` — shell parent route with title data.
+- [x] `app.config.ts` — theme bootstrap.
+- [x] Component tests for shell nav labels and settings link.
 
 **Acceptance Criteria:**
 - Given first open, when shell renders, then background is #121212 and text meets contrast requirements.

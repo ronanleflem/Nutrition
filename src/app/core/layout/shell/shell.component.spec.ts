@@ -81,4 +81,13 @@ describe('ShellComponent', () => {
     expect(shell.pageTitle()).toBe('Garde-manger');
     expect(title.textContent?.trim()).toBe('Garde-manger');
   });
+
+  it('shows a French offline banner when the browser is offline', async () => {
+    window.dispatchEvent(new Event('offline'));
+    hostFixture.detectChanges();
+
+    const banner = getShellElement().querySelector('.shell__offline-banner') as HTMLElement;
+    expect(banner).toBeTruthy();
+    expect(banner.textContent).toContain('Mode hors ligne');
+  });
 });

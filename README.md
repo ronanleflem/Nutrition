@@ -29,6 +29,8 @@ npm run build  # build production + service worker
 
 Routes lazy disponibles : `/pantry`, `/products`, `/recipes`, `/plan`, `/shopping`, `/goals`, `/settings`.
 
+Pour tester le shell offline : `npm run build` puis servir `dist/nutrition/browser` (ex. `npx http-server dist/nutrition/browser`) et couper le réseau après la première visite.
+
 ## Démarrage BMAD
 
 Dans Cursor, invoquer les skills :
