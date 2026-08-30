@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrition — Catalogue produits</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #0a0a0a; display: flex; justify-content: center; min-height: 100vh; }
+    .phone { width: 390px; min-height: 844px; background: #121212; color: #F5F5F5; display: flex; flex-direction: column; position: relative; }
+    .header { padding: 16px; border-bottom: 1px solid #333; }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .search { margin-top: 12px; background: #2A2A2A; border: none; border-radius: 6px; padding: 10px 14px; color: #F5F5F5; width: 100%; font-size: 16px; }
+    .search::placeholder { color: #6B6B6B; }
+    .content { flex: 1; padding: 16px; overflow-y: auto; padding-bottom: 80px; }
+    .card { background: #1E1E1E; border: 1px solid #333; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+    .card-top { display: flex; align-items: flex-start; gap: 10px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .dot.green { background: #4CAF50; }
+    .dot.yellow { background: #FFC107; }
+    .card-info { flex: 1; }
+    .card-title { font-size: 16px; font-weight: 600; }
+    .card-store { font-size: 13px; color: #B0B0B0; margin-top: 2px; }
+    .score { background: #2A2A2A; color: #B0B0B0; font-size: 12px; padding: 2px 8px; border-radius: 9999px; }
+    .macros { font-size: 13px; color: #B0B0B0; margin-top: 8px; font-variant-numeric: tabular-nums; }
+    .fab { position: absolute; bottom: 72px; right: 16px; width: 56px; height: 56px; background: #7CB87C; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); color: #121212; }
+    .bottom-nav { height: 56px; background: #1E1E1E; border-top: 1px solid #333; display: flex; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: #B0B0B0; }
+    .nav-item.active { color: #7CB87C; font-weight: 600; }
+    .nav-icon { font-size: 20px; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <header class="header">
+      <h1>Produits</h1>
+      <input class="search" type="search" placeholder="Rechercher un produit…" aria-label="Rechercher">
+    </header>
+    <main class="content">
+      <div class="card">
+        <div class="card-top">
+          <div class="dot green"></div>
+          <div class="card-info">
+            <div class="card-title">Skyr nature</div>
+            <div class="card-store">Auchan · LAITIER</div>
+          </div>
+          <span class="score">82</span>
+        </div>
+        <div class="macros">57 kcal · 10 g P · 0 g L · 4 g G / 100 g</div>
+      </div>
+      <div class="card">
+        <div class="card-top">
+          <div class="dot green"></div>
+          <div class="card-info">
+            <div class="card-title">Poulet blanc</div>
+            <div class="card-store">Carrefour · VIANDE</div>
+          </div>
+          <span class="score">91</span>
+        </div>
+        <div class="macros">110 kcal · 23 g P · 1 g L · 0 g G / 100 g</div>
+      </div>
+      <div class="card">
+        <div class="card-top">
+          <div class="dot yellow"></div>
+          <div class="card-info">
+            <div class="card-title">Wrap blé complet</div>
+            <div class="card-store">Leclerc · FÉCULENT</div>
+          </div>
+          <span class="score">54</span>
+        </div>
+        <div class="macros">290 kcal · 8 g P · 4 g L · 52 g G / 100 g</div>
+      </div>
+    </main>
+    <div class="fab" aria-label="Scanner un code-barres">📷</div>
+    <nav class="bottom-nav">
+      <div class="nav-item"><span class="nav-icon">📦</span>Garde-manger</div>
+      <div class="nav-item active"><span class="nav-icon">🏷</span>Produits</div>
+      <div class="nav-item"><span class="nav-icon">📖</span>Recettes</div>
+      <div class="nav-item"><span class="nav-icon">📅</span>Plan</div>
+      <div class="nav-item"><span class="nav-icon">🛒</span>Courses</div>
+    </nav>
+  </div>
+</body>
+</html>
