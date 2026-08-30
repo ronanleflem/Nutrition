@@ -35,11 +35,10 @@ project_key: NOKEY
 tracking_system: file-system
 story_location: /workspace/_bmad-output/implementation-artifacts
 development_status:
-  epic-1: in-progress
+  epic-1: done
   1-1-scaffold-angular-pwa-et-routing-lazy: done
   1-2-databaseservice-et-schéma-dexie-initial: done
   1-3-thème-sombre-et-shell-navigation: done
-  epic-1: done
   1-4-service-worker-shell-offline: done
   epic-1-retrospective: optional
 

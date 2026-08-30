@@ -25,7 +25,9 @@ export class DatabaseService {
 
     const settings = await this.db!.appSettings.get(APP_SETTINGS_SINGLETON_ID);
     if (!settings) {
-      throw new Error('AppSettings singleton is missing after database initialization.');
+      const defaultSettings = createDefaultAppSettings();
+      await this.db!.appSettings.put(defaultSettings);
+      return defaultSettings;
     }
 
     return settings;

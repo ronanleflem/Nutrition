@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -50,23 +50,24 @@ describe('ngsw-config.json', () => {
 });
 
 describe('production ngsw.json output', () => {
-  it('lists lazy route chunks in the prefetched shell group when build output exists', () => {
-    const ngswPath = resolve(process.cwd(), 'dist/nutrition/browser/ngsw.json');
+  const ngswPath = resolve(process.cwd(), 'dist/nutrition/browser/ngsw.json');
 
-    let ngsw: {
+  it('lists lazy route chunks in the prefetched shell group', () => {
+    expect(
+      existsSync(ngswPath),
+      'dist/nutrition/browser/ngsw.json missing — run npm run build before npm test',
+    ).toBe(true);
+
+    const ngsw = JSON.parse(readFileSync(ngswPath, 'utf-8')) as {
       assetGroups: Array<{ name: string; urls: string[] }>;
     };
-
-    try {
-      ngsw = JSON.parse(readFileSync(ngswPath, 'utf-8'));
-    } catch {
-      return;
-    }
 
     const shellGroup = ngsw.assetGroups.find((group) => group.name === 'app-shell');
     const chunkUrls = shellGroup?.urls.filter((url) => url.startsWith('/chunk-')) ?? [];
 
     expect(chunkUrls.length).toBeGreaterThanOrEqual(7);
-    expect(shellGroup?.urls).toEqual(expect.arrayContaining(['/index.html', '/manifest.webmanifest']));
+    expect(shellGroup?.urls).toEqual(
+      expect.arrayContaining(['/index.html', '/manifest.webmanifest']),
+    );
   });
 });

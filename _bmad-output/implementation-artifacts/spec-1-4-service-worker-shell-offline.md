@@ -2,7 +2,7 @@
 title: 'Story 1.4 — Service Worker shell offline'
 type: 'feature'
 created: '2026-08-30'
-status: 'ready-for-dev'
+status: 'done'
 review_loop_iteration: 0
 baseline_commit: '9259e509a987710f79c2a065a68c868a6458a798'
 story_key: '1-4-service-worker-shell-offline'
@@ -60,11 +60,11 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `ngsw-config.json` — prefetch icons; OFF dataGroup with maxSize 0.
-- [ ] `network-status.service.ts` — connectivity signal.
-- [ ] `shell.component` — French offline banner.
-- [ ] `off-api-origin.ts` — OFF URL constant aligned with ngsw exclusion.
-- [ ] `ngsw-config.spec.ts` + network service tests.
+- [x] `ngsw-config.json` — prefetch icons; OFF dataGroup with maxSize 0.
+- [x] `network-status.service.ts` — connectivity signal.
+- [x] `shell.component` — French offline banner.
+- [x] `off-api-origin.ts` — OFF URL constant aligned with ngsw exclusion.
+- [x] `ngsw-config.spec.ts` + network service tests.
 
 **Acceptance Criteria:**
 - Given production build, when `ngsw.json` is generated, then all lazy route chunks and shell assets are in prefetch group.

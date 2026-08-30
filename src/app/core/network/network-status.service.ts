@@ -1,7 +1,8 @@
-import { Injectable, signal } from '@angular/core';
+import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class NetworkStatusService {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly online = signal(this.readOnlineStatus());
 
   readonly isOnline = this.online.asReadonly();
@@ -11,8 +12,16 @@ export class NetworkStatusService {
       return;
     }
 
-    window.addEventListener('online', () => this.online.set(true));
-    window.addEventListener('offline', () => this.online.set(false));
+    const onOnline = () => this.online.set(true);
+    const onOffline = () => this.online.set(false);
+
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+
+    this.destroyRef.onDestroy(() => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    });
   }
 
   private readOnlineStatus(): boolean {

@@ -1,3 +1,5 @@
+import 'fake-indexeddb/auto';
+
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -25,6 +27,8 @@ describe('ShellComponent', () => {
             children: [
               { path: '', pathMatch: 'full', redirectTo: 'pantry' },
               { path: 'pantry', component: StubPageComponent, data: { title: 'Garde-manger' } },
+              { path: 'plan', component: StubPageComponent, data: { title: 'Plan' } },
+              { path: 'goals', component: StubPageComponent, data: { title: 'Objectifs' } },
               { path: 'settings', component: StubPageComponent, data: { title: 'Paramètres' } },
             ],
           },
@@ -80,6 +84,24 @@ describe('ShellComponent', () => {
     const title = getShellElement().querySelector('.shell__title') as HTMLElement;
     expect(shell.pageTitle()).toBe('Garde-manger');
     expect(title.textContent?.trim()).toBe('Garde-manger');
+  });
+
+  it('shows Plan in the header when navigating to /plan', async () => {
+    await TestBed.inject(Router).navigateByUrl('/plan');
+    hostFixture.detectChanges();
+
+    const shell = getShellComponent();
+    const title = getShellElement().querySelector('.shell__title') as HTMLElement;
+    expect(shell.pageTitle()).toBe('Plan');
+    expect(title.textContent?.trim()).toBe('Plan');
+  });
+
+  it('does not highlight a bottom-nav tab on /goals', async () => {
+    await TestBed.inject(Router).navigateByUrl('/goals');
+    hostFixture.detectChanges();
+
+    const activeItems = getShellElement().querySelectorAll('.bottom-nav__item--active');
+    expect(activeItems.length).toBe(0);
   });
 
   it('shows a French offline banner when the browser is offline', async () => {

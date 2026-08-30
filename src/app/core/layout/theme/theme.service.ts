@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 
 import { DatabaseService } from '../../database/database.service';
 import type { AppTheme } from '../../models/app-settings';
@@ -7,9 +7,16 @@ import type { AppTheme } from '../../models/app-settings';
 export class ThemeService {
   private readonly database = inject(DatabaseService);
 
+  readonly currentTheme = signal<AppTheme>('dark');
+
+  applyTheme(theme: AppTheme): AppTheme {
+    document.documentElement.dataset['theme'] = theme;
+    this.currentTheme.set(theme);
+    return theme;
+  }
+
   async applyFromSettings(): Promise<AppTheme> {
     const settings = await this.database.getAppSettings();
-    document.documentElement.dataset['theme'] = settings.theme;
-    return settings.theme;
+    return this.applyTheme(settings.theme);
   }
 }

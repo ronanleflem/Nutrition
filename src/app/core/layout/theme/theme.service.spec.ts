@@ -3,7 +3,7 @@ import 'fake-indexeddb/auto';
 import { TestBed } from '@angular/core/testing';
 
 import { DatabaseService } from '../../database/database.service';
-import { deleteNutritionDatabase } from '../../database/nutrition-database';
+import { deleteNutritionDatabase } from '../../database/nutrition-database.testing';
 import { ThemeService } from './theme.service';
 
 describe('ThemeService', () => {
@@ -28,5 +28,14 @@ describe('ThemeService', () => {
 
     expect(theme).toBe('dark');
     expect(document.documentElement.dataset['theme']).toBe('dark');
+    expect(service.currentTheme()).toBe('dark');
+  });
+
+  it('applies theme directly via applyTheme without reading settings', () => {
+    const theme = service.applyTheme('light');
+
+    expect(theme).toBe('light');
+    expect(document.documentElement.dataset['theme']).toBe('light');
+    expect(service.currentTheme()).toBe('light');
   });
 });

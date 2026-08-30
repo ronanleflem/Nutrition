@@ -4,11 +4,8 @@ import { TestBed } from '@angular/core/testing';
 import Dexie from 'dexie';
 
 import { APP_SETTINGS_SINGLETON_ID } from '../models/app-settings';
-import {
-  deleteNutritionDatabase,
-  NUTRITION_DB_NAME,
-  NutritionDatabase,
-} from './nutrition-database';
+import { NUTRITION_DB_NAME, NutritionDatabase } from './nutrition-database';
+import { deleteNutritionDatabase } from './nutrition-database.testing';
 import { DatabaseService } from './database.service';
 
 describe('DatabaseService', () => {
@@ -61,15 +58,16 @@ describe('DatabaseService', () => {
     expect(settings.theme).toBe('dark');
   });
 
-  it('throws when appSettings singleton is missing after initialization', async () => {
+  it('reseeds appSettings when singleton is missing after initialization', async () => {
     await service.initialize();
     const db = new NutritionDatabase();
     await db.open();
     await db.appSettings.clear();
     await db.close();
 
-    await expect(service.getAppSettings()).rejects.toThrow(
-      'AppSettings singleton is missing after database initialization.',
-    );
+    const settings = await service.getAppSettings();
+
+    expect(settings.id).toBe(APP_SETTINGS_SINGLETON_ID);
+    expect(settings.theme).toBe('dark');
   });
 });

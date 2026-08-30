@@ -15,7 +15,3 @@ export class NutritionDatabase extends Dexie {
     });
   }
 }
-
-export async function deleteNutritionDatabase(name = NUTRITION_DB_NAME): Promise<void> {
-  await Dexie.delete(name);
-}

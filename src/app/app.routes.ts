@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+import { NotFoundPageComponent } from './core/layout/not-found/not-found-page.component';
 import { ShellComponent } from './core/layout/shell/shell.component';
 
 export const routes: Routes = [
@@ -52,7 +53,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/settings/settings.routes').then((m) => m.SETTINGS_ROUTES),
       },
-      { path: '**', redirectTo: 'pantry' },
+      {
+        path: '**',
+        component: NotFoundPageComponent,
+        data: { title: 'Page introuvable' },
+      },
     ],
   },
 ];

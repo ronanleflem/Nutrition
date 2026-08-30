@@ -31,6 +31,8 @@ Routes lazy disponibles : `/pantry`, `/products`, `/recipes`, `/plan`, `/shoppin
 
 Pour tester le shell offline : `npm run build` puis servir `dist/nutrition/browser` (ex. `npx http-server dist/nutrition/browser`) et couper le réseau après la première visite.
 
+**Service worker :** en production, le SW s’enregistre via `registerWhenStable:30000` (au plus 30 s après stabilisation de l’app). La première visite doit rester en ligne assez longtemps pour que le SW installe le shell et les chunks lazy. `navigationRequestStrategy: freshness` tente le réseau avant le cache pour les navigations — hors ligne, le shell utilise le cache après installation du SW.
+
 ## Démarrage BMAD
 
 Dans Cursor, invoquer les skills :
