@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Angular
+dist/
+.angular/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# User data — never commit personal nutrition exports
+exports/
+*.nutrition-backup.json
+*.nutrition-backup.enc
+
+# BMAD memlog scratch (optional local state)
+**/.memlog.local.md
+
+# Environment
+.env
+.env.local
