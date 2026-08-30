@@ -3,6 +3,7 @@ import 'fake-indexeddb/auto';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import Dexie from 'dexie';
+import { By } from '@angular/platform-browser';
 
 import { DatabaseService } from '../../core/database/database.service';
 import { NUTRITION_DB_NAME } from '../../core/database/nutrition-database';
@@ -27,6 +28,8 @@ describe('ProductsPageComponent', () => {
 
     database = TestBed.inject(DatabaseService);
     productsService = TestBed.inject(ProductsService);
+    productsService.catalog.set([]);
+    productsService.loading.set(false);
     fixture = TestBed.createComponent(ProductsPageComponent);
   });
 
@@ -62,5 +65,63 @@ describe('ProductsPageComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Poulet blanc');
     expect(fixture.nativeElement.textContent).toContain('VIANDE');
+  });
+
+  it('filters products by search query', async () => {
+    await database.createProduct({ name: 'Skyr nature' });
+    await database.createProduct({ name: 'Poulet blanc' });
+
+    fixture.detectChanges();
+    await waitForLoad();
+
+    const searchInput = fixture.debugElement.query(
+      By.css('.products-page__search-input'),
+    ).nativeElement as HTMLInputElement;
+    searchInput.value = 'skyr';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Skyr nature');
+    expect(fixture.nativeElement.textContent).not.toContain('Poulet blanc');
+  });
+
+  it('shows no-results message when search matches nothing', async () => {
+    await database.createProduct({ name: 'Skyr nature' });
+
+    fixture.detectChanges();
+    await waitForLoad();
+
+    const searchInput = fixture.debugElement.query(
+      By.css('.products-page__search-input'),
+    ).nativeElement as HTMLInputElement;
+    searchInput.value = 'inexistant';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'Aucun produit ne correspond à votre recherche.',
+    );
+  });
+
+  it('displays score and macros when preferred reference exists', async () => {
+    const product = await database.createProduct({ name: 'Skyr nature', category: 'LAITIER' });
+    const reference = await database.createProductReference({
+      productId: product.id,
+      store: 'auchan',
+      label: 'Skyr Auchan',
+      kcalPer100g: 57,
+      proteinPer100g: 10,
+      fatPer100g: 0,
+      carbsPer100g: 4,
+    });
+    await database.setPreferredReference(product.id, reference.id);
+    await productsService.loadCatalog();
+
+    fixture.detectChanges();
+    await waitForLoad();
+
+    expect(fixture.nativeElement.textContent).toContain(String(reference.nutritionalScore));
+    expect(fixture.nativeElement.textContent).toContain('57 kcal');
+    expect(fixture.nativeElement.textContent).toContain('Auchan');
   });
 });

@@ -15,11 +15,64 @@
   text-decoration: none;
 }
 
-.products-page__status {
+.products-page__search {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.products-page__search-input {
+  width: 100%;
+  min-height: var(--spacing-touch-min);
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  font-size: var(--font-size-body);
+}
+
+.products-page__search-input::placeholder {
+  color: var(--color-ink-disabled);
+}
+
+.products-page__status,
+.products-page__no-results-message {
   color: var(--color-ink-secondary);
+}
+
+.products-page__no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.products-page__clear-search {
+  min-height: var(--spacing-touch-min);
+  padding: 0 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  font: inherit;
+  cursor: pointer;
 }
 
 .products-page__list {
   display: flex;
   flex-direction: column;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

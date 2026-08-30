@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -6,10 +6,16 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   template: `
     <div class="empty-state">
-      <p class="empty-state__message">Aucun produit dans votre catalogue.</p>
-      <a class="empty-state__cta" routerLink="/products/new">Ajouter un produit</a>
+      <p class="empty-state__message">{{ message() }}</p>
+      @if (showCta()) {
+        <a class="empty-state__cta" routerLink="/products/new">{{ ctaLabel() }}</a>
+      }
     </div>
   `,
   styleUrl: './empty-state.component.scss',
 })
-export class EmptyStateComponent {}
+export class EmptyStateComponent {
+  readonly message = input('Aucun produit dans votre catalogue.');
+  readonly showCta = input(true);
+  readonly ctaLabel = input('Ajouter un produit');
+}

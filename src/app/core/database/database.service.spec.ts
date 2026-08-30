@@ -195,6 +195,26 @@ describe('DatabaseService', () => {
     expect(preferredProduct?.preferredReferenceId).toBe(better.id);
   });
 
+  it('attaches preferredReference to catalog items', async () => {
+    const product = await service.createProduct({ name: 'Skyr nature' });
+    const reference = await service.createProductReference({
+      productId: product.id,
+      store: 'auchan',
+      label: 'Skyr Auchan',
+      kcalPer100g: 57,
+      proteinPer100g: 10,
+      fatPer100g: 0,
+      carbsPer100g: 4,
+    });
+
+    await service.setPreferredReference(product.id, reference.id);
+
+    const catalog = await service.listProductCatalog();
+    expect(catalog).toHaveLength(1);
+    expect(catalog[0].preferredReference?.id).toBe(reference.id);
+    expect(catalog[0].preferredReference?.nutritionalScore).toBe(reference.nutritionalScore);
+  });
+
   it('sorts catalog by preferred reference score descending', async () => {
     const low = await service.createProduct({ name: 'Wrap' });
     const high = await service.createProduct({ name: 'Skyr' });
