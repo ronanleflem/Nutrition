@@ -63,6 +63,8 @@ src/app/
 | Spec canonique | `_bmad-output/specs/spec-nutrition/SPEC.md` |
 | Architecture spine | `_bmad-output/planning-artifacts/architecture/architecture-Nutrition-2026-08-30/ARCHITECTURE-SPINE.md` |
 | Solution design | `_bmad-output/planning-artifacts/architecture/architecture-Nutrition-2026-08-30/SOLUTION-DESIGN.md` |
+| UX Design | `_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/DESIGN.md` |
+| UX Experience | `_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/EXPERIENCE.md` |
 
 ## Hors scope MVP
 

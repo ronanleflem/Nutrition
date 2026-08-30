@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrition — Shell navigation</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0a0a0a; display: flex; justify-content: center; min-height: 100vh; }
+    .phone { width: 390px; min-height: 844px; background: #121212; color: #F5F5F5; display: flex; flex-direction: column; position: relative; }
+    .header { padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .gear { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #B0B0B0; font-size: 20px; }
+    .content { flex: 1; padding: 16px; overflow-y: auto; }
+    .card { background: #1E1E1E; border: 1px solid #333; border-radius: 10px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot.green { background: #4CAF50; }
+    .card-body { flex: 1; }
+    .card-title { font-size: 16px; font-weight: 600; }
+    .card-meta { font-size: 13px; color: #B0B0B0; margin-top: 2px; }
+    .qty { font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .warn { color: #E8B86D; font-size: 12px; margin-top: 4px; }
+    .bottom-nav { height: 56px; background: #1E1E1E; border-top: 1px solid #333; display: flex; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: #B0B0B0; min-height: 44px; }
+    .nav-item.active { color: #7CB87C; font-weight: 600; }
+    .nav-icon { font-size: 20px; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <header class="header">
+      <h1>Garde-manger</h1>
+      <div class="gear" aria-label="Paramètres">⚙</div>
+    </header>
+    <main class="content">
+      <div class="card">
+        <div class="dot green"></div>
+        <div class="card-body">
+          <div class="card-title">Skyr nature</div>
+          <div class="card-meta">Frigo · DLC 02/09</div>
+          <div class="warn">⚠ DLC dans 3 jours</div>
+        </div>
+        <div class="qty">450 g</div>
+      </div>
+      <div class="card">
+        <div class="dot green"></div>
+        <div class="card-body">
+          <div class="card-title">Poulet blanc</div>
+          <div class="card-meta">Congélateur</div>
+        </div>
+        <div class="qty">800 g</div>
+      </div>
+      <div class="card">
+        <div class="dot green"></div>
+        <div class="card-body">
+          <div class="card-title">Riz basmati</div>
+          <div class="card-meta">Placard</div>
+        </div>
+        <div class="qty">1200 g</div>
+      </div>
+    </main>
+    <nav class="bottom-nav">
+      <div class="nav-item active"><span class="nav-icon">📦</span>Garde-manger</div>
+      <div class="nav-item"><span class="nav-icon">🏷</span>Produits</div>
+      <div class="nav-item"><span class="nav-icon">📖</span>Recettes</div>
+      <div class="nav-item"><span class="nav-icon">📅</span>Plan</div>
+      <div class="nav-item"><span class="nav-icon">🛒</span>Courses</div>
+    </nav>
+  </div>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrition — Mode Courses</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #0a0a0a; display: flex; justify-content: center; min-height: 100vh; }
+    .phone { width: 390px; min-height: 844px; background: #121212; color: #F5F5F5; display: flex; flex-direction: column; }
+    .header { padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+    .back { color: #7CB87C; font-size: 16px; min-width: 44px; min-height: 44px; display: flex; align-items: center; }
+    .header h1 { font-size: 20px; font-weight: 600; }
+    .counter { font-size: 14px; color: #B0B0B0; min-width: 44px; text-align: right; }
+    .content { flex: 1; padding: 8px 0; }
+    .row { display: flex; align-items: center; min-height: 52px; padding: 0 16px; border-bottom: 1px solid #1E1E1E; }
+    .row:active { background: #1E1E1E; }
+    .checkbox { width: 28px; height: 28px; border: 2px solid #4A4A4A; border-radius: 6px; margin-right: 14px; flex-shrink: 0; }
+    .row.checked { opacity: 0.55; }
+    .row.checked .name { text-decoration: line-through; color: #B0B0B0; }
+    .row.checked .checkbox { background: #7CB87C; border-color: #7CB87C; }
+    .name { flex: 1; font-size: 17px; }
+    .qty { font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; color: #B0B0B0; }
+    .badge { font-size: 11px; background: #2A2A2A; color: #6B6B6B; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <header class="header">
+      <div class="back">← Terminer</div>
+      <h1>Courses</h1>
+      <div class="counter">5 restants</div>
+    </header>
+    <main class="content">
+      <div class="row">
+        <div class="checkbox"></div>
+        <span class="name">Skyr nature</span>
+        <span class="qty">400 g</span>
+      </div>
+      <div class="row">
+        <div class="checkbox"></div>
+        <span class="name">Poulet blanc</span>
+        <span class="qty">600 g</span>
+      </div>
+      <div class="row">
+        <div class="checkbox"></div>
+        <span class="name">Wrap blé complet</span>
+        <span class="qty">200 g</span>
+      </div>
+      <div class="row">
+        <div class="checkbox"></div>
+        <span class="name">Avocat</span>
+        <span class="qty">2 × 150 g</span>
+      </div>
+      <div class="row">
+        <div class="checkbox"></div>
+        <span class="name">Papier toilette</span>
+        <span class="qty">1</span>
+        <span class="badge">manuel</span>
+      </div>
+      <div class="row checked">
+        <div class="checkbox"></div>
+        <span class="name">Riz basmati</span>
+        <span class="qty">500 g</span>
+      </div>
+      <div class="row checked">
+        <div class="checkbox"></div>
+        <span class="name">Huile d'olive</span>
+        <span class="qty">—</span>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

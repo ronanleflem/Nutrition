@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrition — Synthèse macros</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #0a0a0a; display: flex; justify-content: center; min-height: 100vh; }
+    .phone { width: 390px; min-height: 844px; background: #121212; color: #F5F5F5; padding: 16px; }
+    .header { margin-bottom: 24px; }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .date { font-size: 14px; color: #B0B0B0; margin-top: 4px; }
+    .macro { margin-bottom: 20px; }
+    .macro-label { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
+    .macro-label span:last-child { font-variant-numeric: tabular-nums; color: #B0B0B0; }
+    .bar-track { height: 8px; background: #2A2A2A; border-radius: 9999px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 9999px; }
+    .bar-fill.met { background: #7CB87C; width: 95%; }
+    .bar-fill.under { background: #64B5F6; width: 72%; }
+    .bar-fill.over { background: #E8B86D; width: 108%; max-width: 100%; }
+    .meals { margin-top: 32px; border-top: 1px solid #333; padding-top: 16px; }
+    .meals h2 { font-size: 14px; color: #B0B0B0; margin-bottom: 12px; }
+    .meal-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1E1E1E; font-size: 14px; }
+    .meal-slot { color: #B0B0B0; font-size: 12px; }
+    .meal-kcal { font-variant-numeric: tabular-nums; color: #B0B0B0; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <header class="header">
+      <h1>Synthèse macros</h1>
+      <div class="date">Mardi 26 août</div>
+    </header>
+    <div class="macro">
+      <div class="macro-label"><span>Calories</span><span>1 840 / 2 000 kcal</span></div>
+      <div class="bar-track"><div class="bar-fill met"></div></div>
+    </div>
+    <div class="macro">
+      <div class="macro-label"><span>Protéines</span><span>142 / 150 g</span></div>
+      <div class="bar-track"><div class="bar-fill met"></div></div>
+    </div>
+    <div class="macro">
+      <div class="macro-label"><span>Lipides</span><span>68 / 65 g</span></div>
+      <div class="bar-track"><div class="bar-fill over"></div></div>
+    </div>
+    <div class="macro">
+      <div class="macro-label"><span>Glucides</span><span>145 / 200 g</span></div>
+      <div class="bar-track"><div class="bar-fill under"></div></div>
+    </div>
+    <div class="macro">
+      <div class="macro-label"><span>Fibres</span><span>28 / 30 g</span></div>
+      <div class="bar-track"><div class="bar-fill met"></div></div>
+    </div>
+    <section class="meals">
+      <h2>Repas du jour</h2>
+      <div class="meal-row">
+        <div><div class="meal-slot">Déjeuner</div>Wrap poulet · Lavash</div>
+        <div class="meal-kcal">520 kcal</div>
+      </div>
+      <div class="meal-row">
+        <div><div class="meal-slot">Dîner</div>Bowl riz poulet</div>
+        <div class="meal-kcal">680 kcal</div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

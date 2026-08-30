@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrition — Plan de repas</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #0a0a0a; display: flex; justify-content: center; min-height: 100vh; }
+    .phone { width: 390px; min-height: 844px; background: #121212; color: #F5F5F5; display: flex; flex-direction: column; }
+    .header { padding: 16px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .week-label { font-size: 13px; color: #B0B0B0; }
+    .days { display: flex; gap: 4px; padding: 12px 16px; overflow-x: auto; border-bottom: 1px solid #333; }
+    .day { flex-shrink: 0; width: 44px; text-align: center; padding: 8px 4px; border-radius: 8px; font-size: 12px; color: #B0B0B0; }
+    .day.active { background: #2A2A2A; color: #7CB87C; font-weight: 600; }
+    .day-name { font-size: 11px; }
+    .day-num { font-size: 16px; font-weight: 600; margin-top: 2px; }
+    .content { flex: 1; padding: 16px; }
+    .slot { background: #1E1E1E; border: 1px solid #333; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+    .slot-label { font-size: 12px; color: #B0B0B0; text-transform: uppercase; letter-spacing: 0.05em; }
+    .slot-recipe { font-size: 16px; font-weight: 600; margin-top: 6px; }
+    .variant-chip { display: inline-block; margin-top: 8px; padding: 4px 10px; border: 1px solid #7CB87C; border-radius: 9999px; font-size: 13px; color: #7CB87C; }
+    .slot-empty { color: #6B6B6B; font-size: 15px; margin-top: 6px; }
+    .synth-link { display: block; text-align: center; margin-top: 16px; color: #7CB87C; font-size: 14px; text-decoration: none; }
+    .bottom-nav { height: 56px; background: #1E1E1E; border-top: 1px solid #333; display: flex; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: #B0B0B0; }
+    .nav-item.active { color: #7CB87C; font-weight: 600; }
+    .nav-icon { font-size: 20px; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <header class="header">
+      <h1>Plan de repas</h1>
+      <span class="week-label">Sem. 35</span>
+    </header>
+    <div class="days">
+      <div class="day"><div class="day-name">Lun</div><div class="day-num">25</div></div>
+      <div class="day active"><div class="day-name">Mar</div><div class="day-num">26</div></div>
+      <div class="day"><div class="day-name">Mer</div><div class="day-num">27</div></div>
+      <div class="day"><div class="day-name">Jeu</div><div class="day-num">28</div></div>
+      <div class="day"><div class="day-name">Ven</div><div class="day-num">29</div></div>
+      <div class="day"><div class="day-name">Sam</div><div class="day-num">30</div></div>
+      <div class="day"><div class="day-name">Dim</div><div class="day-num">31</div></div>
+    </div>
+    <main class="content">
+      <div class="slot">
+        <div class="slot-label">Petit-déjeuner</div>
+        <div class="slot-empty">+ Ajouter une recette</div>
+      </div>
+      <div class="slot">
+        <div class="slot-label">Déjeuner</div>
+        <div class="slot-recipe">Wrap poulet</div>
+        <span class="variant-chip">Lavash ★★★★</span>
+      </div>
+      <div class="slot">
+        <div class="slot-label">Dîner</div>
+        <div class="slot-recipe">Bowl riz poulet</div>
+        <span class="variant-chip">Par défaut</span>
+      </div>
+      <a class="synth-link" href="#">Voir la synthèse macros du mardi →</a>
+    </main>
+    <nav class="bottom-nav">
+      <div class="nav-item"><span class="nav-icon">📦</span>Garde-manger</div>
+      <div class="nav-item"><span class="nav-icon">🏷</span>Produits</div>
+      <div class="nav-item"><span class="nav-icon">📖</span>Recettes</div>
+      <div class="nav-item active"><span class="nav-icon">📅</span>Plan</div>
+      <div class="nav-item"><span class="nav-icon">🛒</span>Courses</div>
+    </nav>
+  </div>
+</body>
+</html>
