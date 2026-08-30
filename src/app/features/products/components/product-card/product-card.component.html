@@ -1,11 +1,17 @@
-<a class="product-card" [routerLink]="['/products', product().id, 'edit']">
+<a class="product-card" [routerLink]="['/products', item().product.id]">
   <div class="product-card__top">
-    <app-priority-badge [priority]="product().priority" />
+    <app-priority-badge [priority]="item().product.priority" />
     <div class="product-card__info">
-      <div class="product-card__title">{{ product().name }}</div>
-      @if (product().category) {
-        <div class="product-card__meta">{{ product().category }}</div>
+      <div class="product-card__title">{{ item().product.name }}</div>
+      @if (storeLine()) {
+        <div class="product-card__meta">{{ storeLine() }}</div>
       }
     </div>
+    @if (item().preferredReference; as preferred) {
+      <app-score-chip [score]="preferred.nutritionalScore" />
+    }
   </div>
+  @if (macrosLine(); as macros) {
+    <div class="product-card__macros">{{ macros }}</div>
+  }
 </a>

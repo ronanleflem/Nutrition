@@ -48,7 +48,7 @@ export function isActiveProduct(product: Product): boolean {
   return product.deletedAt == null;
 }
 
-/** Sort key: preferred-ref score desc in story 2.2; name asc until then. */
+/** @deprecated Use compareProductCatalogItems from product-catalog.ts */
 export function compareProductsForDisplay(a: Product, b: Product): number {
   return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
 }

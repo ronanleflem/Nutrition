@@ -143,4 +143,86 @@ describe('DatabaseService', () => {
       service.updateProduct('missing-id', { name: 'Test' }),
     ).rejects.toThrow(/introuvable/i);
   });
+
+  it('creates a product reference with computed nutritionalScore', async () => {
+    const product = await service.createProduct({ name: 'Skyr nature' });
+
+    const reference = await service.createProductReference({
+      productId: product.id,
+      store: 'auchan',
+      label: 'Skyr 0% Auchan',
+      kcalPer100g: 57,
+      proteinPer100g: 10,
+      fatPer100g: 0,
+      carbsPer100g: 4,
+    });
+
+    expect(reference.nutritionalScore).toBeGreaterThan(0);
+    expect(reference.nutritionalScore).toBeLessThanOrEqual(100);
+
+    const stored = await service.getProductReference(reference.id);
+    expect(stored?.nutritionalScore).toBe(reference.nutritionalScore);
+  });
+
+  it('derives recommendedStores from references sorted by score', async () => {
+    const product = await service.createProduct({ name: 'Skyr nature' });
+
+    await service.createProductReference({
+      productId: product.id,
+      store: 'leclerc',
+      label: 'Skyr Leclerc',
+      kcalPer100g: 290,
+      proteinPer100g: 8,
+      fatPer100g: 4,
+      carbsPer100g: 52,
+    });
+
+    const better = await service.createProductReference({
+      productId: product.id,
+      store: 'auchan',
+      label: 'Skyr Auchan',
+      kcalPer100g: 57,
+      proteinPer100g: 10,
+      fatPer100g: 0,
+      carbsPer100g: 4,
+    });
+
+    const updatedProduct = await service.getProduct(product.id);
+    expect(updatedProduct?.recommendedStores).toEqual(['auchan', 'leclerc']);
+
+    await service.setPreferredReference(product.id, better.id);
+    const preferredProduct = await service.getProduct(product.id);
+    expect(preferredProduct?.preferredReferenceId).toBe(better.id);
+  });
+
+  it('sorts catalog by preferred reference score descending', async () => {
+    const low = await service.createProduct({ name: 'Wrap' });
+    const high = await service.createProduct({ name: 'Skyr' });
+
+    const lowRef = await service.createProductReference({
+      productId: low.id,
+      store: 'leclerc',
+      label: 'Wrap',
+      kcalPer100g: 290,
+      proteinPer100g: 8,
+      fatPer100g: 4,
+      carbsPer100g: 52,
+    });
+
+    const highRef = await service.createProductReference({
+      productId: high.id,
+      store: 'auchan',
+      label: 'Skyr',
+      kcalPer100g: 57,
+      proteinPer100g: 10,
+      fatPer100g: 0,
+      carbsPer100g: 4,
+    });
+
+    await service.setPreferredReference(low.id, lowRef.id);
+    await service.setPreferredReference(high.id, highRef.id);
+
+    const catalog = await service.listProductCatalog();
+    expect(catalog.map((item) => item.product.name)).toEqual(['Skyr', 'Wrap']);
+  });
 });

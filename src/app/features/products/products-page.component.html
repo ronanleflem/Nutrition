@@ -5,12 +5,12 @@
 
   @if (loading()) {
     <p class="products-page__status" role="status">Chargement…</p>
-  } @else if (products().length === 0) {
+  } @else if (catalog().length === 0) {
     <app-empty-state />
   } @else {
     <div class="products-page__list">
-      @for (product of products(); track product.id) {
-        <app-product-card [product]="product" />
+      @for (item of catalog(); track item.product.id) {
+        <app-product-card [item]="item" />
       }
     </div>
   }

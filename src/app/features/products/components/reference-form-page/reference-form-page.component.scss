@@ -1,0 +1,83 @@
+.reference-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reference-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reference-form__macros {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reference-form__label,
+.reference-form__sublabel {
+  font-size: var(--font-size-meta);
+  color: var(--color-ink-secondary);
+}
+
+.reference-form__input,
+.reference-form__textarea {
+  width: 100%;
+  min-height: var(--spacing-touch-min);
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  font: inherit;
+}
+
+.reference-form__textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.reference-form__error {
+  color: #ef9a9a;
+  font-size: var(--font-size-meta);
+}
+
+.reference-form__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.reference-form__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: var(--spacing-touch-min);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+
+.reference-form__button--primary {
+  background: var(--color-accent-positive);
+  color: var(--color-surface-base);
+}
+
+.reference-form__button--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.reference-form__button--secondary {
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  border: 1px solid var(--color-border-subtle);
+}

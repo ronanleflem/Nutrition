@@ -1,0 +1,21 @@
+<a
+  class="reference-row"
+  [routerLink]="['/products', productId(), 'references', reference().id, 'edit']"
+>
+  <div class="reference-row__header">
+    <div class="reference-row__title">{{ reference().label }}</div>
+    <app-score-chip [score]="reference().nutritionalScore" />
+  </div>
+  <div class="reference-row__meta">
+    {{ storeLabel() }}
+    @if (isPreferred()) {
+      <span class="reference-row__badge">Préférée</span>
+    }
+  </div>
+  <div class="reference-row__macros">{{ macrosLine() }}</div>
+  @if (!isPreferred()) {
+    <button class="reference-row__prefer" type="button" (click)="onSetPreferred($event)">
+      Définir comme préférée
+    </button>
+  }
+</a>

@@ -75,11 +75,11 @@ export class ProductFormPageComponent implements OnInit {
           ...payload,
           priority: priority || null,
         });
+        await this.router.navigate(['/products', this.productId]);
       } else {
-        await this.productsService.createProduct(payload);
+        const product = await this.productsService.createProduct(payload);
+        await this.router.navigate(['/products', product.id]);
       }
-
-      await this.router.navigate(['/products']);
     } finally {
       this.saving.set(false);
     }

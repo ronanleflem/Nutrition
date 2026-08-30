@@ -14,10 +14,10 @@ import { ProductsService } from './services/products.service';
 export class ProductsPageComponent implements OnInit {
   private readonly productsService = inject(ProductsService);
 
-  readonly products = this.productsService.products;
+  readonly catalog = this.productsService.catalog;
   readonly loading = this.productsService.loading;
 
   ngOnInit(): void {
-    void this.productsService.loadProducts();
+    void this.productsService.loadCatalog();
   }
 }

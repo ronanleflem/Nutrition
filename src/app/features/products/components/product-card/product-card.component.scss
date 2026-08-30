@@ -32,3 +32,10 @@
   font-size: var(--font-size-meta);
   color: var(--color-ink-secondary);
 }
+
+.product-card__macros {
+  margin-top: 8px;
+  font-size: var(--font-size-meta);
+  color: var(--color-ink-secondary);
+  font-variant-numeric: tabular-nums;
+}

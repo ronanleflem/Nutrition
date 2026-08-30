@@ -1,0 +1,82 @@
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+
+import {
+  sortReferencesForDisplay,
+  type ProductCatalogItem,
+} from '../../../../core/models/product-catalog';
+import type { ProductReference } from '../../../../core/models/product-reference';
+import { STORE_LABELS } from '../../../../core/models/store';
+import { PriorityBadgeComponent } from '../priority-badge/priority-badge.component';
+import { ReferenceRowComponent } from '../reference-row/reference-row.component';
+import { ProductsService } from '../../services/products.service';
+
+@Component({
+  selector: 'app-product-detail-page',
+  imports: [RouterLink, PriorityBadgeComponent, ReferenceRowComponent],
+  templateUrl: './product-detail-page.component.html',
+  styleUrl: './product-detail-page.component.scss',
+})
+export class ProductDetailPageComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly productsService = inject(ProductsService);
+
+  readonly catalogItem = signal<ProductCatalogItem | undefined>(undefined);
+  readonly references = signal<ProductReference[]>([]);
+  readonly loading = signal(true);
+  readonly loadError = signal<string | null>(null);
+
+  private productId: string | null = null;
+
+  ngOnInit(): void {
+    void this.load();
+  }
+
+  storeLabel(store: string | undefined): string {
+    if (!store) {
+      return '';
+    }
+
+    return STORE_LABELS[store as keyof typeof STORE_LABELS] ?? store;
+  }
+
+  async onSetPreferred(referenceId: string): Promise<void> {
+    if (!this.productId) {
+      return;
+    }
+
+    await this.productsService.setPreferredReference(this.productId, referenceId);
+    await this.load();
+  }
+
+  private async load(): Promise<void> {
+    this.loading.set(true);
+    this.loadError.set(null);
+
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) {
+      this.loadError.set('Produit introuvable.');
+      this.loading.set(false);
+      return;
+    }
+
+    this.productId = id;
+
+    try {
+      const [item, references] = await Promise.all([
+        this.productsService.getProductCatalogItem(id),
+        this.productsService.listReferences(id),
+      ]);
+
+      if (!item) {
+        this.loadError.set('Produit introuvable.');
+        return;
+      }
+
+      this.catalogItem.set(item);
+      this.references.set(sortReferencesForDisplay(references));
+    } finally {
+      this.loading.set(false);
+    }
+  }
+}

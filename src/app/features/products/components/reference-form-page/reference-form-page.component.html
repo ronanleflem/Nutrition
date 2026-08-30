@@ -1,0 +1,87 @@
+<form class="reference-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  @if (loadError()) {
+    <p class="reference-form__error" role="alert">{{ loadError() }}</p>
+  }
+
+  <label class="reference-form__field">
+    <span class="reference-form__label">Enseigne *</span>
+    <select class="reference-form__input" formControlName="store">
+      <option value="">Sélectionner…</option>
+      @for (store of stores; track store) {
+        <option [value]="store">{{ storeLabels[store] }}</option>
+      }
+    </select>
+  </label>
+
+  <label class="reference-form__field">
+    <span class="reference-form__label">Libellé *</span>
+    <input class="reference-form__input" type="text" formControlName="label" />
+    @if (form.controls.label.touched && form.controls.label.invalid) {
+      <span class="reference-form__error">Le libellé est obligatoire.</span>
+    }
+  </label>
+
+  <label class="reference-form__field">
+    <span class="reference-form__label">Marque</span>
+    <input class="reference-form__input" type="text" formControlName="brand" />
+  </label>
+
+  <label class="reference-form__field">
+    <span class="reference-form__label">Code-barres</span>
+    <input class="reference-form__input" type="text" formControlName="barcode" inputmode="numeric" />
+  </label>
+
+  <fieldset class="reference-form__macros">
+    <legend class="reference-form__label">Macros pour 100 g *</legend>
+    <label class="reference-form__field">
+      <span class="reference-form__sublabel">Énergie (kcal)</span>
+      <input class="reference-form__input" type="number" min="0" step="0.1" formControlName="kcalPer100g" />
+    </label>
+    <label class="reference-form__field">
+      <span class="reference-form__sublabel">Protéines (g)</span>
+      <input class="reference-form__input" type="number" min="0" step="0.1" formControlName="proteinPer100g" />
+    </label>
+    <label class="reference-form__field">
+      <span class="reference-form__sublabel">Lipides (g)</span>
+      <input class="reference-form__input" type="number" min="0" step="0.1" formControlName="fatPer100g" />
+    </label>
+    <label class="reference-form__field">
+      <span class="reference-form__sublabel">Glucides (g)</span>
+      <input class="reference-form__input" type="number" min="0" step="0.1" formControlName="carbsPer100g" />
+    </label>
+    <label class="reference-form__field">
+      <span class="reference-form__sublabel">Fibres (g)</span>
+      <input class="reference-form__input" type="number" min="0" step="0.1" formControlName="fiberPer100g" />
+    </label>
+    <label class="reference-form__field">
+      <span class="reference-form__sublabel">Sel (g)</span>
+      <input class="reference-form__input" type="number" min="0" step="0.01" formControlName="saltPer100g" />
+    </label>
+  </fieldset>
+
+  <label class="reference-form__field">
+    <span class="reference-form__label">Ingrédients</span>
+    <textarea class="reference-form__textarea" formControlName="ingredients" rows="3"></textarea>
+  </label>
+
+  <label class="reference-form__field">
+    <span class="reference-form__label">Notes</span>
+    <textarea class="reference-form__textarea" formControlName="notes" rows="2"></textarea>
+  </label>
+
+  <div class="reference-form__actions">
+    <a
+      class="reference-form__button reference-form__button--secondary"
+      [routerLink]="productId() ? ['/products', productId()] : ['/products']"
+    >
+      Annuler
+    </a>
+    <button
+      class="reference-form__button reference-form__button--primary"
+      type="submit"
+      [disabled]="saving() || !!loadError()"
+    >
+      {{ isEditMode() ? 'Enregistrer' : 'Créer' }}
+    </button>
+  </div>
+</form>
