@@ -65,6 +65,7 @@ src/app/
 | Solution design | `_bmad-output/planning-artifacts/architecture/architecture-Nutrition-2026-08-30/SOLUTION-DESIGN.md` |
 | UX Design | `_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/DESIGN.md` |
 | UX Experience | `_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/EXPERIENCE.md` |
+| Epics & Stories | `_bmad-output/planning-artifacts/epics.md` |
 
 ## Hors scope MVP
 
