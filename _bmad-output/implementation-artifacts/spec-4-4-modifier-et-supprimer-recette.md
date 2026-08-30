@@ -62,14 +62,14 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/app/core/models/meal-plan-entry.ts` — model.
-- [ ] `src/app/core/database/nutrition-database.ts` — v6 schema.
-- [ ] `src/app/core/database/database.service.ts` — update + delete APIs.
-- [ ] `src/app/core/database/database.service.recipes.spec.ts` — tests.
-- [ ] `src/app/features/recipes/components/recipe-edit-page/` — edit UI.
-- [ ] `src/app/features/recipes/components/recipe-detail-page/` — delete confirm + edit CTA.
-- [ ] `src/app/features/recipes/recipes.routes.ts` — edit route.
-- [ ] `src/app/features/recipes/services/recipes.service.ts` — wrappers.
+- [x] `src/app/core/models/meal-plan-entry.ts` — model.
+- [x] `src/app/core/database/nutrition-database.ts` — v6 schema.
+- [x] `src/app/core/database/database.service.ts` — update + delete APIs.
+- [x] `src/app/core/database/database.service.recipes.spec.ts` — tests.
+- [x] `src/app/features/recipes/components/recipe-edit-page/` — edit UI.
+- [x] `src/app/features/recipes/components/recipe-detail-page/` — delete confirm + edit CTA.
+- [x] `src/app/features/recipes/recipes.routes.ts` — edit route.
+- [x] `src/app/features/recipes/services/recipes.service.ts` — wrappers.
 
 **Acceptance Criteria:**
 - Given an existing recipe, when I edit title/steps/portions/tags/notes, then changes persist in IndexedDB.
