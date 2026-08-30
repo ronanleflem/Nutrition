@@ -4,6 +4,7 @@ status: final
 created: 2026-08-30
 updated: 2026-08-30
 source_brief: ../brief-2026-08-30/brief.md
+revision: "Décisions §10 — soft delete, regen liste, pantry 0, import merge"
 ---
 
 # PRD : Nutrition
@@ -63,7 +64,7 @@ Ce n’est pas un clone MyFitnessPal : pas de journal alimentaire repas-par-repa
 ## 3. Glossaire
 
 - **Catalogue Produit** — Ensemble des Produits référencés dans l’application. Source pour Garde-manger, Recettes et Listes.
-- **Produit** — Entrée du Catalogue : nom, marque, code-barres optionnel, macros pour 100 g (kcal, protéines, lipides, glucides, fibres), liste d’ingrédients textuelle.
+- **Produit** — Entrée du Catalogue : nom, marque, code-barres optionnel, macros pour 100 g (kcal, protéines, lipides, glucides, fibres), liste d’ingrédients textuelle. Un Produit **archivé** (`deletedAt` renseigné) n’apparaît plus dans les sélecteurs mais reste lisible dans les références existantes.
 - **Garde-manger** — Stock local : lignes associant un Produit à une quantité en grammes, une DLC optionnelle, un emplacement optionnel.
 - **Recette** — Instructions de cuisine : titre, étapes, durée, nombre de portions, ingrédients (Produit + grammes).
 - **Plan de Repas** — Calendrier associant une Recette à une date et un créneau (petit-déj, déj, dîner).
@@ -132,13 +133,16 @@ L’utilisateur peut créer un Produit avec nom, marque, macros / 100 g (kcal, P
 - Tous les champs macros acceptent des nombres ≥ 0.
 - Le Produit apparaît dans la liste Produits après sauvegarde.
 
-#### FR-6 : Modifier et supprimer un Produit
+#### FR-6 : Modifier et archiver un Produit (soft delete)
 
-L’utilisateur peut éditer ou supprimer un Produit du Catalogue.
+L’utilisateur peut éditer un Produit ou l’**archiver** (soft delete) du Catalogue.
 
 **Conséquences (testables) :**
-- La suppression demande confirmation si le Produit est référencé (Garde-manger, Recette, Liste).
-- Les références orphelines sont gérées explicitement (bloquer ou proposer retrait en cascade — voir Open Questions).
+- L’archivage pose `deletedAt` ; le Produit disparaît des listes actives et des sélecteurs (nouvelle Recette, ajout Garde-manger).
+- Les références existantes (Garde-manger, Recettes, Liste de Courses) restent valides et affichent le Produit avec indicateur « archivé ».
+- Confirmation demandée si le Produit est référencé.
+- L’utilisateur peut **restaurer** un Produit archivé depuis Paramètres ou une vue « Produits archivés ».
+- Un Produit archivé avec le même code-barres peut être recréé → restauration proposée en priorité.
 
 #### FR-7 : Scanner un code-barres
 
@@ -168,10 +172,10 @@ L’utilisateur peut rechercher un Produit par code-barres via OFF et pré-rempl
 
 #### FR-9 : Ajouter au Garde-manger
 
-L’utilisateur peut ajouter un Produit du Catalogue avec une quantité en grammes.
+L’utilisateur peut ajouter un Produit actif du Catalogue avec une quantité en grammes.
 
 **Conséquences (testables) :**
-- Quantité strictement en grammes (entier ou décimal ≥ 0).
+- Quantité strictement en grammes (entier ou décimal > 0 à la création).
 - DLC et emplacement optionnels.
 
 #### FR-10 : Consulter et modifier le stock
@@ -179,7 +183,7 @@ L’utilisateur peut ajouter un Produit du Catalogue avec une quantité en gramm
 L’utilisateur voit la liste du Garde-manger, modifie les quantités ou retire des lignes.
 
 **Conséquences (testables) :**
-- La quantité peut être mise à 0 (ligne supprimée ou marquée épuisée — comportement unique à fixer en architecture).
+- Si la quantité passe à 0, la **ligne est supprimée** automatiquement.
 - Tri/filtre par DLC ou nom disponible.
 
 #### FR-11 : Alerte DLC proche
@@ -288,7 +292,9 @@ L’utilisateur ajoute, modifie, supprime ou coche des items.
 
 **Conséquences (testables) :**
 - Items manuels distingués des items auto (`source: manual | auto`).
-- Régénération : proposition de fusion ou remplacement (comportement unique — voir Open Questions).
+- **Régénération** : recalcule uniquement les items `source: auto` ; les items `source: manual` sont **préservés** (quantité, état coché).
+- Les anciens items auto absents du nouveau calcul sont supprimés ; les nouveaux items auto sont ajoutés non cochés.
+- Si un item auto et un item manual concernent le même Produit, les deux lignes coexistent (pas de fusion automatique).
 
 #### FR-21 : Mode Courses
 
@@ -316,12 +322,14 @@ L’utilisateur exporte toutes les entités locales en fichier JSON.
 
 #### FR-23 : Importer les données
 
-L’utilisateur restaure depuis un fichier exporté.
+L’utilisateur restaure depuis un fichier exporté en choisissant le mode d’import.
 
 **Conséquences (testables) :**
-- Validation du schéma avant écriture.
-- Choix : remplacement total ou merge (merge = conserver les IDs existants en cas de conflit — règle en architecture).
+- Validation du schéma avant toute écriture.
+- **Mode « Remplacer tout »** (défaut, recommandé pour migration téléphone) : vide toutes les tables locales puis importe le fichier.
+- **Mode « Fusionner »** : règles détaillées en §10 et addendum ; aucune perte des données locales non couvertes par le fichier.
 - Mot de passe incorrect → échec sans altérer les données courantes.
+- Résumé post-import : X produits ajoutés/mis à jour, Y recettes, etc.
 
 #### FR-24 : Rappel de sauvegarde
 
@@ -417,12 +425,43 @@ L’application affiche un rappel discret si aucun Export depuis 30 jours.
 
 Ordre d’implémentation recommandé : E1 → E2 → E3 → E4 → E6 → E7 → E5 → E8.
 
-## 10. Questions ouvertes
+## 10. Décisions produit (résolues)
 
-1. **Suppression Produit référencé** — bloquer, cascade, ou désactiver (soft delete) ?
-2. **Régénération Liste de Courses** — remplacer ou fusionner avec items manuels cochés ?
-3. **Quantité Garde-manger à 0** — supprimer la ligne ou garder à 0 ?
-4. **Merge import** — règle de conflit par entité (dernier gagnant vs ID) ?
+### 10.1 Archivage Produit (soft delete)
+
+- Champ `deletedAt` sur `Product` ; pas de suppression physique au MVP.
+- Références historiques conservées ; sélection bloquée pour nouveaux usages.
+- Restauration possible.
+
+### 10.2 Régénération Liste de Courses
+
+Recalcul **uniquement des items auto** ; items manuels intouchés. C’est le comportement le plus logique : le plan de repas change, mais le papier toilette ajouté à la main reste.
+
+### 10.3 Garde-manger à quantité 0
+
+La ligne est **supprimée** dès que la quantité atteint 0.
+
+### 10.4 Import — modes et règles de fusion
+
+| Mode | Usage | Comportement |
+|------|-------|--------------|
+| **Remplacer tout** | Nouveau téléphone, restauration complète | Truncate + import intégral |
+| **Fusionner** | Combiner deux exports / enrichir le catalogue | Règles ci-dessous |
+
+**Règles mode Fusionner :**
+
+| Entité | Clé de correspondance | Résolution |
+|--------|----------------------|------------|
+| **Product** | 1) `barcode` identique 2) sinon `name+brand` normalisés | Existant mis à jour ; sinon création. IDs import remappés pour les FK. |
+| **PantryItem** | `productId` après remapping Produit | **Additionner** les quantités (g) |
+| **Recipe** | `id` identique | Remplacer recette + ingrédients |
+| **Recipe** | `id` inconnu | Créer nouvelle recette (nouvel id) |
+| **MealPlanEntry** | même `date` + `slot` | Import **remplace** l’entrée locale |
+| **MacroGoals** | singleton | Champs non-null de l’import **écrasent** les locaux |
+| **ShoppingListItem** | — | **Ignorés** en fusion (trop contextuel ; régénérer après) |
+| **AppSettings** | singleton | `lastExportAt` = max(local, import) ; reste inchangé |
+
+En cas de doute sur un Produit sans barcode et noms proches : **créer** plutôt qu’écraser (évite la perte silencieuse).
 
 ## 11. Index des hypothèses
 

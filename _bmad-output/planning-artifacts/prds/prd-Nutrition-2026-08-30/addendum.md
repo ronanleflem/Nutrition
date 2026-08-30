@@ -27,7 +27,7 @@ Détails techniques et décisions de transport pour `bmad-architecture` et `bmad
 ## Schéma IndexedDB (draft)
 
 ```
-products          id, name, brand, barcode?, kcal, protein, fat, carbs, fiber, ingredients, createdAt
+products          id, name, brand, barcode?, kcal, protein, fat, carbs, fiber, ingredients, deletedAt?, createdAt
 pantryItems       id, productId, quantityG, expiryDate?, location?, updatedAt
 recipes           id, title, steps[], durationMin, portions, tags[], createdAt
 recipeIngredients id, recipeId, productId, quantityG
@@ -80,6 +80,51 @@ Comparer `dayTotal` à `macroGoals` ; afficher delta absolu et % si objectif dé
 1. Agréger tous les ingrédients des Recettes du Plan (fenêtre configurable : semaine courante par défaut).
 2. Pour chaque Produit : `needed = max(0, plannedG - pantryG)`.
 3. Créer/mettre à jour `shoppingListItem` avec `source: auto`.
+
+## Régénération Liste de Courses (décidé)
+
+1. Supprimer tous les `shoppingListItem` où `source = auto`.
+2. Recalculer les besoins depuis Plan − Garde-manger.
+3. Insérer les nouveaux items auto (`checked = false`).
+4. Ne **pas** modifier les items `source = manual` (quantité ni état coché).
+
+## Soft delete Produit (décidé)
+
+- `deletedAt` ISO timestamp ; `null` = actif.
+- Requêtes liste : `WHERE deletedAt IS NULL`.
+- Restauration : `deletedAt = null`.
+- Scan d’un barcode existant sur Produit archivé → proposer restauration.
+
+## Garde-manger quantité 0 (décidé)
+
+- `quantityG <= 0` → `DELETE` la ligne `pantryItem`.
+
+## Import merge — algorithme (décidé)
+
+```
+1. Construire productIdMap : oldImportId → localId
+   Pour chaque product importé :
+     a. Si barcode match local actif → map + UPDATE champs
+     b. Sinon si name+brand normalisés match → map + UPDATE
+     c. Sinon INSERT nouveau product, map old→new
+
+2. PantryItems importés : pour chaque ligne, résoudre productId via map
+   Si pantry local existe pour ce productId → quantityG += import.quantityG
+   Sinon INSERT
+
+3. Recipes : si id existe localement → REPLACE recipe + ingredients
+   Sinon INSERT avec nouvel id (ne pas réutiliser id import si collision sans match)
+
+4. MealPlanEntries : UPSERT par (date, slot)
+
+5. MacroGoals : merge champ par champ (import non-null gagne)
+
+6. ShoppingListItems : SKIP en mode fusion
+
+7. AppSettings : lastExportAt = max
+```
+
+Mode **Remplacer tout** : transaction unique clear-all + bulk insert.
 
 ## Surfaces navigation (IA)
 
