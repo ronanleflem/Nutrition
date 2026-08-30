@@ -72,9 +72,59 @@ Cette architecture formalise le passage d’un **tableur Excel** (catalogue + co
 
 Implémentation : `NutritionalScoreService` — une seule source de la formule.
 
-## 4. Flux principaux
+## 4. Modèle recettes — familles et variantes (MVP)
 
-### 4.1 Scan en magasin
+### 4.1 Structure
+
+| Entité | Rôle | Exemple |
+|--------|------|---------|
+| `Recipe` | Famille — étapes communes | « Wrap poulet » |
+| `RecipeVariant` | Déclinaison | « Extra Fins », « Lavash », « Double protéine » |
+| `RecipeIngredient` | Ingrédient d’**une** variante | `variantId`, `productId`, `quantityG`, `slotLabel?` |
+
+**Types de déclinaison (MVP)** — chaque cas = une variante nommée :
+
+- **Substitution** — lavash au lieu de wrap (produit différent, quantités proches)
+- **Scale macros** — +50 g poulet (mêmes produits, quantités différentes)
+- **Recette différente** (rare) — encore une variante avec liste d’ingrédients distincte
+
+### 4.2 Notation
+
+- `RecipeVariant.rating` — étoiles 1–5 (prioritaire), sur la **variante** (« la version lavash est top »)
+- `Recipe.notes` — notes libres sur la famille
+- **Pas** de score nutritionnel auto sur recette au MVP — tu juges via macros affichées vs restant calorique du jour
+
+### 4.3 Plan vs cook
+
+```
+mealPlanEntry.recipeVariantId nullable
+  → choisi dimanche soir OU laissé vide
+  → jour J (cook) : picker variante → met à jour recipeVariantId
+
+Variante résolue pour macros / courses :
+  entry.recipeVariantId ?? recipe.defaultVariantId
+```
+
+- **Synthèse macros** — utilise la variante résolue (ou défaut si pas encore choisi)
+- **Liste courses** — agrège ingrédients des variantes résolues du plan
+- **Cook UI** — changer variante recalcule la synthèse du jour
+
+### 4.4 Exemple
+
+**Wrap poulet** (`Recipe`)
+
+| Variante | Différence |
+|----------|------------|
+| Extra Fins | Wrap Old El Paso 32 g, poulet 120 g |
+| Lavash | Lavash 40 g, poulet 120 g |
+| Double protéine | Wrap Extra Fins, poulet 180 g |
+
+Plan dimanche : « Wrap poulet » sans variante → synthèse utilise `defaultVariantId`.  
+Jour J : tu choisis Lavash → `recipeVariantId` mis à jour, synthèse ajustée.
+
+## 5. Flux principaux
+
+### 5.1 Scan en magasin
 
 ```
 Scan barcode
@@ -85,25 +135,26 @@ Scan barcode
   → proposer comme preferredReference
 ```
 
-### 4.2 Créer une recette
+### 5.2 Créer une recette
 
 ```
-Choisir Product (générique) en ingrédient
-  → lire preferredReference macros/100g
-  → contribution = macro * quantityG / 100
-  → total / portions
+Créer Recipe (famille) + première RecipeVariant
+  → ajouter recipeIngredients sur variantId
+  → créer variantes additionnelles (substitution / scale)
+  → définir defaultVariantId
+  → optionnel : rating sur variante
 ```
 
-### 4.3 Liste de courses
+### 5.3 Liste de courses
 
 ```
-Agréger ingrédients plan (productId)
+Agréger ingrédients plan (variante résolue par entrée)
   → needed = plannedG - pantryG
   → shoppingListItems (source auto)
   → afficher recommendedStores pour chaque Product
 ```
 
-## 5. Stack & déploiement
+## 6. Stack & déploiement
 
 | Couche | Choix |
 |--------|-------|
@@ -115,7 +166,7 @@ Agréger ingrédients plan (productId)
 
 **Pas de serveur** au MVP. Hébergement = fichiers statiques (GitHub Pages, Netlify, etc.).
 
-## 6. Structure code cible
+## 7. Structure code cible
 
 ```
 src/app/core/          → DatabaseService, BackupService, NutritionalScoreService, OffApiService
@@ -129,20 +180,20 @@ src/app/features/
   settings/
 ```
 
-## 7. Écart PRD addendum → spine
+## 8. Écart PRD addendum → spine
 
-Le schéma `products` monolithique de l’addendum PRD est **remplacé** par `products` + `productReferences`. Les autres tables (pantry, recipes, plan, shopping, goals, settings) restent alignées.
+Le schéma `products` monolithique de l’addendum PRD est **remplacé** par `products` + `productReferences`. Les recettes passent de `recipe` + `recipeIngredients(recipeId)` à **famille + variantes** (`recipeVariants`, `recipeIngredients.variantId`, `mealPlanEntries.recipeVariantId`).
 
 **Action downstream :** mettre à jour `addendum.md` PRD ou adopter la spine via `bmad-spec` avant epics/stories.
 
-## 8. Hors MVP (reporté)
+## 9. Hors MVP (reporté)
 
 - Thème clair, sync cloud, journal type MyFitnessPal
 - Import prix automatique depuis enseignes
 - Vue comparatif Excel complète (toutes enseignes en grille) — MVP = liste refs + tri score
 - NgRx, backend FastAPI/Spring
 
-## 9. Artefacts liés
+## 10. Artefacts liés
 
 | Document | Chemin |
 |----------|--------|
