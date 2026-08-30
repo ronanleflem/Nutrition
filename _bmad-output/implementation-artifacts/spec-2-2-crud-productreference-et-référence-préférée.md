@@ -2,7 +2,7 @@
 title: 'Story 2.2 — CRUD ProductReference et référence préférée'
 type: 'feature'
 created: '2026-08-30'
-status: 'in-review'
+status: 'done'
 review_loop_iteration: 0
 baseline_commit: 'ae5b74e3d7757d4a8511ca700d09c881c5a3fd1f'
 story_key: '2-2-crud-productreference-et-référence-préférée'

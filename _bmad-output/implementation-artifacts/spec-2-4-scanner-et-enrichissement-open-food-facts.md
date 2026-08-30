@@ -2,7 +2,7 @@
 title: 'Story 2.4 — Scanner et enrichissement Open Food Facts'
 type: 'feature'
 created: '2026-08-30'
-status: 'in-review'
+status: 'done'
 review_loop_iteration: 0
 baseline_commit: '1101711883221937aa153283be9829ed917dd05e'
 story_key: '2-4-scanner-et-enrichissement-open-food-facts'
