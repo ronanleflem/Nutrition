@@ -29,7 +29,7 @@ describe('app routes', () => {
     { path: '/products', text: 'Ajouter un produit' },
     { path: '/recipes', text: '+' },
     { path: '/plan', text: 'Voir la synthèse macros' },
-    { path: '/shopping', text: 'Surface en construction.' },
+    { path: '/shopping', text: 'Liste de courses' },
     { path: '/goals', text: 'Objectifs macros' },
     { path: '/settings', text: 'Objectifs macros' },
   ];

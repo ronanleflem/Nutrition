@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-30-2026 18:11
-last_updated: 08-31-2026 00:10
+last_updated: 08-31-2026 07:20
 project: Nutrition
 project_key: NOKEY
 tracking_system: file-system
@@ -72,8 +72,8 @@ development_status:
   6-2-choix-variante-et-lien-synthèse: review
   epic-6-retrospective: optional
 
-  epic-7: backlog
-  7-1-génération-automatique-liste: backlog
+  epic-7: in-progress
+  7-1-génération-automatique-liste: done
   7-2-édition-manuelle-et-régénération: backlog
   7-3-mode-courses-plein-écran: backlog
   epic-7-retrospective: optional

@@ -1,0 +1,45 @@
+<section class="shopping-page">
+  <header class="shopping-page__header">
+    <h1 class="shopping-page__title">Liste de courses</h1>
+    <span class="shopping-page__week-label">{{ shopping.weekLabel() }}</span>
+  </header>
+
+  @if (shopping.hasPlanEntries()) {
+    <button
+      type="button"
+      class="shopping-page__generate-btn"
+      [disabled]="shopping.generating()"
+      (click)="onGenerate()"
+    >
+      @if (shopping.generating()) {
+        Génération en cours…
+      } @else {
+        Générer depuis le plan
+      }
+    </button>
+  }
+
+  @if (shopping.loading() && shopping.items().length === 0) {
+    <p class="shopping-page__status" role="status">Chargement…</p>
+  } @else if (!shopping.hasPlanEntries()) {
+    <app-empty-state
+      message="Aucun repas planifié cette semaine. Commencez par remplir votre plan de repas."
+      ctaLabel="Ouvrir le plan"
+      ctaLink="/plan"
+    />
+  } @else if (shopping.items().length === 0) {
+    <app-empty-state
+      message="Votre garde-manger couvre tout le plan, ou la liste n'a pas encore été générée."
+      ctaLabel="Voir le plan"
+      ctaLink="/plan"
+    />
+  } @else {
+    <ul class="shopping-page__list" aria-label="Articles à acheter">
+      @for (item of shopping.items(); track item.id) {
+        <li>
+          <app-shopping-row [item]="item" />
+        </li>
+      }
+    </ul>
+  }
+</section>

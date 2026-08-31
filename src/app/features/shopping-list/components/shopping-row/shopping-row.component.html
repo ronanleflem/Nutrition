@@ -1,0 +1,13 @@
+<article class="shopping-row">
+  <div class="shopping-row__main">
+    <h2 class="shopping-row__name">{{ item().productName }}</h2>
+    @if (item().recommendedStores.length > 0) {
+      <p class="shopping-row__stores" aria-label="Enseignes recommandées">
+        @for (store of item().recommendedStores; track store; let last = $last) {
+          <span class="shopping-row__store-chip">{{ storeLabel(store) }}</span>@if (!last) {<span class="shopping-row__store-sep" aria-hidden="true"> · </span>}
+        }
+      </p>
+    }
+  </div>
+  <span class="shopping-row__quantity">{{ formatQuantity(item().quantityG) }}</span>
+</article>
