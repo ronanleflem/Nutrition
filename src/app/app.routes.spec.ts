@@ -28,10 +28,10 @@ describe('app routes', () => {
     { path: '/pantry', text: '+' },
     { path: '/products', text: 'Ajouter un produit' },
     { path: '/recipes', text: '+' },
-    { path: '/plan', text: 'Surface en construction.' },
+    { path: '/plan', text: 'Voir synthèse macros' },
     { path: '/shopping', text: 'Surface en construction.' },
-    { path: '/goals', text: 'Surface en construction.' },
-    { path: '/settings', text: 'Produits archivés' },
+    { path: '/goals', text: 'Objectifs macros' },
+    { path: '/settings', text: 'Objectifs macros' },
   ];
 
   for (const route of lazyRoutes) {

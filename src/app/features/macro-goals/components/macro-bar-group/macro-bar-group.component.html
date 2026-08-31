@@ -1,0 +1,5 @@
+<div class="macro-bar-group" role="group" aria-label="Synthèse macros du jour">
+  @for (bar of bars(); track bar.key) {
+    <app-macro-bar [bar]="bar" (tapped)="barTapped.emit($event)" />
+  }
+</div>

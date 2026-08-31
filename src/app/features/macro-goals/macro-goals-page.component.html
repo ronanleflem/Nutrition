@@ -1,0 +1,108 @@
+<section class="macro-goals-page">
+  <h1 class="macro-goals-page__title">Objectifs macros</h1>
+  <p class="macro-goals-page__intro">
+    Définissez vos cibles journalières. Laissez un champ vide pour ne pas suivre ce nutriment.
+  </p>
+
+  @if (macroGoalsService.loadError()) {
+    <p class="macro-goals-page__error" role="alert">{{ macroGoalsService.loadError() }}</p>
+  }
+
+  <form class="macro-goals-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    @if (submitError()) {
+      <p class="macro-goals-form__error" role="alert">{{ submitError() }}</p>
+    }
+    @if (saved()) {
+      <p class="macro-goals-form__success" role="status">Objectifs enregistrés.</p>
+    }
+
+    <fieldset class="macro-goals-form__fieldset" [disabled]="!!macroGoalsService.loadError()">
+      <legend class="macro-goals-form__legend">Cibles journalières</legend>
+
+      <label class="macro-goals-form__field">
+        <span class="macro-goals-form__label">Énergie (kcal)</span>
+        <input
+          class="macro-goals-form__input"
+          type="number"
+          min="0"
+          step="1"
+          inputmode="numeric"
+          formControlName="kcal"
+        />
+        @if (form.controls.kcal.touched && form.controls.kcal.hasError('min')) {
+          <span class="macro-goals-form__error">La valeur doit être positive ou nulle.</span>
+        }
+      </label>
+
+      <label class="macro-goals-form__field">
+        <span class="macro-goals-form__label">Protéines (g)</span>
+        <input
+          class="macro-goals-form__input"
+          type="number"
+          min="0"
+          step="0.1"
+          inputmode="decimal"
+          formControlName="proteinG"
+        />
+        @if (form.controls.proteinG.touched && form.controls.proteinG.hasError('min')) {
+          <span class="macro-goals-form__error">La valeur doit être positive ou nulle.</span>
+        }
+      </label>
+
+      <label class="macro-goals-form__field">
+        <span class="macro-goals-form__label">Lipides (g)</span>
+        <input
+          class="macro-goals-form__input"
+          type="number"
+          min="0"
+          step="0.1"
+          inputmode="decimal"
+          formControlName="fatG"
+        />
+        @if (form.controls.fatG.touched && form.controls.fatG.hasError('min')) {
+          <span class="macro-goals-form__error">La valeur doit être positive ou nulle.</span>
+        }
+      </label>
+
+      <label class="macro-goals-form__field">
+        <span class="macro-goals-form__label">Glucides (g)</span>
+        <input
+          class="macro-goals-form__input"
+          type="number"
+          min="0"
+          step="0.1"
+          inputmode="decimal"
+          formControlName="carbsG"
+        />
+        @if (form.controls.carbsG.touched && form.controls.carbsG.hasError('min')) {
+          <span class="macro-goals-form__error">La valeur doit être positive ou nulle.</span>
+        }
+      </label>
+
+      <label class="macro-goals-form__field">
+        <span class="macro-goals-form__label">Fibres (g)</span>
+        <input
+          class="macro-goals-form__input"
+          type="number"
+          min="0"
+          step="0.1"
+          inputmode="decimal"
+          formControlName="fiberG"
+        />
+        @if (form.controls.fiberG.touched && form.controls.fiberG.hasError('min')) {
+          <span class="macro-goals-form__error">La valeur doit être positive ou nulle.</span>
+        }
+      </label>
+    </fieldset>
+
+    <button
+      class="macro-goals-form__button"
+      type="submit"
+      [disabled]="saving() || macroGoalsService.loading() || !!macroGoalsService.loadError()"
+    >
+      {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
+    </button>
+  </form>
+
+  <app-macro-synthesis-section />
+</section>

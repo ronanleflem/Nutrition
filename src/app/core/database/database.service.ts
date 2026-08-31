@@ -8,6 +8,12 @@ import {
   createDefaultAppSettings,
 } from '../models/app-settings';
 import {
+  createDefaultMacroGoals,
+  MACRO_GOALS_SINGLETON_ID,
+  type MacroGoals,
+  type UpdateMacroGoalsInput,
+} from '../models/macro-goals';
+import {
   createMealPlanEntry,
   type CreateMealPlanEntryInput,
   type MealPlanEntry,
@@ -122,6 +128,44 @@ export class DatabaseService {
     }
 
     return settings;
+  }
+
+  async getMacroGoals(): Promise<MacroGoals> {
+    await this.initialize();
+
+    const goals = await this.db!.macroGoals.get(MACRO_GOALS_SINGLETON_ID);
+    if (!goals) {
+      const defaultGoals = createDefaultMacroGoals();
+      await this.db!.macroGoals.put(defaultGoals);
+      return defaultGoals;
+    }
+
+    return goals;
+  }
+
+  async updateMacroGoals(input: UpdateMacroGoalsInput): Promise<MacroGoals> {
+    await this.initialize();
+
+    const current = await this.getMacroGoals();
+    const updated: MacroGoals = { id: MACRO_GOALS_SINGLETON_ID };
+
+    const fields = ['kcal', 'proteinG', 'fatG', 'carbsG', 'fiberG'] as const;
+    for (const field of fields) {
+      if (field in input) {
+        const value = input[field];
+        if (value != null) {
+          if (value < 0) {
+            throw new Error('Les objectifs macros doivent être positifs ou nuls.');
+          }
+          updated[field] = value;
+        }
+      } else if (current[field] != null) {
+        updated[field] = current[field];
+      }
+    }
+
+    await this.db!.macroGoals.put(updated);
+    return updated;
   }
 
   async listProductCatalog(): Promise<ProductCatalogItem[]> {
@@ -778,6 +822,19 @@ export class DatabaseService {
     return this.db!.mealPlanEntries.where('recipeId').equals(recipeId).count();
   }
 
+  async listMealPlanEntriesByDate(date: string): Promise<MealPlanEntry[]> {
+    await this.initialize();
+
+    const entries = await this.db!.mealPlanEntries.where('date').equals(date).toArray();
+    const slotOrder: Record<MealPlanEntry['slot'], number> = {
+      breakfast: 0,
+      lunch: 1,
+      dinner: 2,
+    };
+
+    return entries.sort((left, right) => slotOrder[left.slot] - slotOrder[right.slot]);
+  }
+
   async createMealPlanEntry(input: CreateMealPlanEntryInput): Promise<MealPlanEntry> {
     await this.initialize();
 
@@ -900,6 +957,11 @@ export class DatabaseService {
     const existing = await db.appSettings.get(APP_SETTINGS_SINGLETON_ID);
     if (!existing) {
       await db.appSettings.put(createDefaultAppSettings());
+    }
+
+    const existingGoals = await db.macroGoals.get(MACRO_GOALS_SINGLETON_ID);
+    if (!existingGoals) {
+      await db.macroGoals.put(createDefaultMacroGoals());
     }
 
     this.db = db;
