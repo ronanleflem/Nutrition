@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { DatabaseService } from '../../../core/database/database.service';
 import type { ShoppingListItemWithProduct } from '../../../core/models/shopping-list-item';
@@ -21,6 +21,20 @@ export class ShoppingListService {
   readonly hasPlanEntries = signal(false);
   readonly planStale = signal(false);
   readonly weekLabel = signal(getIsoWeekLabel(getMondayOfWeek(new Date())));
+
+  readonly remainingCount = computed(
+    () => this.items().filter((item) => !item.checked).length,
+  );
+
+  readonly storeModeItems = computed(() =>
+    [...this.items()].sort((left, right) => {
+      if (left.checked !== right.checked) {
+        return Number(left.checked) - Number(right.checked);
+      }
+
+      return left.productName.localeCompare(right.productName, 'fr', { sensitivity: 'base' });
+    }),
+  );
 
   private refreshPromise: Promise<void> | null = null;
 

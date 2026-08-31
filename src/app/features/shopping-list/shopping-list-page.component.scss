@@ -55,6 +55,18 @@
   cursor: wait;
 }
 
+.shopping-page__store-mode-btn {
+  min-height: var(--spacing-touch-min);
+  padding: 12px 16px;
+  border: 1px solid var(--color-accent-positive);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-accent-positive);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
 .shopping-page__status {
   margin: 0;
   color: var(--color-ink-secondary);

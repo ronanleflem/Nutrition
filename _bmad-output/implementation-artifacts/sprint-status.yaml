@@ -75,7 +75,7 @@ development_status:
   epic-7: in-progress
   7-1-génération-automatique-liste: done
   7-2-édition-manuelle-et-régénération: done
-  7-3-mode-courses-plein-écran: backlog
+  7-3-mode-courses-plein-écran: done
   epic-7-retrospective: optional
 
   epic-8: backlog

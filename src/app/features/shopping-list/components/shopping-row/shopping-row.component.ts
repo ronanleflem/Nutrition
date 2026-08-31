@@ -10,8 +10,10 @@ import type { ShoppingListItemWithProduct } from '../../../../core/models/shoppi
 })
 export class ShoppingRowComponent {
   readonly item = input.required<ShoppingListItemWithProduct>();
+  readonly storeMode = input(false);
   readonly checkedChange = output<boolean>();
   readonly edit = output<void>();
+  readonly toggle = output<void>();
 
   formatQuantity(quantityG: number): string {
     return `${quantityG} g`;
@@ -22,11 +24,24 @@ export class ShoppingRowComponent {
   }
 
   onCheckboxChange(event: Event): void {
+    event.stopPropagation();
     const checked = (event.target as HTMLInputElement).checked;
     this.checkedChange.emit(checked);
   }
 
-  onEditClick(): void {
+  onCheckZoneClick(event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.storeMode()) {
+      this.toggle.emit();
+    }
+  }
+
+  onContentClick(): void {
+    if (this.storeMode()) {
+      this.toggle.emit();
+      return;
+    }
+
     this.edit.emit();
   }
 }

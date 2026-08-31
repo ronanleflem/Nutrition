@@ -15,6 +15,20 @@
   text-decoration: line-through;
 }
 
+.shopping-row--store-mode {
+  min-height: 52px;
+}
+
+.shopping-row--store-mode .shopping-row__check-zone {
+  min-width: 52px;
+  min-height: 52px;
+}
+
+.shopping-row--store-mode .shopping-row__content {
+  min-height: 52px;
+  cursor: pointer;
+}
+
 .shopping-row__check-zone {
   display: flex;
   flex-shrink: 0;

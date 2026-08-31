@@ -6,6 +6,7 @@ import { By } from '@angular/platform-browser';
 import { provideRouter, Router, RouterOutlet } from '@angular/router';
 
 import { ShellComponent } from './shell.component';
+import { ShellChromeService } from '../shell-chrome.service';
 
 @Component({ template: '<router-outlet />', imports: [RouterOutlet] })
 class TestHostComponent {}
@@ -111,5 +112,13 @@ describe('ShellComponent', () => {
     const banner = getShellElement().querySelector('.shell__offline-banner') as HTMLElement;
     expect(banner).toBeTruthy();
     expect(banner.textContent).toContain('Mode hors ligne');
+  });
+
+  it('hides header and bottom nav when shell chrome is hidden', async () => {
+    TestBed.inject(ShellChromeService).setHidden(true);
+    hostFixture.detectChanges();
+
+    expect(getShellElement().querySelector('.shell__header')).toBeNull();
+    expect(getShellElement().querySelector('app-bottom-nav')).toBeNull();
   });
 });

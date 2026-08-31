@@ -1,0 +1,24 @@
+<section class="store-mode" aria-label="Mode Courses">
+  <header class="store-mode__header">
+    <button type="button" class="store-mode__finish" (click)="finished.emit()">
+      Terminer
+    </button>
+    <h1 class="store-mode__title">Courses</h1>
+    <p class="store-mode__counter" role="status" aria-live="polite">
+      {{ remainingLabel() }}
+    </p>
+  </header>
+
+  <ul class="store-mode__list" aria-label="Articles à cocher">
+    @for (item of shopping.storeModeItems(); track item.id) {
+      <li>
+        <app-shopping-row
+          [item]="item"
+          [storeMode]="true"
+          (checkedChange)="onCheckedChange(item, $event)"
+          (toggle)="onToggleRow(item)"
+        />
+      </li>
+    }
+  </ul>
+</section>

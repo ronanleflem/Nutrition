@@ -2,7 +2,7 @@
 title: 'Story 7.2 — Édition manuelle et régénération'
 type: 'feature'
 created: '2026-08-31'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 baseline_commit: '72e2464'
 story_key: '7-2-édition-manuelle-et-régénération'
@@ -96,3 +96,37 @@ context:
 ## Design Notes
 
 Fingerprint stored on each successful auto generation. Banner offers one-tap regenerate reusing existing algorithm.
+
+## Suggested Review Order
+
+**Plan staleness**
+
+- Fingerprint utility and appSettings field for last-generated plan snapshot.
+  [`meal-plan-fingerprint.ts:1`](../../src/app/core/utils/meal-plan-fingerprint.ts#L1)
+
+- Stale detection and fingerprint save on auto generation.
+  [`database.service.ts:1052`](../../src/app/core/database/database.service.ts#L1052)
+
+**Manual CRUD**
+
+- Create, update (qty/checked), delete shopping list items.
+  [`database.service.ts:1056`](../../src/app/core/database/database.service.ts#L1056)
+
+**Feature UI**
+
+- RegenerateBanner when plan diverges from fingerprint.
+  [`regenerate-banner.component.html:1`](../../src/app/features/shopping-list/components/regenerate-banner/regenerate-banner.component.html#L1)
+
+- Bottom sheet for add manual / edit quantity / delete.
+  [`shopping-item-sheet.component.ts:1`](../../src/app/features/shopping-list/components/shopping-item-sheet/shopping-item-sheet.component.ts#L1)
+
+- Row checkbox, manual badge, checked strikethrough.
+  [`shopping-row.component.html:1`](../../src/app/features/shopping-list/components/shopping-row/shopping-row.component.html#L1)
+
+- Page wiring: add button, banner, sheets.
+  [`shopping-list-page.component.html:1`](../../src/app/features/shopping-list/shopping-list-page.component.html#L1)
+
+**Tests**
+
+- Manual CRUD, coexistence, stale plan detection.
+  [`database.service.shopping-list.spec.ts:224`](../../src/app/core/database/database.service.shopping-list.spec.ts#L224)

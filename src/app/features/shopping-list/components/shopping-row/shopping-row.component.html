@@ -1,15 +1,20 @@
-<article class="shopping-row" [class.shopping-row--checked]="item().checked">
-  <label class="shopping-row__check-zone">
+<article
+  class="shopping-row"
+  [class.shopping-row--checked]="item().checked"
+  [class.shopping-row--store-mode]="storeMode()"
+>
+  <label class="shopping-row__check-zone" (click)="onCheckZoneClick($event)">
     <input
       type="checkbox"
       class="shopping-row__checkbox"
       [checked]="item().checked"
       [attr.aria-label]="'Cocher ' + item().productName"
       (change)="onCheckboxChange($event)"
+      (click)="$event.stopPropagation()"
     />
   </label>
 
-  <button type="button" class="shopping-row__content" (click)="onEditClick()">
+  <button type="button" class="shopping-row__content" (click)="onContentClick()">
     <div class="shopping-row__main">
       <div class="shopping-row__title-row">
         <h2 class="shopping-row__name">{{ item().productName }}</h2>
@@ -17,7 +22,7 @@
           <span class="shopping-row__badge">manuel</span>
         }
       </div>
-      @if (item().recommendedStores.length > 0) {
+      @if (!storeMode() && item().recommendedStores.length > 0) {
         <p class="shopping-row__stores" aria-label="Enseignes recommandées">
           @for (store of item().recommendedStores; track store; let last = $last) {
             <span class="shopping-row__store-chip">{{ storeLabel(store) }}</span>@if (!last) {<span class="shopping-row__store-sep" aria-hidden="true"> · </span>}
