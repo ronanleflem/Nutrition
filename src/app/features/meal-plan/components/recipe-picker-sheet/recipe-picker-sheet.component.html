@@ -18,6 +18,10 @@
       </button>
     </header>
 
+    @if (pageError()) {
+      <p class="sheet__error" role="alert">{{ pageError() }}</p>
+    }
+
     @if (hasRecipes()) {
       <label class="field">
         <span class="field__label">Rechercher</span>

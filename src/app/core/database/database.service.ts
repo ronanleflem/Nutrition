@@ -918,13 +918,23 @@ export class DatabaseService {
 
   async updateMealPlanEntryVariant(
     entryId: string,
-    recipeVariantId: string,
+    recipeVariantId: string | null,
   ): Promise<MealPlanEntry> {
     await this.initialize();
 
     const existing = await this.db!.mealPlanEntries.get(entryId);
     if (!existing) {
       throw new Error('Entrée de plan introuvable.');
+    }
+
+    if (recipeVariantId === null) {
+      const updated: MealPlanEntry = {
+        ...existing,
+        recipeVariantId: undefined,
+      };
+
+      await this.db!.mealPlanEntries.put(updated);
+      return updated;
     }
 
     const variant = await this.db!.recipeVariants.get(recipeVariantId);

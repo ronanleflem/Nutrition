@@ -98,11 +98,13 @@ export class MealPlanService {
 
   async goToPreviousWeek(): Promise<void> {
     this.weekStart.set(addDays(this.weekStart(), -7));
+    this.selectedDate.set(toLocalIsoDate(addDays(parseLocalIsoDate(this.selectedDate()), -7)));
     await this.loadWeek();
   }
 
   async goToNextWeek(): Promise<void> {
     this.weekStart.set(addDays(this.weekStart(), 7));
+    this.selectedDate.set(toLocalIsoDate(addDays(parseLocalIsoDate(this.selectedDate()), 7)));
     await this.loadWeek();
   }
 
@@ -126,7 +128,7 @@ export class MealPlanService {
     await this.loadWeek();
   }
 
-  async updateVariant(entryId: string, recipeVariantId: string): Promise<void> {
+  async updateVariant(entryId: string, recipeVariantId: string | null): Promise<void> {
     await this.database.updateMealPlanEntryVariant(entryId, recipeVariantId);
     await this.loadWeek();
   }

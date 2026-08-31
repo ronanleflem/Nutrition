@@ -207,6 +207,32 @@ describe('DatabaseService meal plan', () => {
     expect(updated.recipeVariantId).toBe(added.variantId);
   });
 
+  it('clears variant when updated with null', async () => {
+    const recipeId = await createSampleRecipe('Wrap poulet');
+    const detail = await service.getRecipeDetail(recipeId);
+    if (!detail || detail.variants.length < 1) {
+      throw new Error('Recipe detail missing');
+    }
+
+    const productId = await seedProductWithPreferredReference('Riz');
+    const added = await service.addRecipeVariant({
+      recipeId,
+      name: 'Lavash',
+      ingredients: [{ productId, quantityG: 80 }],
+    });
+
+    const created = await service.createMealPlanEntry({
+      date: '2026-08-31',
+      slot: 'lunch',
+      recipeId,
+    });
+
+    await service.updateMealPlanEntryVariant(created.id, added.variantId);
+    const cleared = await service.updateMealPlanEntryVariant(created.id, null);
+
+    expect(cleared.recipeVariantId).toBeUndefined();
+  });
+
   it('rejects variant update for variant from another recipe', async () => {
     const firstRecipeId = await createSampleRecipe('Wrap poulet');
     const secondRecipeId = await createSampleRecipe('Bowl riz');

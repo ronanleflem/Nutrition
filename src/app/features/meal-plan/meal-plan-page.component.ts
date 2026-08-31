@@ -38,17 +38,23 @@ export class MealPlanPageComponent implements OnInit {
   protected readonly mealPlan = inject(MealPlanService);
 
   private readonly synthesisSection = viewChild(MacroSynthesisSectionComponent);
+  private readonly mealSlotSheet = viewChild(MealSlotSheetComponent);
 
   readonly sheetMode = signal<SheetMode>(null);
   readonly activeSlot = signal<ActiveSlot | null>(null);
   readonly errorMessage = signal<string | null>(null);
+  readonly assigning = signal(false);
+  readonly updatingVariant = signal(false);
 
   readonly weekLabel = () => getIsoWeekLabel(this.mealPlan.weekStart());
   readonly selectedSlots = () => this.mealPlan.getSlotsForDate(this.mealPlan.selectedDate());
   readonly selectedDayLabel = () => this.mealPlan.getSelectedDayLabel();
 
   ngOnInit(): void {
-    void this.mealPlan.loadWeek();
+    void this.mealPlan.loadWeek().catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Impossible de charger le plan.';
+      this.errorMessage.set(message);
+    });
   }
 
   onDaySelected(date: string): void {
@@ -95,15 +101,17 @@ export class MealPlanPageComponent implements OnInit {
   closeSheet(): void {
     this.sheetMode.set(null);
     this.activeSlot.set(null);
+    this.errorMessage.set(null);
   }
 
   async onRecipeSelected(recipeId: string): Promise<void> {
     const slot = this.activeSlot();
-    if (!slot) {
+    if (!slot || this.assigning()) {
       return;
     }
 
     this.errorMessage.set(null);
+    this.assigning.set(true);
 
     try {
       if (slot.entryId) {
@@ -117,24 +125,33 @@ export class MealPlanPageComponent implements OnInit {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Impossible de planifier ce repas.';
       this.errorMessage.set(message);
+    } finally {
+      this.assigning.set(false);
     }
   }
 
   async onVariantSelected(variantId: string): Promise<void> {
     const slot = this.activeSlot();
-    if (!slot?.entryId) {
+    if (!slot?.entryId || !slot.recipeId || this.updatingVariant()) {
       return;
     }
 
     this.errorMessage.set(null);
+    this.updatingVariant.set(true);
 
     try {
-      await this.mealPlan.updateVariant(slot.entryId, variantId);
+      const detail = this.mealPlan.getRecipeDetail(slot.recipeId);
+      const recipeVariantId =
+        detail && variantId === detail.recipe.defaultVariantId ? null : variantId;
+
+      await this.mealPlan.updateVariant(slot.entryId, recipeVariantId);
       this.closeSheet();
       await this.synthesisSection()?.reload();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Impossible de changer la variante.';
       this.errorMessage.set(message);
+    } finally {
+      this.updatingVariant.set(false);
     }
   }
 
@@ -143,6 +160,7 @@ export class MealPlanPageComponent implements OnInit {
       return;
     }
 
+    this.errorMessage.set(null);
     this.sheetMode.set('picker');
   }
 
@@ -161,6 +179,7 @@ export class MealPlanPageComponent implements OnInit {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Impossible de supprimer.';
       this.errorMessage.set(message);
+      this.mealSlotSheet()?.resetSubmitting();
     }
   }
 

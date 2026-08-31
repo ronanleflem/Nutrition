@@ -38,10 +38,7 @@ export class WeekGridComponent {
     });
   }
 
-  onVariantChipClick(event: Event, slot: MealPlanSlotView): void {
-    event.stopPropagation();
-    event.preventDefault();
-
+  onVariantChipClick(slot: MealPlanSlotView): void {
     if (!slot.entry || !slot.recipeId || !slot.resolvedVariantId) {
       return;
     }

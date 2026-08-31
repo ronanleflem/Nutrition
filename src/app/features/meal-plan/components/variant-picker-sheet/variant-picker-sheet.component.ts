@@ -19,6 +19,7 @@ export class VariantPickerSheetComponent {
 
   readonly recipeId = input.required<string>();
   readonly selectedVariantId = input.required<string>();
+  readonly pageError = input<string | null>(null);
   readonly closed = output<void>();
   readonly selected = output<string>();
 

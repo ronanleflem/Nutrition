@@ -20,8 +20,8 @@
 
     <p class="sheet__recipe">{{ recipeTitle() }}</p>
 
-    @if (errorMessage()) {
-      <p class="sheet__error" role="alert">{{ errorMessage() }}</p>
+    @if (displayedError()) {
+      <p class="sheet__error" role="alert">{{ displayedError() }}</p>
     }
 
     <div class="sheet__actions">
@@ -37,10 +37,22 @@
         type="button"
         class="btn btn--danger"
         [disabled]="submitting()"
-        (click)="deleteEntry()"
+        (click)="openDeleteConfirm()"
       >
         Supprimer
       </button>
     </div>
   </section>
 </div>
+
+@if (showDeleteConfirm()) {
+  <app-confirm-dialog
+    title="Supprimer le repas planifié"
+    [message]="deleteConfirmMessage()"
+    confirmLabel="Supprimer"
+    cancelLabel="Annuler"
+    [confirmDisabled]="submitting()"
+    (confirmed)="confirmDelete()"
+    (cancelled)="closeDeleteConfirm()"
+  />
+}

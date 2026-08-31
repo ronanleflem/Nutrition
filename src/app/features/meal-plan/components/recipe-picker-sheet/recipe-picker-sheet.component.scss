@@ -74,6 +74,12 @@
   color: var(--color-ink-secondary);
 }
 
+.sheet__error {
+  margin: 0 0 12px;
+  color: #e57373;
+  font-size: var(--font-size-meta);
+}
+
 .recipe-picker__list {
   display: flex;
   flex-direction: column;

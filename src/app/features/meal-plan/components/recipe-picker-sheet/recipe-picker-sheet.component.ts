@@ -23,6 +23,7 @@ export class RecipePickerSheetComponent {
   private readonly recipeMacroService = inject(RecipeMacroService);
 
   readonly recipes = input.required<RecipeListItem[]>();
+  readonly pageError = input<string | null>(null);
   readonly selected = output<string>();
   readonly closed = output<void>();
 

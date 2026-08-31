@@ -18,6 +18,10 @@
       </button>
     </header>
 
+    @if (pageError()) {
+      <p class="sheet__error" role="alert">{{ pageError() }}</p>
+    }
+
     @if (loading()) {
       <p class="sheet__status" role="status">Chargement…</p>
     } @else if (loadError()) {

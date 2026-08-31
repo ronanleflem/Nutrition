@@ -29,7 +29,7 @@
     />
   }
 
-  @if (errorMessage()) {
+  @if (errorMessage() && sheetMode() === null) {
     <p class="meal-plan-page__error" role="alert">{{ errorMessage() }}</p>
   }
 
@@ -51,6 +51,7 @@
 @if (sheetMode() === 'picker') {
   <app-recipe-picker-sheet
     [recipes]="mealPlan.recipes()"
+    [pageError]="errorMessage()"
     (selected)="onRecipeSelected($event)"
     (closed)="closeSheet()"
   />
@@ -60,6 +61,7 @@
   <app-meal-slot-sheet
     [slot]="activeSlot()!.slot"
     [recipeTitle]="activeSlot()!.recipeTitle ?? 'Recette supprimée'"
+    [pageError]="errorMessage()"
     (changeRecipe)="openRecipePickerFromSlotDetail()"
     (deleted)="onSlotDeleted()"
     (closed)="closeSheet()"
@@ -70,6 +72,7 @@
   <app-variant-picker-sheet
     [recipeId]="activeSlot()!.recipeId!"
     [selectedVariantId]="activeSlot()!.resolvedVariantId ?? ''"
+    [pageError]="errorMessage()"
     (selected)="onVariantSelected($event)"
     (closed)="closeSheet()"
   />
