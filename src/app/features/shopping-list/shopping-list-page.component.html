@@ -34,7 +34,7 @@
 
     @if (shopping.loading() && shopping.items().length === 0) {
       <p class="shopping-page__status" role="status">Chargement…</p>
-    } @else if (shopping.items().length === 0 && !shopping.hasPlanEntries()) {
+    } @else if (!shopping.hasPlanEntries() && !shopping.hasManualItems()) {
       <app-empty-state
         message="Aucun repas planifié cette semaine. Ajoutez des articles manuellement ou remplissez votre plan."
         ctaLabel="Ouvrir le plan"

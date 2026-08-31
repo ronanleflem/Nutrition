@@ -20,10 +20,6 @@ export class StoreModeViewComponent {
     return count <= 1 ? `${count} restant` : `${count} restants`;
   }
 
-  onCheckedChange(item: ShoppingListItemWithProduct, checked: boolean): void {
-    void this.shopping.toggleItemChecked(item.id, checked);
-  }
-
   onToggleRow(item: ShoppingListItemWithProduct): void {
     void this.shopping.toggleItemChecked(item.id, !item.checked);
   }

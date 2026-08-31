@@ -66,6 +66,9 @@ export class ShoppingItemSheetComponent {
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      if (this.form.controls.quantityG.invalid) {
+        this.errorMessage.set('La quantité doit être supérieure à 0 g.');
+      }
       return;
     }
 

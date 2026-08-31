@@ -138,6 +138,28 @@ describe('DatabaseService shopping list', () => {
     expect(await service.listShoppingListItemsWithProducts()).toHaveLength(0);
   });
 
+  it('clears existing auto items when the plan becomes empty', async () => {
+    const productId = await seedProductWithPreferredReference('Haricots');
+    const recipeId = await createRecipeWithIngredients('Ragoût', [{ productId, quantityG: 100 }]);
+
+    await service.createMealPlanEntry({
+      date: '2026-08-31',
+      slot: 'lunch',
+      recipeId,
+    });
+    await service.generateShoppingListForDateRange('2026-08-31', '2026-08-31');
+    expect(await service.listShoppingListItemsWithProducts()).toHaveLength(1);
+
+    await service.deleteMealPlanEntry(
+      (await service.listMealPlanEntriesBetweenDates('2026-08-31', '2026-08-31'))[0].id,
+    );
+
+    const generated = await service.generateShoppingListForDateRange('2026-08-31', '2026-08-31');
+
+    expect(generated).toHaveLength(0);
+    expect(await service.listShoppingListItemsWithProducts()).toHaveLength(0);
+  });
+
   it('uses default variant when recipeVariantId is null', async () => {
     const productId = await seedProductWithPreferredReference('Pâtes');
     const recipeResult = await service.createRecipeWithFirstVariant({

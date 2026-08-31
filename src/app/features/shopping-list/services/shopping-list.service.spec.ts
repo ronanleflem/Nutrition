@@ -45,4 +45,15 @@ describe('ShoppingListService store mode', () => {
       'Zucchini:true',
     ]);
   });
+
+  it('detects manual items in the list', () => {
+    const service = TestBed.inject(ShoppingListService);
+    service.items.set([item({ id: '1', productName: 'A', source: 'auto' })]);
+
+    expect(service.hasManualItems()).toBe(false);
+
+    service.items.set([item({ id: '2', productName: 'B', source: 'manual' })]);
+
+    expect(service.hasManualItems()).toBe(true);
+  });
 });

@@ -25,15 +25,17 @@ export class ShoppingRowComponent {
 
   onCheckboxChange(event: Event): void {
     event.stopPropagation();
+    if (this.storeMode()) {
+      this.toggle.emit();
+      return;
+    }
+
     const checked = (event.target as HTMLInputElement).checked;
     this.checkedChange.emit(checked);
   }
 
   onCheckZoneClick(event: MouseEvent): void {
     event.stopPropagation();
-    if (this.storeMode()) {
-      this.toggle.emit();
-    }
   }
 
   onContentClick(): void {

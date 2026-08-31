@@ -26,6 +26,10 @@ export class ShoppingListService {
     () => this.items().filter((item) => !item.checked).length,
   );
 
+  readonly hasManualItems = computed(() =>
+    this.items().some((item) => item.source === 'manual'),
+  );
+
   readonly storeModeItems = computed(() =>
     [...this.items()].sort((left, right) => {
       if (left.checked !== right.checked) {
@@ -81,8 +85,17 @@ export class ShoppingListService {
   }
 
   async toggleItemChecked(itemId: string, checked: boolean): Promise<void> {
-    await this.database.updateShoppingListItem(itemId, { checked });
-    await this.loadState();
+    const previous = this.items();
+    this.items.update((items) =>
+      items.map((item) => (item.id === itemId ? { ...item, checked } : item)),
+    );
+
+    try {
+      await this.database.updateShoppingListItem(itemId, { checked });
+    } catch (error) {
+      this.items.set(previous);
+      throw error;
+    }
   }
 
   async deleteItem(itemId: string): Promise<void> {
@@ -102,12 +115,20 @@ export class ShoppingListService {
       const weekStart = getMondayOfWeek(new Date());
       this.weekLabel.set(getIsoWeekLabel(weekStart));
 
-      const [items, entries, products, stale] = await Promise.all([
+      let [items, entries, products, stale] = await Promise.all([
         this.database.listShoppingListItemsWithProducts(),
         this.database.listMealPlanEntriesBetweenDates(startDate, endDate),
         this.database.listActiveProducts(),
         this.database.isShoppingListPlanStale(startDate, endDate),
       ]);
+
+      if (entries.length === 0 && items.some((item) => item.source === 'auto')) {
+        await this.database.generateShoppingListForDateRange(startDate, endDate);
+        [items, stale] = await Promise.all([
+          this.database.listShoppingListItemsWithProducts(),
+          this.database.isShoppingListPlanStale(startDate, endDate),
+        ]);
+      }
 
       this.items.set(items);
       this.products.set(products);

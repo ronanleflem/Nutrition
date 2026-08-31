@@ -991,6 +991,8 @@ export class DatabaseService {
 
     const entries = await this.listMealPlanEntriesBetweenDates(startDate, endDate);
     if (entries.length === 0) {
+      await this.replaceAutoShoppingListItems([]);
+      await this.saveShoppingListPlanFingerprint(computeMealPlanFingerprint(entries));
       return [];
     }
 
@@ -1044,14 +1046,19 @@ export class DatabaseService {
       );
     }
 
-    await this.db!.shoppingListItems.where('source').equals('auto').delete();
-    if (nextAutoItems.length > 0) {
-      await this.db!.shoppingListItems.bulkAdd(nextAutoItems);
-    }
-
+    await this.replaceAutoShoppingListItems(nextAutoItems);
     await this.saveShoppingListPlanFingerprint(computeMealPlanFingerprint(entries));
 
     return nextAutoItems;
+  }
+
+  private async replaceAutoShoppingListItems(nextAutoItems: ShoppingListItem[]): Promise<void> {
+    await this.db!.transaction('rw', this.db!.shoppingListItems, async () => {
+      await this.db!.shoppingListItems.where('source').equals('auto').delete();
+      if (nextAutoItems.length > 0) {
+        await this.db!.shoppingListItems.bulkAdd(nextAutoItems);
+      }
+    });
   }
 
   async createManualShoppingListItem(productId: string, quantityG: number): Promise<ShoppingListItem> {
