@@ -1,9 +1,79 @@
 <section class="meal-plan-page">
-  <h1 class="meal-plan-page__title">Plan de repas</h1>
-  <p class="meal-plan-page__intro">Surface en construction.</p>
+  <header class="meal-plan-page__header">
+    <h1 class="meal-plan-page__title">Plan de repas</h1>
+    <span class="meal-plan-page__week-label">{{ weekLabel() }}</span>
+  </header>
+
+  <div class="meal-plan-page__week-nav" aria-label="Navigation semaine">
+    <button type="button" class="meal-plan-page__week-btn" (click)="goToPreviousWeek()">
+      Semaine précédente
+    </button>
+    <button type="button" class="meal-plan-page__week-btn" (click)="goToCurrentWeek()">
+      Aujourd'hui
+    </button>
+    <button type="button" class="meal-plan-page__week-btn" (click)="goToNextWeek()">
+      Semaine suivante
+    </button>
+  </div>
+
+  @if (mealPlan.loading()) {
+    <p class="meal-plan-page__status" role="status">Chargement…</p>
+  } @else {
+    <app-week-grid
+      [weekDays]="mealPlan.weekDays()"
+      [selectedDate]="mealPlan.selectedDate()"
+      [slots]="selectedSlots()"
+      (daySelected)="onDaySelected($event)"
+      (slotSelected)="onSlotSelected($event)"
+      (variantChipSelected)="onVariantChipSelected($event)"
+    />
+  }
+
+  @if (errorMessage() && sheetMode() === null) {
+    <p class="meal-plan-page__error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  <button type="button" class="meal-plan-page__synthesis-link" (click)="scrollToSynthesis()">
+    Voir la synthèse macros du {{ selectedDayLabel() }} →
+  </button>
+
+  <app-macro-synthesis-section
+    [date]="mealPlan.selectedDate()"
+    [showDateNav]="false"
+    [compactTitle]="true"
+  />
 
   <nav class="meal-plan-page__nav" aria-label="Plan">
-    <a class="meal-plan-page__link" routerLink="/goals" fragment="synthesis">Voir synthèse macros</a>
-    <a class="meal-plan-page__link" routerLink="/goals">Objectifs</a>
+    <a class="meal-plan-page__link" routerLink="/goals">Objectifs macros</a>
   </nav>
 </section>
+
+@if (sheetMode() === 'picker') {
+  <app-recipe-picker-sheet
+    [recipes]="mealPlan.recipes()"
+    [pageError]="errorMessage()"
+    (selected)="onRecipeSelected($event)"
+    (closed)="closeSheet()"
+  />
+}
+
+@if (sheetMode() === 'slot-detail' && activeSlot()) {
+  <app-meal-slot-sheet
+    [slot]="activeSlot()!.slot"
+    [recipeTitle]="activeSlot()!.recipeTitle ?? 'Recette supprimée'"
+    [pageError]="errorMessage()"
+    (changeRecipe)="openRecipePickerFromSlotDetail()"
+    (deleted)="onSlotDeleted()"
+    (closed)="closeSheet()"
+  />
+}
+
+@if (sheetMode() === 'variant-picker' && activeSlot()?.recipeId && activeSlot()?.entryId) {
+  <app-variant-picker-sheet
+    [recipeId]="activeSlot()!.recipeId!"
+    [selectedVariantId]="activeSlot()!.resolvedVariantId ?? ''"
+    [pageError]="errorMessage()"
+    (selected)="onVariantSelected($event)"
+    (closed)="closeSheet()"
+  />
+}

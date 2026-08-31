@@ -1,0 +1,47 @@
+<div
+  class="sheet-backdrop"
+  data-backdrop="true"
+  (click)="onBackdropClick($event)"
+  role="presentation"
+>
+  <section
+    class="sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Choisir une variante"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="sheet__header">
+      <h2 class="sheet__title">Choisir une variante</h2>
+      <button type="button" class="sheet__close" aria-label="Fermer" (click)="closed.emit()">
+        ×
+      </button>
+    </header>
+
+    @if (pageError()) {
+      <p class="sheet__error" role="alert">{{ pageError() }}</p>
+    }
+
+    @if (loading()) {
+      <p class="sheet__status" role="status">Chargement…</p>
+    } @else if (loadError()) {
+      <p class="sheet__error" role="alert">{{ loadError() }}</p>
+    } @else if (detail(); as current) {
+      <p class="sheet__recipe">{{ current.recipe.title }}</p>
+
+      <app-variant-chip-row
+        [variants]="current.variants"
+        [selectedVariantId]="activeVariantId()"
+        [defaultVariantId]="current.recipe.defaultVariantId"
+        (selectedVariantIdChange)="onVariantSelected($event)"
+      />
+
+      @if (activeVariantMacros(); as macros) {
+        <app-recipe-macros-panel
+          [breakdown]="macros"
+          [portions]="current.recipe.defaultPortions"
+        />
+      }
+    }
+  </section>
+</div>

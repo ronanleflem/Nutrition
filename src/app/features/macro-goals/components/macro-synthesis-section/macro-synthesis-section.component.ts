@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, input, OnInit, signal } from '@angular/core';
 
 import {
   formatIsoDateLabel,
@@ -20,14 +20,30 @@ export class MacroSynthesisSectionComponent implements OnInit {
   private readonly synthesisService = inject(DailyMacroSynthesisService);
   private reloadSeq = 0;
 
+  readonly date = input<string | null>(null);
+  readonly showDateNav = input(true);
+  readonly compactTitle = input(false);
+
   readonly selectedDate = signal(todayIsoDate());
   readonly synthesis = signal<DailyMacroSynthesis | null>(null);
   readonly loading = signal(false);
   readonly loadError = signal<string | null>(null);
   readonly sheetOpen = signal(false);
 
+  constructor() {
+    effect(() => {
+      const externalDate = this.date();
+      if (externalDate) {
+        this.selectedDate.set(externalDate);
+        void this.reload();
+      }
+    });
+  }
+
   ngOnInit(): void {
-    void this.reload();
+    if (!this.date()) {
+      void this.reload();
+    }
   }
 
   async reload(): Promise<void> {
@@ -36,8 +52,8 @@ export class MacroSynthesisSectionComponent implements OnInit {
     this.loadError.set(null);
 
     try {
-      const date = this.selectedDate();
-      const result = await this.synthesisService.getDailySynthesis(date);
+      const currentDate = this.selectedDate();
+      const result = await this.synthesisService.getDailySynthesis(currentDate);
       if (reloadId !== this.reloadSeq) {
         return;
       }
@@ -60,12 +76,12 @@ export class MacroSynthesisSectionComponent implements OnInit {
   }
 
   previousDay(): void {
-    this.selectedDate.update((date) => shiftIsoDate(date, -1));
+    this.selectedDate.update((currentDate) => shiftIsoDate(currentDate, -1));
     void this.reload();
   }
 
   nextDay(): void {
-    this.selectedDate.update((date) => shiftIsoDate(date, 1));
+    this.selectedDate.update((currentDate) => shiftIsoDate(currentDate, 1));
     void this.reload();
   }
 

@@ -1,0 +1,108 @@
+.week-grid__days {
+  display: flex;
+  gap: 4px;
+  padding-bottom: 12px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.week-grid__day {
+  flex-shrink: 0;
+  width: 44px;
+  min-height: var(--spacing-touch-min);
+  padding: 8px 4px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-ink-secondary);
+  cursor: pointer;
+}
+
+.week-grid__day--active {
+  background: var(--color-surface-overlay);
+  color: var(--color-accent-positive);
+  font-weight: var(--font-weight-semibold);
+}
+
+.week-grid__day-name {
+  display: block;
+  font-size: 11px;
+}
+
+.week-grid__day-number {
+  display: block;
+  margin-top: 2px;
+  font-size: 1rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.week-grid__slots {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+}
+
+.week-grid__slot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.week-grid__slot-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-ink-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.week-grid__slot-label {
+  font-size: var(--font-size-meta);
+  color: var(--color-ink-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.week-grid__slot-recipe {
+  margin-top: 6px;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+}
+
+.week-grid__variant-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--spacing-touch-min);
+  padding: 8px 12px;
+  border: 1px solid var(--color-accent-positive);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--color-accent-positive);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.week-grid__slot-empty {
+  margin-top: 6px;
+  color: var(--color-ink-disabled);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.week-grid__slot-empty-label {
+  margin-top: 4px;
+  color: var(--color-ink-disabled);
+  font-size: 0.9375rem;
+}

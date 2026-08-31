@@ -1,5 +1,13 @@
 export type MealPlanSlot = 'breakfast' | 'lunch' | 'dinner';
 
+export const MEAL_PLAN_SLOTS: MealPlanSlot[] = ['breakfast', 'lunch', 'dinner'];
+
+export const MEAL_PLAN_SLOT_LABELS: Record<MealPlanSlot, string> = {
+  breakfast: 'Petit-déjeuner',
+  lunch: 'Déjeuner',
+  dinner: 'Dîner',
+};
+
 export interface MealPlanEntry {
   id: string;
   date: string;
@@ -13,6 +21,11 @@ export interface CreateMealPlanEntryInput {
   slot: MealPlanSlot;
   recipeId: string;
   recipeVariantId?: string;
+}
+
+export interface UpdateMealPlanEntryInput {
+  recipeId: string;
+  recipeVariantId?: string | null;
 }
 
 export function createMealPlanEntry(input: CreateMealPlanEntryInput): MealPlanEntry {
