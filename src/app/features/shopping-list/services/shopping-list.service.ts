@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 
 import { DatabaseService } from '../../../core/database/database.service';
 import type { ShoppingListItemWithProduct } from '../../../core/models/shopping-list-item';
+import type { Product } from '../../../core/models/product';
 import {
   getIsoWeekLabel,
   getMondayOfWeek,
@@ -14,9 +15,11 @@ export class ShoppingListService {
   private readonly database = inject(DatabaseService);
 
   readonly items = signal<ShoppingListItemWithProduct[]>([]);
+  readonly products = signal<Product[]>([]);
   readonly loading = signal(false);
   readonly generating = signal(false);
   readonly hasPlanEntries = signal(false);
+  readonly planStale = signal(false);
   readonly weekLabel = signal(getIsoWeekLabel(getMondayOfWeek(new Date())));
 
   private refreshPromise: Promise<void> | null = null;
@@ -39,11 +42,7 @@ export class ShoppingListService {
     this.generating.set(true);
 
     try {
-      const weekStart = getMondayOfWeek(new Date());
-      const weekDays = getWeekDays(weekStart);
-      const startDate = weekDays[0].date;
-      const endDate = weekDays[6].date;
-
+      const { startDate, endDate } = this.getCurrentWeekRange();
       await this.database.generateShoppingListForDateRange(startDate, endDate);
       await this.loadState();
     } finally {
@@ -51,24 +50,55 @@ export class ShoppingListService {
     }
   }
 
+  async addManualItem(productId: string, quantityG: number): Promise<void> {
+    await this.database.createManualShoppingListItem(productId, quantityG);
+    await this.loadState();
+  }
+
+  async createProduct(name: string): Promise<Product> {
+    const product = await this.database.createProduct({ name });
+    await this.loadState();
+    return product;
+  }
+
+  async updateItemQuantity(itemId: string, quantityG: number): Promise<void> {
+    await this.database.updateShoppingListItem(itemId, { quantityG });
+    await this.loadState();
+  }
+
+  async toggleItemChecked(itemId: string, checked: boolean): Promise<void> {
+    await this.database.updateShoppingListItem(itemId, { checked });
+    await this.loadState();
+  }
+
+  async deleteItem(itemId: string): Promise<void> {
+    await this.database.deleteShoppingListItem(itemId);
+    await this.loadState();
+  }
+
+  hasAutoItems(): boolean {
+    return this.items().some((item) => item.source === 'auto');
+  }
+
   private async loadState(): Promise<void> {
     this.loading.set(true);
 
     try {
+      const { startDate, endDate } = this.getCurrentWeekRange();
       const weekStart = getMondayOfWeek(new Date());
-      const weekDays = getWeekDays(weekStart);
-      const startDate = weekDays[0].date;
-      const endDate = weekDays[6].date;
-
       this.weekLabel.set(getIsoWeekLabel(weekStart));
 
-      const [items, entries] = await Promise.all([
+      const [items, entries, products, stale] = await Promise.all([
         this.database.listShoppingListItemsWithProducts(),
         this.database.listMealPlanEntriesBetweenDates(startDate, endDate),
+        this.database.listActiveProducts(),
+        this.database.isShoppingListPlanStale(startDate, endDate),
       ]);
 
       this.items.set(items);
+      this.products.set(products);
       this.hasPlanEntries.set(entries.length > 0);
+      this.planStale.set(stale);
     } finally {
       this.loading.set(false);
     }

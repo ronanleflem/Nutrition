@@ -220,4 +220,120 @@ describe('DatabaseService shopping list', () => {
     expect(items[0].quantityG).toBe(80);
     expect(items.filter((item) => item.source === 'auto')).toHaveLength(1);
   });
+
+  it('creates manual shopping list items', async () => {
+    const productId = await seedProductWithPreferredReference('Essuie-tout');
+
+    const item = await service.createManualShoppingListItem(productId, 1);
+
+    expect(item.source).toBe('manual');
+    expect(item.quantityG).toBe(1);
+    expect(item.checked).toBe(false);
+  });
+
+  it('updates quantity and checked state', async () => {
+    const productId = await seedProductWithPreferredReference('Café');
+    const created = await service.createManualShoppingListItem(productId, 50);
+
+    const updated = await service.updateShoppingListItem(created.id, {
+      quantityG: 80,
+      checked: true,
+    });
+
+    expect(updated?.quantityG).toBe(80);
+    expect(updated?.checked).toBe(true);
+  });
+
+  it('deletes item when quantity is set to zero', async () => {
+    const productId = await seedProductWithPreferredReference('Sel');
+    const created = await service.createManualShoppingListItem(productId, 10);
+
+    const result = await service.updateShoppingListItem(created.id, { quantityG: 0 });
+
+    expect(result).toBeNull();
+    expect(await service.listShoppingListItemsWithProducts()).toHaveLength(0);
+  });
+
+  it('deletes shopping list items', async () => {
+    const productId = await seedProductWithPreferredReference('Eau');
+    const created = await service.createManualShoppingListItem(productId, 1500);
+
+    await service.deleteShoppingListItem(created.id);
+
+    expect(await service.listShoppingListItemsWithProducts()).toHaveLength(0);
+  });
+
+  it('preserves manual items on regeneration including checked state', async () => {
+    const autoProductId = await seedProductWithPreferredReference('Poulet');
+    const manualProductId = await seedProductWithPreferredReference('Papier');
+    const recipeId = await createRecipeWithIngredients('Wrap', [{ productId: autoProductId, quantityG: 100 }]);
+
+    await service.createMealPlanEntry({
+      date: '2026-08-31',
+      slot: 'lunch',
+      recipeId,
+    });
+
+    await service.generateShoppingListForDateRange('2026-08-31', '2026-08-31');
+    const manual = await service.createManualShoppingListItem(manualProductId, 200);
+    await service.updateShoppingListItem(manual.id, { checked: true });
+
+    await service.createMealPlanEntry({
+      date: '2026-08-31',
+      slot: 'dinner',
+      recipeId,
+    });
+    await service.generateShoppingListForDateRange('2026-08-31', '2026-08-31');
+
+    const items = await service.listShoppingListItemsWithProducts();
+    const manualItem = items.find((item) => item.productId === manualProductId);
+    const autoItems = items.filter((item) => item.source === 'auto');
+
+    expect(manualItem?.quantityG).toBe(200);
+    expect(manualItem?.checked).toBe(true);
+    expect(autoItems).toHaveLength(1);
+    expect(autoItems[0].quantityG).toBe(200);
+  });
+
+  it('allows auto and manual lines for the same product', async () => {
+    const productId = await seedProductWithPreferredReference('Riz');
+    const recipeId = await createRecipeWithIngredients('Riz sauté', [{ productId, quantityG: 120 }]);
+
+    await service.createMealPlanEntry({
+      date: '2026-08-31',
+      slot: 'lunch',
+      recipeId,
+    });
+    await service.generateShoppingListForDateRange('2026-08-31', '2026-08-31');
+    await service.createManualShoppingListItem(productId, 500);
+
+    const items = await service.listShoppingListItemsWithProducts().then((list) =>
+      list.filter((item) => item.productId === productId),
+    );
+
+    expect(items).toHaveLength(2);
+    expect(items.map((item) => item.source).sort()).toEqual(['auto', 'manual']);
+  });
+
+  it('detects stale plan when meal plan changes after generation', async () => {
+    const productId = await seedProductWithPreferredReference('Lentilles');
+    const recipeId = await createRecipeWithIngredients('Soupe', [{ productId, quantityG: 90 }]);
+
+    await service.createMealPlanEntry({
+      date: '2026-08-31',
+      slot: 'lunch',
+      recipeId,
+    });
+    await service.generateShoppingListForDateRange('2026-08-31', '2026-08-31');
+
+    expect(await service.isShoppingListPlanStale('2026-08-31', '2026-08-31')).toBe(false);
+
+    await service.createMealPlanEntry({
+      date: '2026-08-31',
+      slot: 'dinner',
+      recipeId,
+    });
+
+    expect(await service.isShoppingListPlanStale('2026-08-31', '2026-08-31')).toBe(true);
+  });
 });

@@ -1,13 +1,30 @@
-<article class="shopping-row">
-  <div class="shopping-row__main">
-    <h2 class="shopping-row__name">{{ item().productName }}</h2>
-    @if (item().recommendedStores.length > 0) {
-      <p class="shopping-row__stores" aria-label="Enseignes recommandées">
-        @for (store of item().recommendedStores; track store; let last = $last) {
-          <span class="shopping-row__store-chip">{{ storeLabel(store) }}</span>@if (!last) {<span class="shopping-row__store-sep" aria-hidden="true"> · </span>}
+<article class="shopping-row" [class.shopping-row--checked]="item().checked">
+  <label class="shopping-row__check-zone">
+    <input
+      type="checkbox"
+      class="shopping-row__checkbox"
+      [checked]="item().checked"
+      [attr.aria-label]="'Cocher ' + item().productName"
+      (change)="onCheckboxChange($event)"
+    />
+  </label>
+
+  <button type="button" class="shopping-row__content" (click)="onEditClick()">
+    <div class="shopping-row__main">
+      <div class="shopping-row__title-row">
+        <h2 class="shopping-row__name">{{ item().productName }}</h2>
+        @if (item().source === 'manual') {
+          <span class="shopping-row__badge">manuel</span>
         }
-      </p>
-    }
-  </div>
-  <span class="shopping-row__quantity">{{ formatQuantity(item().quantityG) }}</span>
+      </div>
+      @if (item().recommendedStores.length > 0) {
+        <p class="shopping-row__stores" aria-label="Enseignes recommandées">
+          @for (store of item().recommendedStores; track store; let last = $last) {
+            <span class="shopping-row__store-chip">{{ storeLabel(store) }}</span>@if (!last) {<span class="shopping-row__store-sep" aria-hidden="true"> · </span>}
+          }
+        </p>
+      }
+    </div>
+    <span class="shopping-row__quantity">{{ formatQuantity(item().quantityG) }}</span>
+  </button>
 </article>

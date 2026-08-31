@@ -62,6 +62,7 @@ import {
 } from '../models/shopping-list-item';
 import { NutritionalScoreService } from '../scoring/nutritional-score.service';
 import { NutritionDatabase } from './nutrition-database';
+import { computeMealPlanFingerprint } from '../utils/meal-plan-fingerprint';
 
 export interface PantryItemInput {
   productId: string;
@@ -1048,7 +1049,85 @@ export class DatabaseService {
       await this.db!.shoppingListItems.bulkAdd(nextAutoItems);
     }
 
+    await this.saveShoppingListPlanFingerprint(computeMealPlanFingerprint(entries));
+
     return nextAutoItems;
+  }
+
+  async createManualShoppingListItem(productId: string, quantityG: number): Promise<ShoppingListItem> {
+    await this.initialize();
+
+    const product = await this.getProduct(productId);
+    if (!product) {
+      throw new Error('Produit introuvable ou archivé.');
+    }
+
+    const item = createShoppingListItem({
+      productId,
+      quantityG,
+      source: 'manual',
+    });
+    await this.db!.shoppingListItems.add(item);
+    return item;
+  }
+
+  async updateShoppingListItem(
+    itemId: string,
+    update: { quantityG?: number; checked?: boolean },
+  ): Promise<ShoppingListItem | null> {
+    await this.initialize();
+
+    const existing = await this.db!.shoppingListItems.get(itemId);
+    if (!existing) {
+      throw new Error('Article introuvable.');
+    }
+
+    if (update.quantityG !== undefined) {
+      if (!Number.isFinite(update.quantityG) || update.quantityG <= 0) {
+        await this.db!.shoppingListItems.delete(itemId);
+        return null;
+      }
+    }
+
+    const next: ShoppingListItem = {
+      ...existing,
+      quantityG: update.quantityG ?? existing.quantityG,
+      checked: update.checked ?? existing.checked,
+    };
+
+    await this.db!.shoppingListItems.put(next);
+    return next;
+  }
+
+  async deleteShoppingListItem(itemId: string): Promise<void> {
+    await this.initialize();
+    await this.db!.shoppingListItems.delete(itemId);
+  }
+
+  async isShoppingListPlanStale(startDate: string, endDate: string): Promise<boolean> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    if (!settings.shoppingListPlanFingerprint) {
+      return false;
+    }
+
+    const autoCount = await this.db!.shoppingListItems.where('source').equals('auto').count();
+    if (autoCount === 0) {
+      return false;
+    }
+
+    const entries = await this.listMealPlanEntriesBetweenDates(startDate, endDate);
+    const currentFingerprint = computeMealPlanFingerprint(entries);
+    return currentFingerprint !== settings.shoppingListPlanFingerprint;
+  }
+
+  private async saveShoppingListPlanFingerprint(fingerprint: string): Promise<void> {
+    const settings = await this.getAppSettings();
+    await this.db!.appSettings.put({
+      ...settings,
+      shoppingListPlanFingerprint: fingerprint,
+    });
   }
 
   async deleteRecipe(recipeId: string): Promise<void> {
