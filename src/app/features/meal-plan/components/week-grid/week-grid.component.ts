@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 
 import { MEAL_PLAN_SLOT_LABELS, type MealPlanSlot } from '../../../../core/models/meal-plan-entry';
 import type { MealPlanSlotView } from '../../services/meal-plan.service';
