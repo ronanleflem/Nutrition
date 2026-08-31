@@ -1,0 +1,61 @@
+<div
+  class="sheet-backdrop"
+  data-backdrop="true"
+  (click)="onBackdropClick($event)"
+  role="presentation"
+>
+  <section
+    class="sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Choisir une recette"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="sheet__header">
+      <h2 class="sheet__title">Choisir une recette</h2>
+      <button type="button" class="sheet__close" aria-label="Fermer" (click)="closed.emit()">
+        ×
+      </button>
+    </header>
+
+    @if (hasRecipes()) {
+      <label class="field">
+        <span class="field__label">Rechercher</span>
+        <input
+          class="field__control"
+          type="search"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchInput($event)"
+          placeholder="Nom de recette"
+          autocomplete="off"
+        />
+      </label>
+    }
+
+    @if (!hasRecipes()) {
+      <app-empty-state
+        message="Aucune recette — créez-en une pour planifier votre semaine."
+        ctaLabel="Créer une recette"
+        ctaLink="/recipes/new"
+      />
+    } @else if (!hasResults()) {
+      <p class="sheet__empty" role="status">Aucune recette ne correspond à votre recherche.</p>
+    } @else {
+      <ul class="recipe-picker__list" aria-label="Recettes">
+        @for (pickerItem of pickerItems(); track pickerItem.item.recipe.id) {
+          <li>
+            <button
+              type="button"
+              class="recipe-picker__item"
+              (click)="selectRecipe(pickerItem.item.recipe.id)"
+            >
+              <span class="recipe-picker__title">{{ pickerItem.item.recipe.title }}</span>
+              <span class="recipe-picker__variant">{{ pickerItem.item.defaultVariantName }}</span>
+              <span class="recipe-picker__macros">{{ pickerItem.macroPreview }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</div>

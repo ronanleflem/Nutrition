@@ -1,0 +1,46 @@
+<div
+  class="sheet-backdrop"
+  data-backdrop="true"
+  (click)="onBackdropClick($event)"
+  role="presentation"
+>
+  <section
+    class="sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Détail du créneau"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="sheet__header">
+      <h2 class="sheet__title">{{ slotLabel() }}</h2>
+      <button type="button" class="sheet__close" aria-label="Fermer" (click)="closed.emit()">
+        ×
+      </button>
+    </header>
+
+    <p class="sheet__recipe">{{ recipeTitle() }}</p>
+
+    @if (errorMessage()) {
+      <p class="sheet__error" role="alert">{{ errorMessage() }}</p>
+    }
+
+    <div class="sheet__actions">
+      <button
+        type="button"
+        class="btn"
+        [disabled]="submitting()"
+        (click)="changeRecipe.emit()"
+      >
+        Changer de recette
+      </button>
+      <button
+        type="button"
+        class="btn btn--danger"
+        [disabled]="submitting()"
+        (click)="deleteEntry()"
+      >
+        Supprimer
+      </button>
+    </div>
+  </section>
+</div>

@@ -17,6 +17,7 @@ import {
   createMealPlanEntry,
   type CreateMealPlanEntryInput,
   type MealPlanEntry,
+  type UpdateMealPlanEntryInput,
 } from '../models/meal-plan-entry';
 import {
   createPantryItem,
@@ -835,6 +836,39 @@ export class DatabaseService {
     return entries.sort((left, right) => slotOrder[left.slot] - slotOrder[right.slot]);
   }
 
+  async listMealPlanEntriesBetweenDates(startDate: string, endDate: string): Promise<MealPlanEntry[]> {
+    await this.initialize();
+
+    const entries = await this.db!.mealPlanEntries
+      .where('date')
+      .between(startDate, endDate, true, true)
+      .toArray();
+
+    return entries.sort((left, right) => {
+      const dateCompare = left.date.localeCompare(right.date);
+      if (dateCompare !== 0) {
+        return dateCompare;
+      }
+
+      const slotOrder: Record<MealPlanEntry['slot'], number> = {
+        breakfast: 0,
+        lunch: 1,
+        dinner: 2,
+      };
+
+      return slotOrder[left.slot] - slotOrder[right.slot];
+    });
+  }
+
+  async getMealPlanEntryByDateAndSlot(
+    date: string,
+    slot: MealPlanEntry['slot'],
+  ): Promise<MealPlanEntry | undefined> {
+    await this.initialize();
+
+    return this.db!.mealPlanEntries.where({ date, slot }).first();
+  }
+
   async createMealPlanEntry(input: CreateMealPlanEntryInput): Promise<MealPlanEntry> {
     await this.initialize();
 
@@ -843,9 +877,48 @@ export class DatabaseService {
       throw new Error('Recette introuvable.');
     }
 
+    const existing = await this.getMealPlanEntryByDateAndSlot(input.date, input.slot);
+    if (existing) {
+      throw new Error('Un repas est déjà planifié pour ce créneau.');
+    }
+
     const entry = createMealPlanEntry(input);
     await this.db!.mealPlanEntries.put(entry);
     return entry;
+  }
+
+  async updateMealPlanEntry(
+    entryId: string,
+    input: UpdateMealPlanEntryInput,
+  ): Promise<MealPlanEntry> {
+    await this.initialize();
+
+    const existing = await this.db!.mealPlanEntries.get(entryId);
+    if (!existing) {
+      throw new Error('Entrée de plan introuvable.');
+    }
+
+    const recipe = await this.db!.recipes.get(input.recipeId);
+    if (!recipe) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const updated: MealPlanEntry = {
+      ...existing,
+      recipeId: input.recipeId,
+      recipeVariantId:
+        input.recipeVariantId === null || input.recipeVariantId === undefined
+          ? undefined
+          : input.recipeVariantId,
+    };
+
+    await this.db!.mealPlanEntries.put(updated);
+    return updated;
+  }
+
+  async deleteMealPlanEntry(entryId: string): Promise<void> {
+    await this.initialize();
+    await this.db!.mealPlanEntries.delete(entryId);
   }
 
   async deleteRecipe(recipeId: string): Promise<void> {
