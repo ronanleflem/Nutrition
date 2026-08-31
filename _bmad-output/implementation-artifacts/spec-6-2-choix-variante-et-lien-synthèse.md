@@ -64,13 +64,13 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/app/core/database/database.service.ts` — variant-only update API.
-- [ ] `src/app/core/database/database.service.meal-plan.spec.ts` — variant matrix tests.
-- [ ] `src/app/features/meal-plan/services/meal-plan.service.ts` — variant labels + updateVariant.
-- [ ] `src/app/features/meal-plan/components/variant-picker-sheet/` — picker UI.
-- [ ] `src/app/features/meal-plan/components/week-grid/` — variant chip display + tap.
-- [ ] `src/app/features/macro-goals/components/macro-synthesis-section/` — embedded date binding.
-- [ ] `src/app/features/meal-plan/meal-plan-page.component.ts/html/scss` — synthesis embed + anchor.
+- [x] `src/app/core/database/database.service.ts` — variant-only update API.
+- [x] `src/app/core/database/database.service.meal-plan.spec.ts` — variant matrix tests.
+- [x] `src/app/features/meal-plan/services/meal-plan.service.ts` — variant labels + updateVariant.
+- [x] `src/app/features/meal-plan/components/variant-picker-sheet/` — picker UI.
+- [x] `src/app/features/meal-plan/components/week-grid/` — variant chip display + tap.
+- [x] `src/app/features/macro-goals/components/macro-synthesis-section/` — embedded date binding.
+- [x] `src/app/features/meal-plan/meal-plan-page.component.ts/html/scss` — synthesis embed + anchor.
 
 **Acceptance Criteria:**
 - Given a filled slot, when I tap the variant chip, then a picker shows scrollable variants with rating and macros/portion.
