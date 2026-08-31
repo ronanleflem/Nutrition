@@ -71,6 +71,19 @@
   font-weight: var(--font-weight-semibold);
 }
 
+.week-grid__variant-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-accent-positive);
+  border-radius: 9999px;
+  color: var(--color-accent-positive);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
 .week-grid__slot-empty {
   margin-top: 6px;
   color: var(--color-ink-disabled);

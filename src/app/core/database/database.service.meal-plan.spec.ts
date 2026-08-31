@@ -179,4 +179,51 @@ describe('DatabaseService meal plan', () => {
       }),
     ).rejects.toThrow(/introuvable/i);
   });
+
+  it('updates variant on an existing entry', async () => {
+    const recipeId = await createSampleRecipe('Wrap poulet');
+    const detail = await service.getRecipeDetail(recipeId);
+    if (!detail || detail.variants.length < 1) {
+      throw new Error('Recipe detail missing');
+    }
+
+    const productId = await seedProductWithPreferredReference('Riz');
+    const added = await service.addRecipeVariant({
+      recipeId,
+      name: 'Lavash',
+      ingredients: [{ productId, quantityG: 80 }],
+    });
+
+    const created = await service.createMealPlanEntry({
+      date: '2026-08-31',
+      slot: 'lunch',
+      recipeId,
+    });
+
+    expect(created.recipeVariantId).toBeUndefined();
+
+    const updated = await service.updateMealPlanEntryVariant(created.id, added.variantId);
+
+    expect(updated.recipeVariantId).toBe(added.variantId);
+  });
+
+  it('rejects variant update for variant from another recipe', async () => {
+    const firstRecipeId = await createSampleRecipe('Wrap poulet');
+    const secondRecipeId = await createSampleRecipe('Bowl riz');
+
+    const secondDetail = await service.getRecipeDetail(secondRecipeId);
+    if (!secondDetail?.variants[0]) {
+      throw new Error('Second recipe variant missing');
+    }
+
+    const created = await service.createMealPlanEntry({
+      date: '2026-08-31',
+      slot: 'dinner',
+      recipeId: firstRecipeId,
+    });
+
+    await expect(
+      service.updateMealPlanEntryVariant(created.id, secondDetail.variants[0].id),
+    ).rejects.toThrow(/introuvable/i);
+  });
 });

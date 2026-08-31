@@ -25,6 +25,7 @@
       [slots]="selectedSlots()"
       (daySelected)="onDaySelected($event)"
       (slotSelected)="onSlotSelected($event)"
+      (variantChipSelected)="onVariantChipSelected($event)"
     />
   }
 
@@ -32,9 +33,18 @@
     <p class="meal-plan-page__error" role="alert">{{ errorMessage() }}</p>
   }
 
+  <button type="button" class="meal-plan-page__synthesis-link" (click)="scrollToSynthesis()">
+    Voir la synthèse macros du {{ selectedDayLabel() }} →
+  </button>
+
+  <app-macro-synthesis-section
+    [date]="mealPlan.selectedDate()"
+    [showDateNav]="false"
+    [compactTitle]="true"
+  />
+
   <nav class="meal-plan-page__nav" aria-label="Plan">
-    <a class="meal-plan-page__link" routerLink="/goals" fragment="synthesis">Voir synthèse macros</a>
-    <a class="meal-plan-page__link" routerLink="/goals">Objectifs</a>
+    <a class="meal-plan-page__link" routerLink="/goals">Objectifs macros</a>
   </nav>
 </section>
 
@@ -52,6 +62,15 @@
     [recipeTitle]="activeSlot()!.recipeTitle ?? 'Recette supprimée'"
     (changeRecipe)="openRecipePickerFromSlotDetail()"
     (deleted)="onSlotDeleted()"
+    (closed)="closeSheet()"
+  />
+}
+
+@if (sheetMode() === 'variant-picker' && activeSlot()?.recipeId && activeSlot()?.entryId) {
+  <app-variant-picker-sheet
+    [recipeId]="activeSlot()!.recipeId!"
+    [selectedVariantId]="activeSlot()!.resolvedVariantId ?? ''"
+    (selected)="onVariantSelected($event)"
     (closed)="closeSheet()"
   />
 }

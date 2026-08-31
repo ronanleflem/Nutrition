@@ -1,18 +1,22 @@
 <section class="macro-synthesis" id="synthesis">
   <div class="macro-synthesis__header">
     <div>
-      <h2 class="macro-synthesis__title">Synthèse macros</h2>
+      <h2 class="macro-synthesis__title">
+        {{ compactTitle() ? 'Synthèse du jour' : 'Synthèse macros' }}
+      </h2>
       <p class="macro-synthesis__date">{{ dateLabel() }}</p>
     </div>
-    <div class="macro-synthesis__nav">
-      <button type="button" class="macro-synthesis__nav-btn" aria-label="Jour précédent" (click)="previousDay()">
-        ‹
-      </button>
-      <button type="button" class="macro-synthesis__today" (click)="goToToday()">Aujourd’hui</button>
-      <button type="button" class="macro-synthesis__nav-btn" aria-label="Jour suivant" (click)="nextDay()">
-        ›
-      </button>
-    </div>
+    @if (showDateNav()) {
+      <div class="macro-synthesis__nav">
+        <button type="button" class="macro-synthesis__nav-btn" aria-label="Jour précédent" (click)="previousDay()">
+          ‹
+        </button>
+        <button type="button" class="macro-synthesis__today" (click)="goToToday()">Aujourd’hui</button>
+        <button type="button" class="macro-synthesis__nav-btn" aria-label="Jour suivant" (click)="nextDay()">
+          ›
+        </button>
+      </div>
+    }
   </div>
 
   @if (loadError()) {

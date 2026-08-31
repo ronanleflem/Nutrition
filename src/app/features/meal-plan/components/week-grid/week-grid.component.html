@@ -17,14 +17,21 @@
 
   <div class="week-grid__slots">
     @for (slot of slots(); track slot.slot) {
-      <button
-        type="button"
-        class="week-grid__slot"
-        (click)="onSlotClick(slot)"
-      >
+      <button type="button" class="week-grid__slot" (click)="onSlotClick(slot)">
         <span class="week-grid__slot-label">{{ slotLabels[slot.slot] }}</span>
         @if (slot.entry) {
           <span class="week-grid__slot-recipe">{{ slot.recipeTitle ?? 'Recette supprimée' }}</span>
+          <span
+            class="week-grid__variant-chip"
+            role="button"
+            tabindex="0"
+            [attr.aria-label]="'Variante : ' + (slot.variantLabel ?? 'Par défaut')"
+            (click)="onVariantChipClick($event, slot)"
+            (keydown.enter)="onVariantChipClick($event, slot)"
+            (keydown.space)="onVariantChipClick($event, slot)"
+          >
+            {{ slot.variantLabel ?? 'Par défaut' }}
+          </span>
         } @else {
           <span class="week-grid__slot-empty" aria-hidden="true">+</span>
           <span class="week-grid__slot-empty-label">Ajouter une recette</span>

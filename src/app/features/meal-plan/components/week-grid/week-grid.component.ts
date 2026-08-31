@@ -16,6 +16,13 @@ export class WeekGridComponent {
 
   readonly daySelected = output<string>();
   readonly slotSelected = output<{ date: string; slot: MealPlanSlot; entryId?: string }>();
+  readonly variantChipSelected = output<{
+    date: string;
+    slot: MealPlanSlot;
+    entryId: string;
+    recipeId: string;
+    resolvedVariantId: string;
+  }>();
 
   readonly slotLabels = MEAL_PLAN_SLOT_LABELS;
 
@@ -28,6 +35,23 @@ export class WeekGridComponent {
       date: this.selectedDate(),
       slot: slot.slot,
       entryId: slot.entry?.id,
+    });
+  }
+
+  onVariantChipClick(event: Event, slot: MealPlanSlotView): void {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (!slot.entry || !slot.recipeId || !slot.resolvedVariantId) {
+      return;
+    }
+
+    this.variantChipSelected.emit({
+      date: this.selectedDate(),
+      slot: slot.slot,
+      entryId: slot.entry.id,
+      recipeId: slot.recipeId,
+      resolvedVariantId: slot.resolvedVariantId,
     });
   }
 }

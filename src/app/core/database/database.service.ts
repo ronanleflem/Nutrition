@@ -916,6 +916,31 @@ export class DatabaseService {
     return updated;
   }
 
+  async updateMealPlanEntryVariant(
+    entryId: string,
+    recipeVariantId: string,
+  ): Promise<MealPlanEntry> {
+    await this.initialize();
+
+    const existing = await this.db!.mealPlanEntries.get(entryId);
+    if (!existing) {
+      throw new Error('Entrée de plan introuvable.');
+    }
+
+    const variant = await this.db!.recipeVariants.get(recipeVariantId);
+    if (!variant || variant.recipeId !== existing.recipeId) {
+      throw new Error('Variante introuvable pour cette recette.');
+    }
+
+    const updated: MealPlanEntry = {
+      ...existing,
+      recipeVariantId,
+    };
+
+    await this.db!.mealPlanEntries.put(updated);
+    return updated;
+  }
+
   async deleteMealPlanEntry(entryId: string): Promise<void> {
     await this.initialize();
     await this.db!.mealPlanEntries.delete(entryId);
