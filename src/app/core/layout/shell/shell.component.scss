@@ -60,3 +60,7 @@
   overflow-y: auto;
   padding: var(--spacing-screen-gutter);
 }
+
+.shell--chrome-hidden .shell__content {
+  padding: 0;
+}

@@ -1,0 +1,115 @@
+.shopping-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-height: var(--spacing-touch-min);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.shopping-row--checked {
+  opacity: 0.55;
+}
+
+.shopping-row--checked .shopping-row__name,
+.shopping-row--checked .shopping-row__quantity {
+  text-decoration: line-through;
+}
+
+.shopping-row--store-mode {
+  min-height: 52px;
+}
+
+.shopping-row--store-mode .shopping-row__check-zone {
+  min-width: 52px;
+  min-height: 52px;
+}
+
+.shopping-row--store-mode .shopping-row__content {
+  min-height: 52px;
+  cursor: pointer;
+}
+
+.shopping-row__check-zone {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--spacing-touch-min);
+  min-height: var(--spacing-touch-min);
+  cursor: pointer;
+}
+
+.shopping-row__checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-accent-positive);
+  cursor: pointer;
+}
+
+.shopping-row__content {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.shopping-row__main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.shopping-row__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.shopping-row__name {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.shopping-row__badge {
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-meta);
+  text-transform: lowercase;
+}
+
+.shopping-row__stores {
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-meta);
+  line-height: 1.4;
+}
+
+.shopping-row__store-chip {
+  display: inline;
+}
+
+.shopping-row__store-sep {
+  color: var(--color-ink-disabled);
+}
+
+.shopping-row__quantity {
+  flex-shrink: 0;
+  color: var(--color-ink-primary);
+  font-size: var(--font-size-body);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-semibold);
+}

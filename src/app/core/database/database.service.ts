@@ -55,8 +55,14 @@ import { createRecipe, type CreateRecipeInput, type Recipe, type UpdateRecipeInp
 import { createRecipeIngredient, type RecipeIngredient } from '../models/recipe-ingredient';
 import type { RecipeListItem } from '../models/recipe-list-item';
 import { createRecipeVariant } from '../models/recipe-variant';
+import {
+  createShoppingListItem,
+  type ShoppingListItem,
+  type ShoppingListItemWithProduct,
+} from '../models/shopping-list-item';
 import { NutritionalScoreService } from '../scoring/nutritional-score.service';
 import { NutritionDatabase } from './nutrition-database';
+import { computeMealPlanFingerprint } from '../utils/meal-plan-fingerprint';
 
 export interface PantryItemInput {
   productId: string;
@@ -954,6 +960,181 @@ export class DatabaseService {
   async deleteMealPlanEntry(entryId: string): Promise<void> {
     await this.initialize();
     await this.db!.mealPlanEntries.delete(entryId);
+  }
+
+  async listShoppingListItemsWithProducts(): Promise<ShoppingListItemWithProduct[]> {
+    await this.initialize();
+
+    const items = await this.db!.shoppingListItems.orderBy('createdAt').toArray();
+    const productIds = [...new Set(items.map((item) => item.productId))];
+    const products = await this.db!.products.bulkGet(productIds);
+    const productMap = new Map(
+      products.filter((product): product is Product => product != null).map((product) => [product.id, product]),
+    );
+
+    return items
+      .map((item) => {
+        const product = productMap.get(item.productId);
+        return {
+          ...item,
+          productName: product?.name ?? 'Produit inconnu',
+          recommendedStores: product?.recommendedStores ?? [],
+        };
+      })
+      .sort((left, right) =>
+        left.productName.localeCompare(right.productName, 'fr', { sensitivity: 'base' }),
+      );
+  }
+
+  async generateShoppingListForDateRange(startDate: string, endDate: string): Promise<ShoppingListItem[]> {
+    await this.initialize();
+
+    const entries = await this.listMealPlanEntriesBetweenDates(startDate, endDate);
+    if (entries.length === 0) {
+      await this.replaceAutoShoppingListItems([]);
+      await this.saveShoppingListPlanFingerprint(computeMealPlanFingerprint(entries));
+      return [];
+    }
+
+    const plannedByProduct = new Map<string, number>();
+    const recipeDetailsCache = new Map<string, Awaited<ReturnType<DatabaseService['getRecipeDetail']>>>();
+
+    for (const entry of entries) {
+      let detail = recipeDetailsCache.get(entry.recipeId);
+      if (detail === undefined) {
+        detail = await this.getRecipeDetail(entry.recipeId);
+        recipeDetailsCache.set(entry.recipeId, detail);
+      }
+
+      if (!detail) {
+        continue;
+      }
+
+      const resolvedVariantId = entry.recipeVariantId ?? detail.recipe.defaultVariantId;
+      const variant = detail.variants.find((candidate) => candidate.id === resolvedVariantId);
+      if (!variant) {
+        continue;
+      }
+
+      for (const ingredient of variant.ingredients) {
+        const current = plannedByProduct.get(ingredient.productId) ?? 0;
+        plannedByProduct.set(ingredient.productId, current + ingredient.quantityG);
+      }
+    }
+
+    const pantryItems = await this.db!.pantryItems.toArray();
+    const pantryByProduct = new Map<string, number>();
+    for (const item of pantryItems) {
+      const current = pantryByProduct.get(item.productId) ?? 0;
+      pantryByProduct.set(item.productId, current + item.quantityG);
+    }
+
+    const nextAutoItems: ShoppingListItem[] = [];
+    for (const [productId, plannedG] of plannedByProduct) {
+      const pantryG = pantryByProduct.get(productId) ?? 0;
+      const neededG = Math.max(0, plannedG - pantryG);
+      if (neededG <= 0) {
+        continue;
+      }
+
+      nextAutoItems.push(
+        createShoppingListItem({
+          productId,
+          quantityG: neededG,
+          source: 'auto',
+        }),
+      );
+    }
+
+    await this.replaceAutoShoppingListItems(nextAutoItems);
+    await this.saveShoppingListPlanFingerprint(computeMealPlanFingerprint(entries));
+
+    return nextAutoItems;
+  }
+
+  private async replaceAutoShoppingListItems(nextAutoItems: ShoppingListItem[]): Promise<void> {
+    await this.db!.transaction('rw', this.db!.shoppingListItems, async () => {
+      await this.db!.shoppingListItems.where('source').equals('auto').delete();
+      if (nextAutoItems.length > 0) {
+        await this.db!.shoppingListItems.bulkAdd(nextAutoItems);
+      }
+    });
+  }
+
+  async createManualShoppingListItem(productId: string, quantityG: number): Promise<ShoppingListItem> {
+    await this.initialize();
+
+    const product = await this.getProduct(productId);
+    if (!product) {
+      throw new Error('Produit introuvable ou archivé.');
+    }
+
+    const item = createShoppingListItem({
+      productId,
+      quantityG,
+      source: 'manual',
+    });
+    await this.db!.shoppingListItems.add(item);
+    return item;
+  }
+
+  async updateShoppingListItem(
+    itemId: string,
+    update: { quantityG?: number; checked?: boolean },
+  ): Promise<ShoppingListItem | null> {
+    await this.initialize();
+
+    const existing = await this.db!.shoppingListItems.get(itemId);
+    if (!existing) {
+      throw new Error('Article introuvable.');
+    }
+
+    if (update.quantityG !== undefined) {
+      if (!Number.isFinite(update.quantityG) || update.quantityG <= 0) {
+        await this.db!.shoppingListItems.delete(itemId);
+        return null;
+      }
+    }
+
+    const next: ShoppingListItem = {
+      ...existing,
+      quantityG: update.quantityG ?? existing.quantityG,
+      checked: update.checked ?? existing.checked,
+    };
+
+    await this.db!.shoppingListItems.put(next);
+    return next;
+  }
+
+  async deleteShoppingListItem(itemId: string): Promise<void> {
+    await this.initialize();
+    await this.db!.shoppingListItems.delete(itemId);
+  }
+
+  async isShoppingListPlanStale(startDate: string, endDate: string): Promise<boolean> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    if (!settings.shoppingListPlanFingerprint) {
+      return false;
+    }
+
+    const autoCount = await this.db!.shoppingListItems.where('source').equals('auto').count();
+    if (autoCount === 0) {
+      return false;
+    }
+
+    const entries = await this.listMealPlanEntriesBetweenDates(startDate, endDate);
+    const currentFingerprint = computeMealPlanFingerprint(entries);
+    return currentFingerprint !== settings.shoppingListPlanFingerprint;
+  }
+
+  private async saveShoppingListPlanFingerprint(fingerprint: string): Promise<void> {
+    const settings = await this.getAppSettings();
+    await this.db!.appSettings.put({
+      ...settings,
+      shoppingListPlanFingerprint: fingerprint,
+    });
   }
 
   async deleteRecipe(recipeId: string): Promise<void> {
