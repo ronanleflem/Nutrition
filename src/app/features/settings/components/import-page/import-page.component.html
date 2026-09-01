@@ -1,0 +1,85 @@
+<section class="import-page">
+  <header class="import-page__header">
+    <a class="import-page__back" routerLink="/settings">← Paramètres</a>
+    <h1 class="import-page__title">Importer les données</h1>
+  </header>
+
+  <p class="import-page__intro">
+    Restaurez une sauvegarde depuis un fichier exporté. Le mode « Remplacer tout » est recommandé
+    pour migrer vers un nouvel appareil.
+  </p>
+
+  @if (importError()) {
+    <p class="import-page__error" role="alert">{{ importError() }}</p>
+  }
+
+  @if (summary(); as result) {
+    <div class="import-page__summary" role="status">
+      <h2 class="import-page__summary-title">Import terminé</h2>
+      <ul class="import-page__summary-list">
+        <li>{{ result.products }} produit(s)</li>
+        <li>{{ result.productReferences }} référence(s) enseigne</li>
+        <li>{{ result.pantryItems }} ligne(s) garde-manger</li>
+        <li>{{ result.recipes }} recette(s)</li>
+        <li>{{ result.mealPlanEntries }} entrée(s) de plan</li>
+        @if (result.mode === 'replace') {
+          <li>{{ result.shoppingListItems }} article(s) de courses</li>
+        }
+        @if (result.mode === 'merge' && result.productsAdded != null && result.productsUpdated != null) {
+          <li>{{ result.productsAdded }} produit(s) ajouté(s), {{ result.productsUpdated }} mis à jour</li>
+        }
+      </ul>
+    </div>
+  }
+
+  <form class="import-page__form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <label class="import-page__field">
+      <span class="import-page__label">Fichier de sauvegarde</span>
+      <input
+        class="import-page__file"
+        type="file"
+        accept=".json,.nutrition-backup.json,.nutrition-backup.enc,application/json"
+        (change)="onFileSelected($event)"
+      />
+    </label>
+
+    <fieldset class="import-page__mode">
+      <legend class="import-page__label">Mode d'import</legend>
+      <label class="import-page__radio">
+        <input type="radio" formControlName="mode" value="replace" />
+        <span>Remplacer tout (recommandé pour migration)</span>
+      </label>
+      <label class="import-page__radio">
+        <input type="radio" formControlName="mode" value="merge" />
+        <span>Fusionner avec les données locales</span>
+      </label>
+    </fieldset>
+
+    @if (requiresPassword) {
+      <label class="import-page__field">
+        <span class="import-page__label">Mot de passe</span>
+        <input
+          class="import-page__input"
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+        />
+      </label>
+    }
+
+    <button class="import-page__submit" type="submit" [disabled]="!canImport">
+      {{ importing() ? 'Import en cours…' : 'Importer' }}
+    </button>
+  </form>
+
+  @if (showReplaceWarning()) {
+    <app-confirm-dialog
+      title="Remplacer toutes les données"
+      message="Toutes vos données locales seront remplacées par le contenu du fichier. Cette action est irréversible. Continuer ?"
+      confirmLabel="Remplacer tout"
+      cancelLabel="Annuler"
+      (confirmed)="confirmReplaceImport()"
+      (cancelled)="cancelReplaceImport()"
+    />
+  }
+</section>

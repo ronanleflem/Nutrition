@@ -21,6 +21,10 @@
         Mode hors ligne — navigation et données locales disponibles.
       </p>
     }
+
+    @if (backupReminder.visible()) {
+      <app-backup-reminder-banner (dismiss)="dismissBackupReminder()" />
+    }
   }
 
   <main class="shell__content">

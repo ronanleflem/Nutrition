@@ -54,13 +54,24 @@ import {
 import { createRecipe, type CreateRecipeInput, type Recipe, type UpdateRecipeInput } from '../models/recipe';
 import { createRecipeIngredient, type RecipeIngredient } from '../models/recipe-ingredient';
 import type { RecipeListItem } from '../models/recipe-list-item';
-import { createRecipeVariant } from '../models/recipe-variant';
+import { createRecipeVariant, type RecipeVariant } from '../models/recipe-variant';
 import {
   createShoppingListItem,
   type ShoppingListItem,
   type ShoppingListItemWithProduct,
 } from '../models/shopping-list-item';
 import { NutritionalScoreService } from '../scoring/nutritional-score.service';
+import type { BackupData } from '../backup/backup-schema';
+import type { ImportSummary } from '../backup/backup-schema';
+import {
+  buildActiveBarcodeIndex,
+  buildNameBrandIndex,
+  collectImportedProductKeys,
+  mergeLastExportAt,
+  mergeMacroGoals,
+  pickImportedAppSettings,
+  pickImportedMacroGoals,
+} from '../backup/backup-merge';
 import { NutritionDatabase } from './nutrition-database';
 import { computeMealPlanFingerprint } from '../utils/meal-plan-fingerprint';
 
@@ -135,6 +146,436 @@ export class DatabaseService {
     }
 
     return settings;
+  }
+
+  async dumpAllTables(): Promise<{
+    products: Product[];
+    productReferences: ProductReference[];
+    pantryItems: PantryItem[];
+    recipes: Recipe[];
+    recipeVariants: RecipeVariant[];
+    recipeIngredients: RecipeIngredient[];
+    mealPlanEntries: MealPlanEntry[];
+    shoppingListItems: ShoppingListItem[];
+    macroGoals: MacroGoals[];
+    appSettings: AppSettings[];
+  }> {
+    await this.initialize();
+
+    const [
+      products,
+      productReferences,
+      pantryItems,
+      recipes,
+      recipeVariants,
+      recipeIngredients,
+      mealPlanEntries,
+      shoppingListItems,
+      macroGoals,
+      appSettings,
+    ] = await Promise.all([
+      this.db!.products.toArray(),
+      this.db!.productReferences.toArray(),
+      this.db!.pantryItems.toArray(),
+      this.db!.recipes.toArray(),
+      this.db!.recipeVariants.toArray(),
+      this.db!.recipeIngredients.toArray(),
+      this.db!.mealPlanEntries.toArray(),
+      this.db!.shoppingListItems.toArray(),
+      this.db!.macroGoals.toArray(),
+      this.db!.appSettings.toArray(),
+    ]);
+
+    return {
+      products,
+      productReferences,
+      pantryItems,
+      recipes,
+      recipeVariants,
+      recipeIngredients,
+      mealPlanEntries,
+      shoppingListItems,
+      macroGoals,
+      appSettings,
+    };
+  }
+
+  async updateLastExportAt(exportedAt: string): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    await this.db!.appSettings.put({
+      ...settings,
+      lastExportAt: exportedAt,
+      backupReminderDismissedAt: undefined,
+    });
+  }
+
+  async dismissBackupReminder(): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    await this.db!.appSettings.put({
+      ...settings,
+      backupReminderDismissedAt: new Date().toISOString(),
+    });
+  }
+
+  async replaceAllFromBackup(data: BackupData): Promise<void> {
+    await this.initialize();
+
+    const db = this.db!;
+    const tables = [
+      db.shoppingListItems,
+      db.mealPlanEntries,
+      db.recipeIngredients,
+      db.recipeVariants,
+      db.recipes,
+      db.pantryItems,
+      db.productReferences,
+      db.products,
+      db.macroGoals,
+      db.appSettings,
+    ];
+
+    await db.transaction('rw', tables, async () => {
+        await db.shoppingListItems.clear();
+        await db.mealPlanEntries.clear();
+        await db.recipeIngredients.clear();
+        await db.recipeVariants.clear();
+        await db.recipes.clear();
+        await db.pantryItems.clear();
+        await db.productReferences.clear();
+        await db.products.clear();
+        await db.macroGoals.clear();
+        await db.appSettings.clear();
+
+        if (data.products.length > 0) {
+          await db.products.bulkPut(data.products);
+        }
+        if (data.productReferences.length > 0) {
+          await db.productReferences.bulkPut(data.productReferences);
+        }
+        if (data.pantryItems.length > 0) {
+          await db.pantryItems.bulkPut(data.pantryItems);
+        }
+        if (data.recipes.length > 0) {
+          await db.recipes.bulkPut(data.recipes);
+        }
+        if (data.recipeVariants.length > 0) {
+          await db.recipeVariants.bulkPut(data.recipeVariants);
+        }
+        if (data.recipeIngredients.length > 0) {
+          await db.recipeIngredients.bulkPut(data.recipeIngredients);
+        }
+        if (data.mealPlanEntries.length > 0) {
+          await db.mealPlanEntries.bulkPut(data.mealPlanEntries);
+        }
+        if (data.shoppingListItems.length > 0) {
+          await db.shoppingListItems.bulkPut(data.shoppingListItems);
+        }
+
+        const importedGoals = pickImportedMacroGoals(data.macroGoals);
+        await db.macroGoals.put(importedGoals ?? createDefaultMacroGoals());
+
+        const importedSettings = pickImportedAppSettings(data.appSettings);
+        await db.appSettings.put({
+          ...(importedSettings ?? createDefaultAppSettings()),
+          id: APP_SETTINGS_SINGLETON_ID,
+        });
+    });
+  }
+
+  async mergeFromBackup(data: BackupData): Promise<ImportSummary> {
+    await this.initialize();
+
+    const summary: ImportSummary = {
+      mode: 'merge',
+      products: 0,
+      productReferences: 0,
+      pantryItems: 0,
+      recipes: 0,
+      recipeVariants: 0,
+      mealPlanEntries: 0,
+      shoppingListItems: 0,
+      productsAdded: 0,
+      productsUpdated: 0,
+    };
+
+    const db = this.db!;
+    const tables = [
+      db.shoppingListItems,
+      db.mealPlanEntries,
+      db.recipeIngredients,
+      db.recipeVariants,
+      db.recipes,
+      db.pantryItems,
+      db.productReferences,
+      db.products,
+      db.macroGoals,
+      db.appSettings,
+    ];
+
+    await db.transaction('rw', tables, async () => {
+        const localProducts = await db.products.toArray();
+        const localReferences = await db.productReferences.toArray();
+        const localPantryItems = await db.pantryItems.toArray();
+        const localRecipes = await db.recipes.toArray();
+        const localMealPlanEntries = await db.mealPlanEntries.toArray();
+
+        const barcodeIndex = buildActiveBarcodeIndex(localReferences);
+        const nameBrandIndex = buildNameBrandIndex(localProducts, localReferences);
+        const productIdMap = new Map<string, string>();
+        const pendingPreferredReferenceIds = new Map<string, string | undefined>();
+        const referenceIdMap = new Map<string, string>();
+        const importedReferencesByProduct = new Map<string, ProductReference[]>();
+
+        for (const reference of data.productReferences) {
+          const existing = importedReferencesByProduct.get(reference.productId) ?? [];
+          existing.push(reference);
+          importedReferencesByProduct.set(reference.productId, existing);
+        }
+
+        for (const importedProduct of data.products) {
+          const importedRefs = importedReferencesByProduct.get(importedProduct.id) ?? [];
+          let matchedProductId: string | undefined;
+
+          for (const reference of importedRefs) {
+            const barcode = normalizeStoredBarcode(reference.barcode);
+            if (!barcode) {
+              continue;
+            }
+
+            const localReference = barcodeIndex.get(barcode);
+            if (localReference) {
+              matchedProductId = localReference.productId;
+              break;
+            }
+          }
+
+          if (!matchedProductId) {
+            for (const key of collectImportedProductKeys(importedProduct, importedRefs)) {
+              const candidateId = nameBrandIndex.get(key);
+              if (candidateId) {
+                matchedProductId = candidateId;
+                break;
+              }
+            }
+          }
+
+          if (matchedProductId) {
+            productIdMap.set(importedProduct.id, matchedProductId);
+            pendingPreferredReferenceIds.set(
+              matchedProductId,
+              importedProduct.preferredReferenceId,
+            );
+            const localProduct = localProducts.find((product) => product.id === matchedProductId);
+            if (localProduct) {
+              await db.products.put({
+                ...localProduct,
+                name: importedProduct.name,
+                category: importedProduct.category,
+                priority: importedProduct.priority,
+                alternativeRemark: importedProduct.alternativeRemark,
+                notes: importedProduct.notes,
+                recommendedStores: importedProduct.recommendedStores,
+                deletedAt: importedProduct.deletedAt,
+                updatedAt: importedProduct.updatedAt,
+              });
+              summary.productsUpdated! += 1;
+            }
+            continue;
+          }
+
+          const newProductId = crypto.randomUUID();
+          productIdMap.set(importedProduct.id, newProductId);
+          pendingPreferredReferenceIds.set(newProductId, importedProduct.preferredReferenceId);
+          await db.products.put({
+            ...importedProduct,
+            id: newProductId,
+            preferredReferenceId: undefined,
+          });
+
+          for (const key of collectImportedProductKeys(importedProduct, importedRefs)) {
+            if (!nameBrandIndex.has(key)) {
+              nameBrandIndex.set(key, newProductId);
+            }
+          }
+
+          summary.productsAdded! += 1;
+        }
+
+        for (const importedReference of data.productReferences) {
+          const mappedProductId =
+            productIdMap.get(importedReference.productId) ?? importedReference.productId;
+          const barcode = normalizeStoredBarcode(importedReference.barcode);
+
+          if (barcode && barcodeIndex.has(barcode)) {
+            const localReference = barcodeIndex.get(barcode)!;
+            referenceIdMap.set(importedReference.id, localReference.id);
+            await db.productReferences.put({
+              ...localReference,
+              store: importedReference.store,
+              brand: importedReference.brand,
+              label: importedReference.label,
+              barcode,
+              kcalPer100g: importedReference.kcalPer100g,
+              proteinPer100g: importedReference.proteinPer100g,
+              fatPer100g: importedReference.fatPer100g,
+              carbsPer100g: importedReference.carbsPer100g,
+              fiberPer100g: importedReference.fiberPer100g,
+              saltPer100g: importedReference.saltPer100g,
+              ingredients: importedReference.ingredients,
+              price: importedReference.price,
+              pricePerKg: importedReference.pricePerKg,
+              nutritionalScore: importedReference.nutritionalScore,
+              verdictLabel: importedReference.verdictLabel,
+              notes: importedReference.notes,
+              deletedAt: importedReference.deletedAt,
+              updatedAt: importedReference.updatedAt,
+            });
+          } else {
+            const newReference: ProductReference = {
+              ...importedReference,
+              id: crypto.randomUUID(),
+              productId: mappedProductId,
+              barcode,
+            };
+            referenceIdMap.set(importedReference.id, newReference.id);
+            await db.productReferences.put(newReference);
+            if (barcode) {
+              barcodeIndex.set(barcode, newReference);
+            }
+          }
+
+          summary.productReferences += 1;
+        }
+
+        for (const [productId, importedPreferredReferenceId] of pendingPreferredReferenceIds) {
+          if (!importedPreferredReferenceId) {
+            continue;
+          }
+
+          const mappedPreferredReferenceId = referenceIdMap.get(importedPreferredReferenceId);
+          if (!mappedPreferredReferenceId) {
+            continue;
+          }
+
+          const product = await db.products.get(productId);
+          if (!product) {
+            continue;
+          }
+
+          await db.products.put({
+            ...product,
+            preferredReferenceId: mappedPreferredReferenceId,
+          });
+        }
+
+        const pantryByProductId = new Map(localPantryItems.map((item) => [item.productId, item]));
+        for (const pantryItem of data.pantryItems) {
+          const mappedProductId = productIdMap.get(pantryItem.productId) ?? pantryItem.productId;
+          const existing = pantryByProductId.get(mappedProductId);
+
+          if (existing) {
+            const updated = {
+              ...existing,
+              quantityG: existing.quantityG + pantryItem.quantityG,
+              updatedAt: new Date().toISOString(),
+            };
+            await db.pantryItems.put(updated);
+            pantryByProductId.set(mappedProductId, updated);
+          } else {
+            const created = {
+              ...pantryItem,
+              id: crypto.randomUUID(),
+              productId: mappedProductId,
+            };
+            await db.pantryItems.put(created);
+            pantryByProductId.set(mappedProductId, created);
+          }
+
+          summary.pantryItems += 1;
+        }
+
+        const localRecipeIds = new Set(localRecipes.map((recipe) => recipe.id));
+        const recipeIdMap = new Map<string, string>();
+
+        for (const importedRecipe of data.recipes) {
+          const targetRecipeId = importedRecipe.id;
+          recipeIdMap.set(importedRecipe.id, targetRecipeId);
+
+          const importedVariants = data.recipeVariants.filter(
+            (variant) => variant.recipeId === importedRecipe.id,
+          );
+          const importedVariantIds = importedVariants.map((variant) => variant.id);
+
+          if (localRecipeIds.has(importedRecipe.id)) {
+            if (importedVariantIds.length > 0) {
+              await db.recipeIngredients.where('variantId').anyOf(importedVariantIds).delete();
+            }
+            await db.recipeVariants.where('recipeId').equals(importedRecipe.id).delete();
+          }
+
+          await db.recipes.put({ ...importedRecipe, id: targetRecipeId });
+          if (importedVariants.length > 0) {
+            await db.recipeVariants.bulkPut(
+              importedVariants.map((variant) => ({ ...variant, recipeId: targetRecipeId })),
+            );
+          }
+
+          const importedIngredients = data.recipeIngredients.filter((ingredient) =>
+            importedVariantIds.includes(ingredient.variantId),
+          );
+          if (importedIngredients.length > 0) {
+            await db.recipeIngredients.bulkPut(
+              importedIngredients.map((ingredient) => ({
+                ...ingredient,
+                productId: productIdMap.get(ingredient.productId) ?? ingredient.productId,
+              })),
+            );
+          }
+
+          summary.recipes += 1;
+          summary.recipeVariants += importedVariants.length;
+        }
+
+        const mealPlanIndex = new Map(
+          localMealPlanEntries.map((entry) => [`${entry.date}|${entry.slot}`, entry]),
+        );
+        for (const entry of data.mealPlanEntries) {
+          const key = `${entry.date}|${entry.slot}`;
+          const existing = mealPlanIndex.get(key);
+          const mappedRecipeId = recipeIdMap.get(entry.recipeId) ?? entry.recipeId;
+
+          await db.mealPlanEntries.put({
+            ...entry,
+            id: existing?.id ?? entry.id,
+            recipeId: mappedRecipeId,
+          });
+          summary.mealPlanEntries += 1;
+        }
+
+        const importedGoals = pickImportedMacroGoals(data.macroGoals);
+        if (importedGoals) {
+          const localGoals =
+            (await db.macroGoals.get(MACRO_GOALS_SINGLETON_ID)) ?? createDefaultMacroGoals();
+          await db.macroGoals.put(mergeMacroGoals(localGoals, importedGoals));
+        }
+
+        const importedSettings = pickImportedAppSettings(data.appSettings);
+        if (importedSettings?.lastExportAt) {
+          const localSettings =
+            (await db.appSettings.get(APP_SETTINGS_SINGLETON_ID)) ?? createDefaultAppSettings();
+          await db.appSettings.put({
+            ...localSettings,
+            lastExportAt: mergeLastExportAt(localSettings.lastExportAt, importedSettings.lastExportAt),
+          });
+        }
+    });
+
+    summary.products = summary.productsAdded! + summary.productsUpdated!;
+    return summary;
   }
 
   async getMacroGoals(): Promise<MacroGoals> {

@@ -4,7 +4,13 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router, RouterOutlet } from '@angular/router';
+import Dexie from 'dexie';
 
+import { DatabaseService } from '../../database/database.service';
+import { NUTRITION_DB_NAME, NutritionDatabase } from '../../database/nutrition-database';
+import { deleteNutritionDatabase } from '../../database/nutrition-database.testing';
+import { APP_SETTINGS_SINGLETON_ID } from '../../models/app-settings';
+import { BackupReminderService } from '../../backup/backup-reminder.service';
 import { ShellComponent } from './shell.component';
 import { ShellChromeService } from '../shell-chrome.service';
 
@@ -16,8 +22,12 @@ class StubPageComponent {}
 
 describe('ShellComponent', () => {
   let hostFixture: ComponentFixture<TestHostComponent>;
+  let database: DatabaseService;
 
   beforeEach(async () => {
+    await deleteNutritionDatabase();
+    await Dexie.delete(NUTRITION_DB_NAME);
+
     await TestBed.configureTestingModule({
       imports: [TestHostComponent, ShellComponent, StubPageComponent],
       providers: [
@@ -37,9 +47,19 @@ describe('ShellComponent', () => {
       ],
     }).compileComponents();
 
+    database = TestBed.inject(DatabaseService);
+    await database.initialize();
+    await TestBed.inject(BackupReminderService).refresh();
+
     hostFixture = TestBed.createComponent(TestHostComponent);
     await TestBed.inject(Router).navigateByUrl('/pantry');
     hostFixture.detectChanges();
+  });
+
+  afterEach(async () => {
+    hostFixture?.destroy();
+    await database.closeForTests();
+    await deleteNutritionDatabase();
   });
 
   function getShellComponent(): ShellComponent {
@@ -112,6 +132,31 @@ describe('ShellComponent', () => {
     const banner = getShellElement().querySelector('.shell__offline-banner') as HTMLElement;
     expect(banner).toBeTruthy();
     expect(banner.textContent).toContain('Mode hors ligne');
+  });
+
+  it('shows backup reminder when export is stale', async () => {
+    const db = new NutritionDatabase();
+    await db.open();
+    await db.appSettings.put({
+      id: APP_SETTINGS_SINGLETON_ID,
+      theme: 'dark',
+      lastExportAt: '2026-01-01T00:00:00.000Z',
+    });
+    await db.close();
+
+    await TestBed.inject(BackupReminderService).refresh();
+    hostFixture.detectChanges();
+
+    const banner = getShellElement().querySelector('app-backup-reminder-banner');
+    expect(banner).toBeTruthy();
+    expect(getShellElement().textContent).toContain('Exporter');
+  });
+
+  it('hides backup reminder after dismiss', async () => {
+    await TestBed.inject(BackupReminderService).dismiss();
+    hostFixture.detectChanges();
+
+    expect(getShellElement().querySelector('app-backup-reminder-banner')).toBeNull();
   });
 
   it('hides header and bottom nav when shell chrome is hidden', async () => {
