@@ -25,9 +25,20 @@ Prérequis : Node.js ≥ 22.22.3 (Angular CLI 22).
 npm install
 npm start      # dev server http://localhost:4200
 npm run build  # build production + service worker
+npm run build:pages  # build pour GitHub Pages (/Nutrition/)
 ```
 
 Routes lazy disponibles : `/pantry`, `/products`, `/recipes`, `/plan`, `/shopping`, `/goals`, `/settings`.
+
+## Démo sur téléphone (GitHub Pages)
+
+Après activation dans le dépôt GitHub (**Settings → Pages → Build and deployment → Source : GitHub Actions**), l’app est publiée à :
+
+**https://ronanleflem.github.io/Nutrition/**
+
+Chaque push sur `main` redéploie automatiquement (workflow `Deploy GitHub Pages`). Sur le téléphone : ouvrir l’URL → menu du navigateur → **Ajouter à l’écran d’accueil** pour l’installer en PWA.
+
+Le scan caméra fonctionne (HTTPS). Les données restent locales dans IndexedDB sur l’appareil.
 
 Pour tester le shell offline : `npm run build` puis servir `dist/nutrition/browser` (ex. `npx http-server dist/nutrition/browser`) et couper le réseau après la première visite.
 
