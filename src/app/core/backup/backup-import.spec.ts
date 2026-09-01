@@ -7,7 +7,12 @@ import {
   normalizeMergeKey,
   productNameBrandKey,
 } from './backup-merge';
-import { BackupValidationError, isEncryptedEnvelope, validateBackupPayload } from './backup-validation';
+import {
+  BackupValidationError,
+  isEncryptedBackupContent,
+  isEncryptedEnvelope,
+  validateBackupPayload,
+} from './backup-validation';
 import { BACKUP_APP_ID, BACKUP_SCHEMA_VERSION } from './backup-schema';
 
 describe('backup-validation', () => {
@@ -44,6 +49,16 @@ describe('backup-validation', () => {
       isEncryptedEnvelope({ v: 1, salt: 'abc', iv: 'def', ciphertext: 'ghi' }),
     ).toBe(true);
     expect(isEncryptedEnvelope(validPayload)).toBe(false);
+  });
+
+  it('detects encrypted backup content from JSON string', () => {
+    expect(
+      isEncryptedBackupContent(
+        JSON.stringify({ v: 1, salt: 'abc', iv: 'def', ciphertext: 'ghi' }),
+      ),
+    ).toBe(true);
+    expect(isEncryptedBackupContent(JSON.stringify(validPayload))).toBe(false);
+    expect(isEncryptedBackupContent('not-json')).toBe(false);
   });
 });
 

@@ -26,6 +26,14 @@ const BACKUP_DATA_KEYS = [
   'appSettings',
 ] as const satisfies ReadonlyArray<keyof BackupData>;
 
+export function isEncryptedBackupContent(content: string): boolean {
+  try {
+    return isEncryptedEnvelope(JSON.parse(content));
+  } catch {
+    return false;
+  }
+}
+
 export function isEncryptedEnvelope(value: unknown): value is EncryptedBackupEnvelope {
   if (!value || typeof value !== 'object') {
     return false;

@@ -52,17 +52,25 @@ export class BackupService {
     const exportedAt = payload.exportedAt;
     const datePart = exportedAt.slice(0, 10);
 
-    if (options.encrypt) {
-      if (!options.password) {
-        throw new Error('Mot de passe requis.');
+    try {
+      if (options.encrypt) {
+        if (!options.password) {
+          throw new Error('Mot de passe requis.');
+        }
+
+        const envelope = await this.crypto.encrypt(JSON.stringify(payload), options.password);
+        const blob = new Blob([JSON.stringify(envelope)], { type: 'application/json' });
+        triggerFileDownload(blob, `nutrition-backup-${datePart}.nutrition-backup.enc`);
+      } else {
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        triggerFileDownload(blob, `nutrition-backup-${datePart}.nutrition-backup.json`);
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Mot de passe requis.') {
+        throw error;
       }
 
-      const envelope = await this.crypto.encrypt(JSON.stringify(payload), options.password);
-      const blob = new Blob([JSON.stringify(envelope)], { type: 'application/json' });
-      triggerFileDownload(blob, `nutrition-backup-${datePart}.nutrition-backup.enc`);
-    } else {
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      triggerFileDownload(blob, `nutrition-backup-${datePart}.nutrition-backup.json`);
+      throw new Error('Téléchargement impossible. Réessayez.');
     }
 
     await this.database.updateLastExportAt(exportedAt);
@@ -85,7 +93,11 @@ export class BackupService {
 
       try {
         const decrypted = await this.crypto.decrypt(parsed, password);
-        payloadRaw = JSON.parse(decrypted);
+        try {
+          payloadRaw = JSON.parse(decrypted);
+        } catch {
+          throw new BackupValidationError('Fichier de sauvegarde invalide après déchiffrement.');
+        }
       } catch (error) {
         if (error instanceof BackupValidationError) {
           throw error;

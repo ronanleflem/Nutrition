@@ -169,4 +169,78 @@ describe('BackupService import', () => {
     expect(pantry[0].quantityG).toBe(350);
     expect((await database.getMacroGoals()).kcal).toBe(2100);
   });
+
+  it('remaps preferredReferenceId when merging references with new ids', async () => {
+    const localProduct = await database.createProduct({ name: 'Yaourt' });
+    const localReference = await database.createProductReference({
+      productId: localProduct.id,
+      store: 'auchan',
+      label: 'Yaourt local',
+      barcode: '9876543210987',
+      kcalPer100g: 60,
+      proteinPer100g: 4,
+      fatPer100g: 3,
+      carbsPer100g: 5,
+    });
+
+    const importedProductId = crypto.randomUUID();
+    const importedReferenceId = crypto.randomUUID();
+    const payload = {
+      schemaVersion: BACKUP_SCHEMA_VERSION,
+      exportedAt: '2026-09-01T00:00:00.000Z',
+      app: BACKUP_APP_ID,
+      data: {
+        products: [
+          {
+            id: importedProductId,
+            name: 'Yaourt importé',
+            preferredReferenceId: importedReferenceId,
+            recommendedStores: ['auchan'],
+            deletedAt: null,
+            createdAt: '2026-09-01T00:00:00.000Z',
+            updatedAt: '2026-09-01T00:00:00.000Z',
+          },
+        ],
+        productReferences: [
+          {
+            id: importedReferenceId,
+            productId: importedProductId,
+            store: 'carrefour',
+            label: 'Yaourt import',
+            barcode: '9876543210987',
+            kcalPer100g: 62,
+            proteinPer100g: 4.2,
+            fatPer100g: 3.1,
+            carbsPer100g: 5.2,
+            nutritionalScore: 75,
+            deletedAt: null,
+            createdAt: '2026-09-01T00:00:00.000Z',
+            updatedAt: '2026-09-01T00:00:00.000Z',
+          },
+        ],
+        pantryItems: [],
+        recipes: [],
+        recipeVariants: [],
+        recipeIngredients: [],
+        mealPlanEntries: [],
+        shoppingListItems: [],
+        macroGoals: [],
+        appSettings: [],
+      },
+    };
+
+    const file = new File([JSON.stringify(payload)], 'merge-pref.nutrition-backup.json', {
+      type: 'application/json',
+    });
+
+    await backupService.importFromFile(file, { mode: 'merge' });
+
+    const mergedProduct = (await database.listActiveProducts()).find(
+      (product) => product.id === localProduct.id,
+    );
+    expect(mergedProduct?.preferredReferenceId).toBe(localReference.id);
+
+    const preferredReference = await database.getProductReference(localReference.id);
+    expect(preferredReference?.label).toBe('Yaourt import');
+  });
 });

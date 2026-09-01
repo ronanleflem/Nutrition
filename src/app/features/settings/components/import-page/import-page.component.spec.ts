@@ -20,10 +20,31 @@ describe('ImportPageComponent', () => {
     fixture.detectChanges();
   });
 
-  it('requires password for encrypted files', () => {
-    fixture.componentInstance.selectedFile.set(
-      new File(['{}'], 'backup.nutrition-backup.enc', { type: 'application/json' }),
-    );
+  it('requires password for encrypted files by extension', async () => {
+    await fixture.componentInstance.onFileSelected({
+      target: {
+        files: [new File(['{}'], 'backup.nutrition-backup.enc', { type: 'application/json' })],
+      },
+    } as unknown as Event);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.requiresPassword).toBe(true);
+    expect(fixture.componentInstance.canImport).toBe(false);
+  });
+
+  it('requires password for encrypted content even with .json extension', async () => {
+    const encryptedContent = JSON.stringify({
+      v: 1,
+      salt: 'abc',
+      iv: 'def',
+      ciphertext: 'ghi',
+    });
+
+    await fixture.componentInstance.onFileSelected({
+      target: {
+        files: [new File([encryptedContent], 'backup.nutrition-backup.json', { type: 'application/json' })],
+      },
+    } as unknown as Event);
     fixture.detectChanges();
 
     expect(fixture.componentInstance.requiresPassword).toBe(true);

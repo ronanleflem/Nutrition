@@ -2,11 +2,13 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
+import { BackupReminderService } from '../../../../core/backup/backup-reminder.service';
 import {
   BackupService,
   BackupValidationError,
 } from '../../../../core/backup/backup.service';
 import type { ImportMode, ImportSummary } from '../../../../core/backup/backup-schema';
+import { isEncryptedBackupContent } from '../../../../core/backup/backup-validation';
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -18,12 +20,14 @@ import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confi
 export class ImportPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly backupService = inject(BackupService);
+  private readonly backupReminder = inject(BackupReminderService);
 
   readonly importing = signal(false);
   readonly importError = signal<string | null>(null);
   readonly showReplaceWarning = signal(false);
   readonly summary = signal<ImportSummary | null>(null);
   readonly selectedFile = signal<File | null>(null);
+  readonly fileIsEncrypted = signal(false);
 
   readonly form = this.fb.group({
     mode: ['replace' as ImportMode],
@@ -35,8 +39,7 @@ export class ImportPageComponent {
   }
 
   get requiresPassword(): boolean {
-    const file = this.selectedFile();
-    return file?.name.endsWith('.nutrition-backup.enc') ?? false;
+    return this.fileIsEncrypted();
   }
 
   get canImport(): boolean {
@@ -51,12 +54,23 @@ export class ImportPageComponent {
     return true;
   }
 
-  onFileSelected(event: Event): void {
+  async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
     this.selectedFile.set(file);
     this.summary.set(null);
     this.importError.set(null);
+    this.form.controls.password.setValue('');
+
+    if (!file) {
+      this.fileIsEncrypted.set(false);
+      return;
+    }
+
+    const content = await file.text();
+    this.fileIsEncrypted.set(
+      isEncryptedBackupContent(content) || file.name.endsWith('.nutrition-backup.enc'),
+    );
   }
 
   async onSubmit(): Promise<void> {
@@ -99,6 +113,7 @@ export class ImportPageComponent {
         password: this.form.controls.password.value || undefined,
       });
       this.summary.set(result);
+      await this.backupReminder.refresh();
     } catch (error) {
       if (error instanceof BackupValidationError) {
         this.importError.set(error.message);

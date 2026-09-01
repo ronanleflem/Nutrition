@@ -326,6 +326,8 @@ export class DatabaseService {
         const barcodeIndex = buildActiveBarcodeIndex(localReferences);
         const nameBrandIndex = buildNameBrandIndex(localProducts, localReferences);
         const productIdMap = new Map<string, string>();
+        const pendingPreferredReferenceIds = new Map<string, string | undefined>();
+        const referenceIdMap = new Map<string, string>();
         const importedReferencesByProduct = new Map<string, ProductReference[]>();
 
         for (const reference of data.productReferences) {
@@ -363,6 +365,10 @@ export class DatabaseService {
 
           if (matchedProductId) {
             productIdMap.set(importedProduct.id, matchedProductId);
+            pendingPreferredReferenceIds.set(
+              matchedProductId,
+              importedProduct.preferredReferenceId,
+            );
             const localProduct = localProducts.find((product) => product.id === matchedProductId);
             if (localProduct) {
               await db.products.put({
@@ -372,19 +378,23 @@ export class DatabaseService {
                 priority: importedProduct.priority,
                 alternativeRemark: importedProduct.alternativeRemark,
                 notes: importedProduct.notes,
-                preferredReferenceId: importedProduct.preferredReferenceId,
                 recommendedStores: importedProduct.recommendedStores,
                 deletedAt: importedProduct.deletedAt,
                 updatedAt: importedProduct.updatedAt,
               });
+              summary.productsUpdated! += 1;
             }
-            summary.productsUpdated! += 1;
             continue;
           }
 
           const newProductId = crypto.randomUUID();
           productIdMap.set(importedProduct.id, newProductId);
-          await db.products.put({ ...importedProduct, id: newProductId });
+          pendingPreferredReferenceIds.set(newProductId, importedProduct.preferredReferenceId);
+          await db.products.put({
+            ...importedProduct,
+            id: newProductId,
+            preferredReferenceId: undefined,
+          });
 
           for (const key of collectImportedProductKeys(importedProduct, importedRefs)) {
             if (!nameBrandIndex.has(key)) {
@@ -402,6 +412,7 @@ export class DatabaseService {
 
           if (barcode && barcodeIndex.has(barcode)) {
             const localReference = barcodeIndex.get(barcode)!;
+            referenceIdMap.set(importedReference.id, localReference.id);
             await db.productReferences.put({
               ...localReference,
               store: importedReference.store,
@@ -430,6 +441,7 @@ export class DatabaseService {
               productId: mappedProductId,
               barcode,
             };
+            referenceIdMap.set(importedReference.id, newReference.id);
             await db.productReferences.put(newReference);
             if (barcode) {
               barcodeIndex.set(barcode, newReference);
@@ -437,6 +449,27 @@ export class DatabaseService {
           }
 
           summary.productReferences += 1;
+        }
+
+        for (const [productId, importedPreferredReferenceId] of pendingPreferredReferenceIds) {
+          if (!importedPreferredReferenceId) {
+            continue;
+          }
+
+          const mappedPreferredReferenceId = referenceIdMap.get(importedPreferredReferenceId);
+          if (!mappedPreferredReferenceId) {
+            continue;
+          }
+
+          const product = await db.products.get(productId);
+          if (!product) {
+            continue;
+          }
+
+          await db.products.put({
+            ...product,
+            preferredReferenceId: mappedPreferredReferenceId,
+          });
         }
 
         const pantryByProductId = new Map(localPantryItems.map((item) => [item.productId, item]));
@@ -469,9 +502,7 @@ export class DatabaseService {
         const recipeIdMap = new Map<string, string>();
 
         for (const importedRecipe of data.recipes) {
-          const targetRecipeId = localRecipeIds.has(importedRecipe.id)
-            ? importedRecipe.id
-            : importedRecipe.id;
+          const targetRecipeId = importedRecipe.id;
           recipeIdMap.set(importedRecipe.id, targetRecipeId);
 
           const importedVariants = data.recipeVariants.filter(
