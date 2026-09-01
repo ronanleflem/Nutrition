@@ -44,13 +44,8 @@
 
       @if (eligibleProducts().length === 0) {
         <p class="recipe-variant-form__hint">
-          Aucun produit avec référence préférée.
+          Aucun produit disponible. Créez un produit avec au moins une référence enseigne dans le catalogue.
           <a routerLink="/products">Aller au catalogue</a>
-        </p>
-      } @else {
-        <p class="recipe-variant-form__hint">
-          Seuls les produits avec référence préférée sont proposés.
-          <a routerLink="/products">Catalogue produits</a>
         </p>
       }
 

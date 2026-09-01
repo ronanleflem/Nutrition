@@ -162,6 +162,9 @@ describe('DatabaseService', () => {
 
     const stored = await service.getProductReference(reference.id);
     expect(stored?.nutritionalScore).toBe(reference.nutritionalScore);
+
+    const updatedProduct = await service.getProduct(product.id);
+    expect(updatedProduct?.preferredReferenceId).toBe(reference.id);
   });
 
   it('derives recommendedStores from references sorted by score', async () => {

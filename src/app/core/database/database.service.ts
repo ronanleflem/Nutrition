@@ -1677,7 +1677,26 @@ export class DatabaseService {
       }
     }
 
+    if (!updated.preferredReferenceId && references.length > 0) {
+      updated.preferredReferenceId = references[0].id;
+    }
+
     await this.db!.products.put(updated);
+  }
+
+  private async repairMissingPreferredReferences(): Promise<void> {
+    const products = (await this.db!.products.toArray()).filter(isActiveProduct);
+
+    for (const product of products) {
+      if (product.preferredReferenceId) {
+        continue;
+      }
+
+      const references = await this.listActiveReferencesByProductId(product.id);
+      if (references.length > 0) {
+        await this.syncProductStoresFromReferences(product.id);
+      }
+    }
   }
 
   private async openAndSeed(): Promise<void> {
@@ -1695,5 +1714,6 @@ export class DatabaseService {
     }
 
     this.db = db;
+    await this.repairMissingPreferredReferences();
   }
 }
