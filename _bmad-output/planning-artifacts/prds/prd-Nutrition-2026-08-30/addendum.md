@@ -188,3 +188,16 @@ Mode **Remplacer tout** : transaction unique clear-all + bulk insert.
 - E8-1 Export JSON + chiffrement
 - E8-2 Import + validation
 - E8-3 Rappel 30 jours
+
+## Post-MVP (Epics 9–12)
+
+> Décisions verrouillées le 2026-09-01. Détail complet : [`epics-post-mvp.md`](./epics-post-mvp.md)
+
+**Ordre recommandé :** E10 → E11 → E9 → E12
+
+| Epic | Titre | Priorité |
+|------|-------|----------|
+| E10 | Bibliothèque d'aliments de base | #1 — friction recettes |
+| E11 | Recherche produit enrichie (OFF + cache) | #2 — maison + magasin |
+| E9 | Identité visuelle sombre chaleureuse | #3 — palette nature sur fond sombre |
+| E12 | Accueil intelligent et onboarding recette | #4 — guidage |

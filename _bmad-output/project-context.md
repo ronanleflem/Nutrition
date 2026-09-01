@@ -66,10 +66,22 @@ src/app/
 | UX Design | `_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/DESIGN.md` |
 | UX Experience | `_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/EXPERIENCE.md` |
 | Epics & Stories | `_bmad-output/planning-artifacts/epics.md` |
+| Epics post-MVP | `_bmad-output/planning-artifacts/epics-post-mvp.md` |
 | Sprint status | `_bmad-output/implementation-artifacts/sprint-status.yaml` |
+
+## Post-MVP (priorisé 2026-09-01)
+
+Ordre : **E10 → E11 → E9 → E12** — voir `planning-artifacts/epics-post-mvp.md`.
+
+- **E10** — Bibliothèque d'aliments de base embarquée (œuf, riz, poulet…) ; recherche unifiée à l'ajout ingrédient recette.
+- **E11** — Recherche texte Open Food Facts + cache local ; complète le scan barcode.
+- **E9** — Thème sombre chaleureux (palette nature), pas de thème clair.
+- **E12** — Accueil / onboarding première recette.
+
+Toujours hors scope : journal alimentaire repas-par-rep, comptes cloud.
 
 ## Hors scope MVP
 
 - Multi-utilisateur, sync cloud, app native
-- Comparateur marques avancé, mapping enseignes (epics post-MVP)
+- Comparateur marques avancé, mapping enseignes (epics post-MVP ultérieurs)
 - Génération IA de recettes
