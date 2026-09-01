@@ -1,0 +1,69 @@
+<section class="export-page">
+  <header class="export-page__header">
+    <a class="export-page__back" routerLink="/settings">← Paramètres</a>
+    <h1 class="export-page__title">Exporter les données</h1>
+  </header>
+
+  <p class="export-page__intro">
+    Sauvegardez toutes vos données locales dans un fichier. Le chiffrement est recommandé avant un
+    changement d’appareil.
+  </p>
+
+  @if (exportError()) {
+    <p class="export-page__error" role="alert">{{ exportError() }}</p>
+  }
+
+  <form class="export-page__form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <label class="export-page__checkbox-row">
+      <input type="checkbox" formControlName="encrypt" />
+      <span>Chiffrer la sauvegarde (recommandé)</span>
+    </label>
+
+    @if (encryptEnabled) {
+      <label class="export-page__field">
+        <span class="export-page__label">Mot de passe</span>
+        <input
+          class="export-page__input"
+          type="password"
+          formControlName="password"
+          autocomplete="new-password"
+        />
+        @if (form.controls.password.touched && !(form.controls.password.value ?? '').length) {
+          <span class="export-page__hint export-page__hint--error">Mot de passe requis.</span>
+        }
+      </label>
+
+      <label class="export-page__field">
+        <span class="export-page__label">Confirmer le mot de passe</span>
+        <input
+          class="export-page__input"
+          type="password"
+          formControlName="confirmPassword"
+          autocomplete="new-password"
+        />
+        @if (passwordMismatch) {
+          <span class="export-page__hint export-page__hint--error">Les mots de passe ne correspondent pas.</span>
+        }
+      </label>
+    } @else {
+      <p class="export-page__warning">
+        Sans chiffrement, toute personne ayant accès au fichier pourra lire vos données.
+      </p>
+    }
+
+    <button class="export-page__submit" type="submit" [disabled]="!canExport">
+      {{ exporting() ? 'Export en cours…' : 'Exporter' }}
+    </button>
+  </form>
+
+  @if (showPlainWarning()) {
+    <app-confirm-dialog
+      title="Export non chiffré"
+      message="Le fichier sera lisible en clair. Toute personne y ayant accès pourra voir vos données. Continuer ?"
+      confirmLabel="Exporter quand même"
+      cancelLabel="Annuler"
+      (confirmed)="confirmPlainExport()"
+      (cancelled)="cancelPlainExport()"
+    />
+  }
+</section>

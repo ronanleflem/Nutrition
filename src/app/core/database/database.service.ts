@@ -54,7 +54,7 @@ import {
 import { createRecipe, type CreateRecipeInput, type Recipe, type UpdateRecipeInput } from '../models/recipe';
 import { createRecipeIngredient, type RecipeIngredient } from '../models/recipe-ingredient';
 import type { RecipeListItem } from '../models/recipe-list-item';
-import { createRecipeVariant } from '../models/recipe-variant';
+import { createRecipeVariant, type RecipeVariant } from '../models/recipe-variant';
 import {
   createShoppingListItem,
   type ShoppingListItem,
@@ -135,6 +135,68 @@ export class DatabaseService {
     }
 
     return settings;
+  }
+
+  async dumpAllTables(): Promise<{
+    products: Product[];
+    productReferences: ProductReference[];
+    pantryItems: PantryItem[];
+    recipes: Recipe[];
+    recipeVariants: RecipeVariant[];
+    recipeIngredients: RecipeIngredient[];
+    mealPlanEntries: MealPlanEntry[];
+    shoppingListItems: ShoppingListItem[];
+    macroGoals: MacroGoals[];
+    appSettings: AppSettings[];
+  }> {
+    await this.initialize();
+
+    const [
+      products,
+      productReferences,
+      pantryItems,
+      recipes,
+      recipeVariants,
+      recipeIngredients,
+      mealPlanEntries,
+      shoppingListItems,
+      macroGoals,
+      appSettings,
+    ] = await Promise.all([
+      this.db!.products.toArray(),
+      this.db!.productReferences.toArray(),
+      this.db!.pantryItems.toArray(),
+      this.db!.recipes.toArray(),
+      this.db!.recipeVariants.toArray(),
+      this.db!.recipeIngredients.toArray(),
+      this.db!.mealPlanEntries.toArray(),
+      this.db!.shoppingListItems.toArray(),
+      this.db!.macroGoals.toArray(),
+      this.db!.appSettings.toArray(),
+    ]);
+
+    return {
+      products,
+      productReferences,
+      pantryItems,
+      recipes,
+      recipeVariants,
+      recipeIngredients,
+      mealPlanEntries,
+      shoppingListItems,
+      macroGoals,
+      appSettings,
+    };
+  }
+
+  async updateLastExportAt(exportedAt: string): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    await this.db!.appSettings.put({
+      ...settings,
+      lastExportAt: exportedAt,
+    });
   }
 
   async getMacroGoals(): Promise<MacroGoals> {
