@@ -67,6 +67,7 @@ src/app/
 | UX Experience | `_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/EXPERIENCE.md` |
 | Epics & Stories | `_bmad-output/planning-artifacts/epics.md` |
 | Epics post-MVP | `_bmad-output/planning-artifacts/epics-post-mvp.md` |
+| Sources données | `_bmad-output/planning-artifacts/DATA-SOURCES.md` |
 | Sprint status | `_bmad-output/implementation-artifacts/sprint-status.yaml` |
 
 ## Post-MVP (priorisé 2026-09-01)
