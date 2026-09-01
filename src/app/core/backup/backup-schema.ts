@@ -38,3 +38,18 @@ export interface EncryptedBackupEnvelope {
   iv: string;
   ciphertext: string;
 }
+
+export type ImportMode = 'replace' | 'merge';
+
+export interface ImportSummary {
+  mode: ImportMode;
+  products: number;
+  productReferences: number;
+  pantryItems: number;
+  recipes: number;
+  recipeVariants: number;
+  mealPlanEntries: number;
+  shoppingListItems: number;
+  productsAdded?: number;
+  productsUpdated?: number;
+}
