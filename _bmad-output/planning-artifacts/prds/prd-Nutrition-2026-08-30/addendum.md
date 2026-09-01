@@ -188,3 +188,16 @@ Mode **Remplacer tout** : transaction unique clear-all + bulk insert.
 - E8-1 Export JSON + chiffrement
 - E8-2 Import + validation
 - E8-3 Rappel 30 jours
+
+## Post-MVP (Epics 9–12)
+
+> [`epics-post-mvp.md`](./epics-post-mvp.md) · [`DATA-SOURCES.md`](../../DATA-SOURCES.md)
+
+**Cascade recherche unifiée :** `Mon catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA`
+
+| Epic | Titre | Priorité |
+|------|-------|----------|
+| E10 | Bibliothèque offline Ciqual + OpenNutrition | #1 — sections 1–3 |
+| E11 | Providers OFF + FoodRepo + USDA | #2–3 — cascade complète |
+| E9 | Identité visuelle sombre chaleureuse | #4 |
+| E12 | Accueil intelligent et onboarding recette | #5 |

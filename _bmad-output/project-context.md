@@ -26,7 +26,7 @@
 1. **Local-first** — toute donnée utilisateur dans IndexedDB ; pas d’appel réseau obligatoire hors enrichissement produit.
 2. **Pas de backend** au MVP — ne pas introduire FastAPI/Spring sans décision explicite dans le PRD.
 3. **Export / import** — chaque entité métier doit être sérialisable ; format JSON versionné ; chiffrement AES-GCM optionnel (Web Crypto).
-4. **APIs externes** — Open Food Facts uniquement, GET, pas d’envoi de données perso.
+4. **APIs externes** — lecture seule : OFF (barcode + search), USDA FDC (fallback, clé locale), FoodRepo (optionnel). Embarqué : Ciqual + OpenNutrition. Pas d’envoi de données perso. Voir `planning-artifacts/DATA-SOURCES.md`.
 5. **Mobile-first** — UI pensée pour usage en magasin (gros touch targets, mode liste courses).
 6. **Pas d’auth** — pas de login, pas de JWT, pas de compte.
 7. **Conventions Angular** — standalone components, signals où pertinent, lazy routes par feature.
@@ -66,10 +66,30 @@ src/app/
 | UX Design | `_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/DESIGN.md` |
 | UX Experience | `_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/EXPERIENCE.md` |
 | Epics & Stories | `_bmad-output/planning-artifacts/epics.md` |
+| Epics post-MVP | `_bmad-output/planning-artifacts/epics-post-mvp.md` |
+| Sources données | `_bmad-output/planning-artifacts/DATA-SOURCES.md` |
 | Sprint status | `_bmad-output/implementation-artifacts/sprint-status.yaml` |
+
+## Post-MVP (priorisé 2026-09-01)
+
+Ordre : **E10 → E11 → E9 → E12** — voir `planning-artifacts/epics-post-mvp.md`.
+
+**Cascade recherche unifiée (verrouillée) :**
+
+```
+Mon catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA
+```
+
+- **E10** — Phases 1 : chunks offline Ciqual + OpenNutrition ; `FoodSearchService` sections 1–3.
+- **E11** — Phases 2–3 : providers OFF, FoodRepo, USDA ; cascade complète sections 1–6.
+- **E9** — Thème sombre chaleureux (palette nature).
+- **E12** — Accueil / onboarding première recette.
+- Sources détaillées : `planning-artifacts/DATA-SOURCES.md`.
+
+Toujours hors scope : journal alimentaire repas-par-rep, comptes cloud.
 
 ## Hors scope MVP
 
 - Multi-utilisateur, sync cloud, app native
-- Comparateur marques avancé, mapping enseignes (epics post-MVP)
+- Comparateur marques avancé, mapping enseignes (epics post-MVP ultérieurs)
 - Génération IA de recettes

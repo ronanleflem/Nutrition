@@ -58,7 +58,34 @@ Bottom tab bar (5 onglets) + accès Paramètres depuis overflow (engrenage) sur 
 - Barcode existant sur ref archivée → bottom sheet « Restaurer cette référence ? »
 - Produit sans `preferredReferenceId` → bandeau discret « Définir une référence pour les macros »
 
-### Surface 2 — Plan de repas + choix variante
+### Picker recherche unifiée (post-MVP)
+
+**Mental model** : « Un seul champ me montre d'abord ce que j'ai, puis les bases officielles, puis le web — dans cet ordre. »
+
+**Cascade verrouillée** (sections vides masquées) :
+
+```
+Mon catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA
+```
+
+| Section | Label UI | Badge | Offline |
+|---------|----------|-------|---------|
+| 1 | Mon catalogue | — | ✅ |
+| 2 | Ciqual | `Ciqual` | ✅ |
+| 3 | OpenNutrition | `OpenNutrition` | ✅ |
+| 4 | Open Food Facts | `OFF` | ❌ |
+| 5 | FoodRepo | `FoodRepo` | ❌ (clé optionnelle) |
+| 6 | USDA | `USDA` | ❌ (clé requise) |
+
+**Surfaces** : picker ingrédient recette · ajout garde-manger · recherche Produits · lookup barcode (OpenNutrition offline avant OFF).
+
+**Comportement** :
+- Saisie → sections 1–3 instantanées ; sections 4–6 après debounce ≥ 400 ms (min 3 car.) si réseau
+- Spinners indépendants par section online ; pas de mélange inter-sections
+- Tap ligne → bottom sheet prévisualisation macros + « Ajouter à mon catalogue »
+- Offline → bannière « Recherche en ligne indisponible » sous les sections locales
+- Scan barcode → lookup OpenNutrition (offline) puis OFF si réseau — même flow d'import
+
 
 | Écran | Contenu | Actions |
 |-------|---------|---------|

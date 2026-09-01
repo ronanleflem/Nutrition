@@ -617,3 +617,20 @@ Afin de ne pas perdre mes données.
 **Then** un rappel discret s'affiche avec lien vers Export (FR-24)
 **And** le rappel est dismissable (FR-24)
 **And** pas de rappel si export récent (FR-24)
+
+---
+
+## Post-MVP (Epics 9–12)
+
+> Décisions verrouillées le 2026-09-01. Détail complet : [`epics-post-mvp.md`](./epics-post-mvp.md)
+
+**Ordre recommandé :** E10 → E11 → E9 → E12
+
+**Cascade recherche unifiée :** `Mon catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA`
+
+| Epic | Titre | Priorité |
+|------|-------|----------|
+| E10 | Bibliothèque offline Ciqual + OpenNutrition | #1 — sections 1–3 cascade |
+| E11 | Providers OFF + FoodRepo + USDA | #2–3 — cascade complète |
+| E9 | Identité visuelle sombre chaleureuse | #4 |
+| E12 | Accueil intelligent et onboarding recette | #5 |
