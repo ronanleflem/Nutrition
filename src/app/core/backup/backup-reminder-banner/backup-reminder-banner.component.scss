@@ -1,0 +1,47 @@
+.backup-reminder-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 12px 8px;
+  padding: 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+}
+
+.backup-reminder-banner__message {
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-meta);
+}
+
+.backup-reminder-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backup-reminder-banner__link {
+  min-height: var(--spacing-touch-min);
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-on-accent, #fff);
+  font-size: var(--font-size-meta);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.backup-reminder-banner__dismiss {
+  min-height: var(--spacing-touch-min);
+  padding: 0 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-ink-secondary);
+  font: inherit;
+  font-size: var(--font-size-meta);
+  cursor: pointer;
+}

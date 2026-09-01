@@ -207,6 +207,17 @@ export class DatabaseService {
     await this.db!.appSettings.put({
       ...settings,
       lastExportAt: exportedAt,
+      backupReminderDismissedAt: undefined,
+    });
+  }
+
+  async dismissBackupReminder(): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    await this.db!.appSettings.put({
+      ...settings,
+      backupReminderDismissedAt: new Date().toISOString(),
     });
   }
 

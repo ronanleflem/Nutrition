@@ -1,0 +1,11 @@
+<div class="backup-reminder-banner" role="status">
+  <p class="backup-reminder-banner__message">
+    Aucune sauvegarde depuis 30 jours — pensez à exporter vos données.
+  </p>
+  <div class="backup-reminder-banner__actions">
+    <a class="backup-reminder-banner__link" routerLink="/settings/export">Exporter</a>
+    <button class="backup-reminder-banner__dismiss" type="button" (click)="dismiss.emit()">
+      Fermer
+    </button>
+  </div>
+</div>

@@ -4,6 +4,7 @@ import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app.routes';
 import { provideServiceWorker } from '@angular/service-worker';
 import { AppBootstrapService } from './core/bootstrap/app-bootstrap.service';
+import { BackupReminderService } from './core/backup/backup-reminder.service';
 import { DatabaseService } from './core/database/database.service';
 import { ThemeService } from './core/layout/theme/theme.service';
 
@@ -25,10 +26,12 @@ export const appConfig: ApplicationConfig = {
       const database = inject(DatabaseService);
       const theme = inject(ThemeService);
       const bootstrap = inject(AppBootstrapService);
+      const backupReminder = inject(BackupReminderService);
 
       try {
         await database.initialize();
         await theme.applyFromSettings();
+        await backupReminder.refresh();
       } catch (error) {
         console.error('Application bootstrap failed:', error);
         bootstrap.setBootstrapError(BOOTSTRAP_STORAGE_ERROR);

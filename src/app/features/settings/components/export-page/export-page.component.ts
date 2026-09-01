@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
+import { BackupReminderService } from '../../../../core/backup/backup-reminder.service';
 import { BackupService } from '../../../../core/backup/backup.service';
 
 @Component({
@@ -14,6 +15,7 @@ import { BackupService } from '../../../../core/backup/backup.service';
 export class ExportPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly backupService = inject(BackupService);
+  private readonly backupReminder = inject(BackupReminderService);
 
   readonly exporting = signal(false);
   readonly exportError = signal<string | null>(null);
@@ -87,6 +89,7 @@ export class ExportPageComponent {
         encrypt,
         password: encrypt ? (this.form.controls.password.value ?? undefined) : undefined,
       });
+      await this.backupReminder.refresh();
     } catch {
       this.exportError.set('Export impossible. Réessayez.');
     } finally {

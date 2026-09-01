@@ -6,6 +6,7 @@ export interface AppSettings {
   id: typeof APP_SETTINGS_SINGLETON_ID;
   theme: AppTheme;
   lastExportAt?: string;
+  backupReminderDismissedAt?: string;
   shoppingListPlanFingerprint?: string;
 }
 
