@@ -16,6 +16,7 @@ decisions_locked:
   - "Thème toujours sombre, plus chaleureux — pas de thème clair v1.1"
   - "Pas de journal alimentaire repas-par-rep — reste assistant courses-cuisine-planification"
   - "3 phases données validées : offline → APIs marques → USDA (obligatoire, pas optionnel)"
+  - "Cascade recherche unifiée verrouillée : Catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA"
 ---
 
 # Nutrition — Epics post-MVP
@@ -49,18 +50,33 @@ Phase 3 — USDA FDC (Epic 11, obligatoire)
   API FoodData Central — génériques EN + marques US/international en fallback
 ```
 
-### Cascade de recherche unifiée (cible)
+### Cascade de recherche unifiée (contrat verrouillé)
 
-| Ordre | Source | Réseau | Usage principal |
-|-------|--------|--------|-----------------|
-| 1 | Mon catalogue | ❌ | Produits déjà importés |
-| 2 | Bibliothèque Ciqual (offline) | ❌ | Ingrédients génériques FR (« œuf », « riz cuit ») |
-| 3 | OpenNutrition (offline) | ❌ | Génériques + marques + barcode (~300k, subset embarqué) |
-| 4 | Open Food Facts Search | ✅ | Marques rayon FR/EU en direct |
-| 5 | FoodRepo API | ✅ | Marques CH/EU complément |
-| 6 | USDA FoodData Central | ✅ | Génériques + marques fallback (clé utilisateur) |
+**Ordre canonique** — un seul champ de recherche, sections toujours dans cet ordre (sections vides masquées) :
 
-À la sélection : **copie locale** dans `Product` / `ProductReference` — jamais de lien vivant vers l'API.
+```
+Mon catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA
+   offline       offline     offline     online  online   online
+```
+
+| # | Source | Réseau | Rôle |
+|---|--------|--------|------|
+| 1 | **Mon catalogue** | ❌ | Produits déjà importés par l'utilisateur |
+| 2 | **Ciqual** | ❌ | Ingrédients génériques FR officiels (« œuf », « riz cuit ») |
+| 3 | **OpenNutrition** | ❌ | Génériques + marques + barcode (subset embarqué) |
+| 4 | **Open Food Facts** | ✅ | Marques rayon FR/EU en direct (Search-a-licious) |
+| 5 | **FoodRepo** | ✅ | Marques CH/EU complément |
+| 6 | **USDA FoodData Central** | ✅ | Génériques + marques fallback international |
+
+**Comportement `FoodSearchService` :**
+
+- **Offline** : sections 1 → 3 uniquement ; message discret « Recherche en ligne indisponible ».
+- **Online** : sections 1 → 3 instantanées ; sections 4 → 6 après debounce (≥ 400 ms, min 3 caractères) — appels API en parallèle, **résultats affichés dans l'ordre de la cascade** (pas de réordonnancement par pertinence globale).
+- **Import** : toute sélection crée une **copie locale** `Product` / `ProductReference` — jamais de lien vivant vers la source.
+- **Badge source** obligatoire sur chaque ligne avant import (FR-37).
+
+**Surfaces concernées :** picker ingrédient recette, ajout garde-manger, recherche onglet Produits, scan barcode (lookup offline OpenNutrition avant appel OFF).
+
 
 ---
 
@@ -107,7 +123,7 @@ Phase 3 — USDA FDC (Epic 11, obligatoire)
 ### Functional Requirements
 
 FR-25: L'utilisateur peut rechercher et importer des aliments depuis une bibliothèque embarquée (Ciqual + OpenNutrition) offline.
-FR-26: Lors de l'ajout d'un ingrédient recette, l'utilisateur peut rechercher en une fois : catalogue, bibliothèque offline, et (si réseau) APIs externes.
+FR-26: Un seul champ de recherche produit suit la cascade verrouillée : Catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA (sections vides masquées ; offline = sections 1–3 seulement).
 FR-27: L'import depuis une source externe crée un `Product` local (copie) avec macros/100 g — pas de référence distante vivante.
 FR-28: L'utilisateur peut rechercher des produits par nom via Open Food Facts Search-a-licious (GET read-only).
 FR-29: Les recherches API récentes sont mises en cache local (termes + résultats minimaux) pour réutilisation offline limitée.
@@ -280,10 +296,10 @@ Afin de trouver des produits absents d'OFF.
 
 **Acceptance Criteria:**
 
-**Given** clé FoodRepo configurée dans Paramètres (FR-35, NFR-21)
-**When** recherche unifiée avec réseau et OFF < 5 résultats pertinents
-**Then** `FoodRepoSearchProvider` interroge `foodrepo.org/api/v3/products/_search`
-**And** résultats affichés section « FoodRepo » avec badge source
+**Given** clé FoodRepo configurée dans Paramètres (FR-35, NFR-21) et réseau disponible
+**When** recherche unifiée avec debounce satisfait
+**Then** `FoodRepoSearchProvider` interroge `foodrepo.org/api/v3/products/_search` en parallèle des autres providers online
+**And** résultats affichés en **section 5** de la cascade (après OFF, avant USDA)
 **And** import crée ProductReference avec barcode si présent
 **When** pas de clé → section masquée, lien « Configurer FoodRepo » dans Paramètres
 
@@ -295,29 +311,32 @@ Afin de couvrir génériques et marques internationales.
 
 **Acceptance Criteria:**
 
-**Given** clé USDA (api.data.gov) dans Paramètres — obligatoire pour activer Phase 3 (FR-34)
-**When** je recherche et sections locales + OFF + FoodRepo insuffisantes
-**Then** `UsdaFdcSearchProvider` appelle `/fdc/v1/foods/search` avec `dataType=Foundation,SR Legacy,Branded`
+**Given** clé USDA (api.data.gov) dans Paramètres (FR-34, Phase 3 obligatoire)
+**When** recherche unifiée online avec debounce satisfait
+**Then** `UsdaFdcSearchProvider` interroge `/fdc/v1/foods/search` en parallèle des autres providers online
+**And** résultats affichés en **section 6** (dernière de la cascade)
 **And** mapping nutriments USDA → champs app (kcal, P, L, G, fibres)
 **And** alias FR courants → terme EN (« œuf » → « egg ») via table embarquée `fr-en-food-aliases.json`
 **And** résultats section « USDA » ; import copie locale (FR-27)
 **And** cache IndexedDB des fiches USDA importées (NFR-20)
 **When** pas de clé → bannière Paramètres « Ajoutez votre clé USDA gratuite »
 
-### Story 11.4: Recherche unifiée cascade (toutes phases)
+### Story 11.4: Recherche unifiée — implémentation cascade
 
 En tant qu'utilisateur,
-Je veux un seul champ partout avec toutes les sources,
-Afin de ne pas choisir manuellement.
+Je veux un seul champ dont les résultats respectent toujours la cascade,
+Afin de retrouver les mêmes sections partout dans l'app.
 
 **Acceptance Criteria:**
 
-**Given** le picker produit (recette, garde-manger, catalogue)
-**When** je recherche
-**Then** ordre : Catalogue → Ciqual → OpenNutrition → (online) OFF → FoodRepo → USDA (FR-26)
-**And** chaque section affiche badge source + spinner indépendant
-**And** sections online masquées si offline
-**And** bouton explicite « Rechercher en ligne » si debounce insuffisant (NFR-19)
+**Given** le picker produit (recette, garde-manger, catalogue, scan)
+**When** je saisis une recherche
+**Then** `FoodSearchService` applique strictement : Catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA (FR-26)
+**And** sections sans résultat sont masquées (pas de section vide)
+**And** offline : sections 4–6 absentes + message « Hors ligne »
+**And** online : providers 4–6 en parallèle après debounce ; spinners par section
+**And** badge source sur chaque ligne ; ordre interne à une section = pertinence locale uniquement
+**And** bouton « Rechercher en ligne » si l'utilisateur préfère déclencher manuellement (NFR-19)
 
 ### Story 11.5: Cache local recherches API
 

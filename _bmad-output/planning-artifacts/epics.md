@@ -626,9 +626,11 @@ Afin de ne pas perdre mes données.
 
 **Ordre recommandé :** E10 → E11 → E9 → E12
 
+**Cascade recherche unifiée :** `Mon catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA`
+
 | Epic | Titre | Priorité |
 |------|-------|----------|
-| E10 | Bibliothèque offline Ciqual + OpenNutrition | #1 — friction recettes |
-| E11 | Recherche multi-providers OFF + FoodRepo + USDA | #2–3 — marques + fallback obligatoire |
-| E9 | Identité visuelle sombre chaleureuse | #4 — palette nature sur fond sombre |
-| E12 | Accueil intelligent et onboarding recette | #5 — guidage |
+| E10 | Bibliothèque offline Ciqual + OpenNutrition | #1 — sections 1–3 cascade |
+| E11 | Providers OFF + FoodRepo + USDA | #2–3 — cascade complète |
+| E9 | Identité visuelle sombre chaleureuse | #4 |
+| E12 | Accueil intelligent et onboarding recette | #5 |

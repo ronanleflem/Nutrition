@@ -2,6 +2,28 @@
 
 > Référence pour Epic 10–11 (post-MVP). Dernière mise à jour : 2026-09-01.
 
+## Cascade de recherche unifiée (contrat verrouillé)
+
+Un seul champ de recherche ; sections toujours dans cet ordre (vides masquées) :
+
+```
+Mon catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA
+   offline       offline     offline     online  online   online
+```
+
+| # | Source | Phase | Réseau |
+|---|--------|-------|--------|
+| 1 | Mon catalogue (IndexedDB) | — | ❌ |
+| 2 | Ciqual embarqué | 1 | ❌ |
+| 3 | OpenNutrition embarqué | 1 | ❌ |
+| 4 | Open Food Facts Search-a-licious | 2 | ✅ |
+| 5 | FoodRepo API | 2 | ✅ |
+| 6 | USDA FoodData Central | 3 | ✅ |
+
+Offline : sections 1–3. Online : 1–3 instantané, 4–6 en parallèle après debounce, affichage dans l'ordre ci-dessus.
+
+---
+
 ## Sources intégrées (validées)
 
 ### Phase 1 — Offline embarqué
