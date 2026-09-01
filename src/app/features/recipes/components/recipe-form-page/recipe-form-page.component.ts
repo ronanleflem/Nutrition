@@ -46,8 +46,8 @@ export class RecipeFormPageComponent implements OnInit {
     ]),
   });
 
-  ngOnInit(): void {
-    void this.productsService.loadCatalog();
+  async ngOnInit(): Promise<void> {
+    await this.productsService.loadCatalog();
   }
 
   get steps(): FormArray {
