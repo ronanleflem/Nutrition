@@ -73,10 +73,11 @@ src/app/
 
 Ordre : **E10 → E11 → E9 → E12** — voir `planning-artifacts/epics-post-mvp.md`.
 
-- **E10** — Bibliothèque d'aliments de base embarquée (œuf, riz, poulet…) ; recherche unifiée à l'ajout ingrédient recette.
-- **E11** — Recherche texte Open Food Facts + cache local ; complète le scan barcode.
+- **E10** — Bibliothèque offline Ciqual + OpenNutrition ; recherche unifiée à l'ajout ingrédient.
+- **E11** — Recherche multi-providers : OFF Search-a-licious, FoodRepo, USDA FDC (obligatoire).
 - **E9** — Thème sombre chaleureux (palette nature), pas de thème clair.
 - **E12** — Accueil / onboarding première recette.
+- Sources détaillées : `planning-artifacts/DATA-SOURCES.md`.
 
 Toujours hors scope : journal alimentaire repas-par-rep, comptes cloud.
 

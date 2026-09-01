@@ -628,7 +628,7 @@ Afin de ne pas perdre mes données.
 
 | Epic | Titre | Priorité |
 |------|-------|----------|
-| E10 | Bibliothèque d'aliments de base | #1 — friction recettes |
-| E11 | Recherche produit enrichie (OFF + cache) | #2 — maison + magasin |
-| E9 | Identité visuelle sombre chaleureuse | #3 — palette nature sur fond sombre |
-| E12 | Accueil intelligent et onboarding recette | #4 — guidage |
+| E10 | Bibliothèque offline Ciqual + OpenNutrition | #1 — friction recettes |
+| E11 | Recherche multi-providers OFF + FoodRepo + USDA | #2–3 — marques + fallback obligatoire |
+| E9 | Identité visuelle sombre chaleureuse | #4 — palette nature sur fond sombre |
+| E12 | Accueil intelligent et onboarding recette | #5 — guidage |
