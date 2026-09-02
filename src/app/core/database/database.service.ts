@@ -263,6 +263,16 @@ export class DatabaseService {
     });
   }
 
+  async updateHideHomeOnStartup(hideHome: boolean): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    await this.db!.appSettings.put({
+      ...settings,
+      hideHomeOnStartup: hideHome || undefined,
+    });
+  }
+
   async putUsdaFoodCacheEntry(entry: UsdaFoodCacheEntry): Promise<void> {
     await this.initialize();
     await this.db!.usdaFoodCache.put(entry);

@@ -11,6 +11,25 @@
     <a class="settings-page__link" routerLink="/settings/data-sources">Sources de données</a>
   </nav>
 
+  <section class="settings-page__section" aria-label="Accueil">
+    <h2 class="settings-page__section-title">Accueil</h2>
+    <label class="settings-page__field settings-page__field--checkbox">
+      <input
+        type="checkbox"
+        [checked]="hideHomeOnStartup()"
+        [disabled]="savingHomePreference()"
+        (change)="onHideHomeChange($event)"
+      />
+      <span class="settings-page__label">Masquer l'accueil au démarrage</span>
+    </label>
+    @if (homePreferenceMessage()) {
+      <p class="settings-page__status" role="status">{{ homePreferenceMessage() }}</p>
+    }
+    @if (homePreferenceError()) {
+      <p class="settings-page__error" role="alert">{{ homePreferenceError() }}</p>
+    }
+  </section>
+
   <section class="settings-page__section" aria-label="Recherche en ligne">
     <h2 class="settings-page__section-title">Recherche en ligne</h2>
     <p class="settings-page__section-intro">

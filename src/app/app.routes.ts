@@ -1,14 +1,27 @@
+import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 
+import { DatabaseService } from './core/database/database.service';
 import { NotFoundPageComponent } from './core/layout/not-found/not-found-page.component';
 import { ShellComponent } from './core/layout/shell/shell.component';
+
+export async function resolveStartupPath(): Promise<string> {
+  const database = inject(DatabaseService);
+  const settings = await database.getAppSettings();
+  return settings.hideHomeOnStartup === true ? 'pantry' : 'home';
+}
 
 export const routes: Routes = [
   {
     path: '',
     component: ShellComponent,
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'pantry' },
+      { path: '', pathMatch: 'full', redirectTo: resolveStartupPath },
+      {
+        path: 'home',
+        data: { title: 'Accueil' },
+        loadChildren: () => import('./features/home/home.routes').then((m) => m.HOME_ROUTES),
+      },
       {
         path: 'pantry',
         data: { title: 'Garde-manger' },

@@ -72,6 +72,14 @@ describe('DatabaseService', () => {
     expect(settings.theme).toBe('dark');
   });
 
+  it('persists hideHomeOnStartup without a schema bump', async () => {
+    await service.updateHideHomeOnStartup(true);
+    expect((await service.getAppSettings()).hideHomeOnStartup).toBe(true);
+
+    await service.updateHideHomeOnStartup(false);
+    expect((await service.getAppSettings()).hideHomeOnStartup).toBeUndefined();
+  });
+
   it('creates a product and returns it from listActiveProducts', async () => {
     const created = await service.createProduct({
       name: 'Skyr nature',

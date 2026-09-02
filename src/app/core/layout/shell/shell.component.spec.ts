@@ -37,6 +37,7 @@ describe('ShellComponent', () => {
             component: ShellComponent,
             children: [
               { path: '', pathMatch: 'full', redirectTo: 'pantry' },
+              { path: 'home', component: StubPageComponent, data: { title: 'Accueil' } },
               { path: 'pantry', component: StubPageComponent, data: { title: 'Garde-manger' } },
               { path: 'plan', component: StubPageComponent, data: { title: 'Plan' } },
               { path: 'goals', component: StubPageComponent, data: { title: 'Objectifs' } },
@@ -115,6 +116,37 @@ describe('ShellComponent', () => {
     const title = getShellElement().querySelector('.shell__title') as HTMLElement;
     expect(shell.pageTitle()).toBe('Plan');
     expect(title.textContent?.trim()).toBe('Plan');
+  });
+
+  it('links the header title to /home when not already on Accueil', async () => {
+    await TestBed.inject(Router).navigateByUrl('/pantry');
+    hostFixture.detectChanges();
+
+    const titleLink = getShellElement().querySelector('a.shell__title') as HTMLAnchorElement;
+    expect(titleLink).toBeTruthy();
+    expect(titleLink.getAttribute('aria-label')).toBe('Accueil');
+    expect(titleLink.getAttribute('href')).toBe('/home');
+    expect(titleLink.textContent?.trim()).toBe('Garde-manger');
+  });
+
+  it('keeps a static header title on /home', async () => {
+    await TestBed.inject(Router).navigateByUrl('/home');
+    hostFixture.detectChanges();
+
+    expect(getShellElement().querySelector('a.shell__title')).toBeNull();
+    const title = getShellElement().querySelector('h1.shell__title') as HTMLElement;
+    expect(title.textContent?.trim()).toBe('Accueil');
+  });
+
+  it('does not highlight a bottom-nav tab on /home and keeps five tabs', async () => {
+    await TestBed.inject(Router).navigateByUrl('/home');
+    hostFixture.detectChanges();
+
+    const labels = Array.from(getShellElement().querySelectorAll('.bottom-nav__label')).map(
+      (element) => element.textContent?.trim(),
+    );
+    expect(labels).toHaveLength(5);
+    expect(getShellElement().querySelectorAll('.bottom-nav__item--active').length).toBe(0);
   });
 
   it('does not highlight a bottom-nav tab on /goals', async () => {

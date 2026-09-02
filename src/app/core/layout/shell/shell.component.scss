@@ -28,6 +28,20 @@
   line-height: 1.3;
 }
 
+.shell__title--link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--spacing-touch-min);
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+}
+
+.shell__title--link:focus-visible {
+  outline: 2px solid var(--color-accent-positive);
+  outline-offset: 2px;
+}
+
 .shell__settings {
   display: flex;
   align-items: center;

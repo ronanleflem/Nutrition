@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 import type { PantryItemWithProduct } from '../../core/models/pantry-item';
 import {
@@ -18,12 +19,16 @@ import { PantryService } from './pantry.service';
   styleUrl: './pantry-page.component.scss',
 })
 export class PantryPageComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
   protected readonly pantry = inject(PantryService);
 
   readonly sheetOpen = signal(false);
   readonly editingItem = signal<PantryItemWithProduct | null>(null);
 
   ngOnInit(): void {
+    if (this.route.snapshot.queryParamMap.get('filter') === 'expiring') {
+      this.pantry.setFilterMode('expiring');
+    }
     void this.pantry.refresh();
   }
 
