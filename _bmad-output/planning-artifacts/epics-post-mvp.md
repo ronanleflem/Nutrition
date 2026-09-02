@@ -2,8 +2,8 @@
 title: "Epics post-MVP — Nutrition"
 status: draft
 created: 2026-09-01
-updated: 2026-09-01
-source: "Retour utilisateur post-MVP — friction recettes, recherche produits, identité visuelle"
+updated: 2026-09-02
+source: "Retour utilisateur post-MVP — friction recettes, recherche produits, identité visuelle, visuels persistants UX PR #25"
 inputDocuments:
   - planning-artifacts/brief-2026-08-30/brief.md
   - planning-artifacts/prds/prd-Nutrition-2026-08-30/prd.md
@@ -17,6 +17,8 @@ decisions_locked:
   - "Pas de journal alimentaire repas-par-rep — reste assistant courses-cuisine-planification"
   - "3 phases données validées : offline → APIs marques → USDA (obligatoire, pas optionnel)"
   - "Cascade recherche unifiée verrouillée : Catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA"
+  - "Visuels persistants (E13) : maison visuelle / magasin nu — contrat UX DESIGN.md + EXPERIENCE.md PR #25"
+  - "E9.2 interdiction photos réalistes levée pour recettes user + vignettes OFF ; pictos catégorie conservés"
 ---
 
 # Nutrition — Epics post-MVP
@@ -30,7 +32,7 @@ Le MVP (Epics 1–8) couvre le parcours courses-cuisine-planification. Le retour
 | Saisie pénible des ingrédients / macros en recette | **Epic 10** en priorité absolue |
 | Recherche type MyFitnessPal (« œuf », « skyr ») | **3 phases données** (voir ci-dessous) |
 | Marques avec macros / calories | OFF + OpenNutrition offline + FoodRepo + USDA |
-| App trop sobre | **Epic 9** — sombre chaleureux |
+| App trop sobre | **Epic 9** — sombre chaleureux ; **Epic 13** — photos, bandeaux, vignettes OFF |
 | Guidage / onboarding | **Epic 12** — après friction recettes résolue |
 
 **Hors scope** (inchangé) : journal alimentaire quotidien, comptes cloud, gamification culpabilisante, thème clair.
@@ -114,7 +116,9 @@ Mon catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA
 
 ## Ordre d'implémentation epics
 
-**E10 → E11 → E9 → E12**
+**E10 → E11 → E9 → E12 → E13**
+
+Epic 13 implémente le contrat UX « visuels persistants » (spines PR #25) après l’accueil et l’onboarding.
 
 ---
 
@@ -136,6 +140,13 @@ FR-35: L'utilisateur peut rechercher des produits marque via FoodRepo (clé opti
 FR-36: L'utilisateur peut rechercher par barcode dans la bibliothèque OpenNutrition embarquée (offline).
 FR-37: Chaque résultat affiche sa source (Ciqual, OpenNutrition, OFF, FoodRepo, USDA) avant import.
 FR-38: L'écran À propos / Paramètres affiche les attributions licence (Ciqual Etalab, OpenNutrition ODbL, OFF ODbL, FoodRepo CC-BY, USDA).
+FR-39: L'utilisateur peut ajouter une photo à une recette (liste vignette 72 px, hero détail, pastille plan) ; placeholder plat partagé si absente.
+FR-40: Après création d'une recette (y compris première recette onboarding), un écran « Ajouter une photo ? » propose Galerie, Caméra ou Plus tard — recette déjà persistée.
+FR-41: Les produits du catalogue affichent une vignette OFF (72 px) copiée localement à l'import ; preview scan idem ; jamais de photo prise par l'utilisateur sur un produit.
+FR-42: Garde-manger, Recettes et Plan affichent un bandeau illustré ~100 px (une scène par surface, illustrations statiques, une main).
+FR-43: L'export inclut toujours les blobs images (photos recettes + vignettes OFF) ; l'import restaure ou applique fallback placeholder/picto ; résumé visuels restaurés vs manquants.
+FR-44: Accueil, onboarding, Mode Courses, liste Courses normale, Objectifs et Paramètres n'affichent aucune photo ni bandeau illustré (magasin nu).
+FR-45: La couche visuelle respecte l'accessibilité : labels priorité visibles, contrastes DESIGN.md, aria-checked Mode Courses, hit targets carte/créneau/ligne ≥ 44 px.
 
 ### Non-Functional Requirements
 
@@ -155,6 +166,7 @@ FR-25, FR-26, FR-27, FR-36 → Epic 10
 FR-26, FR-28, FR-29, FR-34, FR-35, FR-37, FR-38 → Epic 11
 FR-30, FR-31 → Epic 9
 FR-32, FR-33 → Epic 12
+FR-39, FR-40, FR-41, FR-42, FR-43, FR-44, FR-45 → Epic 13
 
 ---
 
@@ -176,6 +188,12 @@ L'utilisateur complète sa recherche en ligne via OFF, FoodRepo et USDA FDC — 
 
 ### Epic 12: Accueil intelligent et onboarding recette
 **FRs couverts:** FR-32, FR-33
+
+### Epic 13: Visuels persistants (maison visuelle / magasin nu)
+L'utilisateur voit photos recettes, vignettes OFF et bandeaux à la maison ; les surfaces magasin restent sans image.
+**FRs couverts:** FR-39, FR-40, FR-41, FR-42, FR-43, FR-44, FR-45
+**Dépendances:** Epic 9 (palette forêt), Epic 12 (onboarding → photo-prompt), Epic 8 (export/import blobs)
+**Contrat UX:** `ux-designs/ux-Nutrition-2026-08-30/DESIGN.md` + `EXPERIENCE.md`
 
 ---
 
@@ -398,6 +416,122 @@ Afin de respecter les sources et activer USDA/FoodRepo.
 ### Story 12.3: Raccourcis contextuels cross-surfaces
 
 **Acceptance Criteria:** (inchangé)
+
+---
+
+## Epic 13: Visuels persistants (maison visuelle / magasin nu)
+
+> Contrat UX : `DESIGN.md` + `EXPERIENCE.md` (PR #25). Les spines gagnent sur les mocks.
+
+### Story 13.1: Stockage blobs et pipeline image WebP
+
+En tant que développeur,
+Je veux persister les images recettes et vignettes OFF en blobs locaux avec resize WebP,
+Afin d'afficher les visuels sans requête réseau et de les inclure dans le backup.
+
+**Acceptance Criteria:**
+
+**Given** le schéma Dexie existant
+**When** le modèle images est ajouté (ex. table `imageBlobs` + `photoBlobId` sur `Recipe`, `thumbBlobId` sur `ProductReference`)
+**Then** un service `ImageBlobService` stocke, lit et supprime des blobs avec MIME `image/webp`
+**And** resize côté client à l'import (largeur max raisonnable, qualité WebP) — pas d'écran crop (FR-39, UX Visuels persistants)
+**And** suppression blob orphelin possible quand photo retirée
+**And** tests unitaires sur round-trip store/get/delete
+
+### Story 13.2: Photo recette — prompt et CRUD
+
+En tant qu'utilisateur,
+Je veux qu'on me propose d'ajouter une photo après avoir créé une recette,
+Afin de reconnaître mes plats en liste et au plan.
+
+**Acceptance Criteria:**
+
+**Given** une recette enregistrée avec titre non blanc (FR-40)
+**When** je valide la création (formulaire recettes ou fin onboarding omelette/custom)
+**Then** l'écran `photo-prompt` s'affiche : « Ajouter une photo ? » + Galerie / Caméra / Plus tard (recette déjà persistée)
+**And** onboarding Flow 8 : même prompt avant redirection `/home` et `onboardingCompleted = true`
+**And** Galerie ou Caméra → picker système → blob via 13.1 → association `Recipe.photoBlobId`
+**And** Plus tard, retour système ou picker annulé → placeholder (pas de photo)
+**And** caméra refusée → Galerie seulement + message factuel ; galerie refusée → Plus tard + message
+**And** détail recette : menu Ajouter / Changer / Retirer photo
+**And** échec **ajout** → placeholder + « Photo non enregistrée. La recette est sauvegardée. »
+**And** échec **remplacement** → ancienne photo conservée + même message
+**And** focus initial Galerie ; ordre tab adapté si Caméra absente (FR-45)
+
+### Story 13.3: Affichage recettes et plan (vignettes, hero, placeholder)
+
+En tant qu'utilisateur,
+Je veux voir mes photos (ou un placeholder cohérent) en liste, détail et plan,
+Afin de reconnaître rapidement mes recettes.
+
+**Acceptance Criteria:**
+
+**Given** des recettes avec ou sans `photoBlobId`
+**When** j'affiche la liste Recettes
+**Then** `recipe-card` : vignette 72 px à gauche, titre + variante à droite, pas de titre en overlay (FR-39)
+**And** sans photo : `recipe-photo-placeholder` (illustration plat partagée, `aria-hidden`)
+**When** j'ouvre le détail
+**Then** `recipe-hero` 180 px cover centré ou placeholder agrandi
+**And** `alt` photo = titre recette
+**When** j'affiche le Plan
+**Then** créneau rempli : `plan-slot-thumb` 40 px (photo ou placeholder) ; créneau vide : « + » en `{colors.ink-secondary}`
+**And** hit target = carte / créneau entier ≥ 44 px (FR-45)
+**And** Mode Courses : aucune vignette (FR-44)
+
+### Story 13.4: Bandeaux de surface
+
+En tant qu'utilisateur,
+Je veux un bandeau thématique en tête de Garde-manger, Recettes et Plan,
+Afin que l'app ait une présence visuelle même avec des listes remplies.
+
+**Acceptance Criteria:**
+
+**Given** les onglets Garde-manger, Recettes ou Plan (liste vide ou remplie)
+**When** la liste s'affiche
+**Then** `surface-banner` ~100 px sous le header (sous `backup-reminder-banner` si visible) avec scène distincte : étagères / plat-planche / semaine-table (FR-42)
+**And** illustrations statiques, une main, palette forêt, `aria-hidden`
+**And** absent sur sous-écrans, Accueil, onboarding, Mode Courses, Objectifs, Paramètres (FR-44)
+**And** coexiste avec `EmptyState` E9 sur listes vides
+
+### Story 13.5: Vignettes OFF catalogue et preview scan
+
+En tant qu'utilisateur,
+Je veux voir la photo OFF d'un produit en liste et au scan,
+Afin de reconnaître les marques dans mon catalogue.
+
+**Acceptance Criteria:**
+
+**Given** un produit avec ref préférée ayant une image OFF importée
+**When** j'affiche la liste Produits
+**Then** `product-card` : vignette 72 px `cover` à gauche (FR-41)
+**And** image OFF copiée localement à l'import scan/catalogue — pas de fetch réseau à l'affichage
+**And** sans image : `food-category-label` (picto + texte), pas de trou vide
+**And** ref préférée archivée sans image → picto catégorie
+**And** preview scan / import : vignette OFF si fournie, sinon picto
+**And** jamais de photo prise par l'utilisateur sur un produit (FR-41, FR-44)
+**And** vignette décorative `alt=""` — nom produit visible suffit (FR-45)
+
+### Story 13.6: Export/import blobs et accessibilité visuelle
+
+En tant qu'utilisateur,
+Je veux que mes photos survivent à un export/import et que l'UI reste accessible,
+Afin de migrer d'appareil sans image cassée ni barrière a11y.
+
+**Acceptance Criteria:**
+
+**Given** des photos recettes et vignettes OFF en base
+**When** j'exporte (clair ou chiffré)
+**Then** tous les blobs référencés sont inclus — pas d'opt-out (FR-43)
+**And** avertissement si fichier volumineux avant chiffrement long
+**When** j'importe (replace ou merge)
+**Then** blob manquant pour une entité → placeholder recette ou picto produit, pas d'`<img>` cassée
+**And** merge recette même id : photo import gagne si blob présent, sinon conserver locale
+**And** toast résumé « Import terminé — X photos restaurées, Y manquantes »
+**And** mot de passe incorrect / fichier invalide : message clair, données intactes (UJ-3)
+**And** `priority-badge` : pastille + label visible Haute/Moyenne/Basse (FR-45, WCAG 1.4.1)
+**And** `shopping-row` Mode Courses : `aria-checked` + barré ; corps coché en encre primaire
+**And** contrastes porteurs conformes au tableau `DESIGN.md` § Colors (FR-45, NFR-17)
+**And** toasts succès/erreur photo et export : `aria-live="polite"`
 
 ---
 
