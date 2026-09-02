@@ -11,6 +11,7 @@ import { DatabaseService } from '../../core/database/database.service';
 import {
   CONTEXT_MENU_ACTIONS,
   CONTEXT_SHORTCUT_MESSAGES,
+  LONG_PRESS_DURATION_MS,
 } from '../../core/ui/context-shortcuts/context-shortcuts.models';
 import { ContextShortcutsService } from '../../core/ui/context-shortcuts/context-shortcuts.service';
 import { ShoppingListService } from '../shopping-list/services/shopping-list.service';
@@ -88,10 +89,7 @@ describe('ProductsPageComponent', () => {
 
   afterEach(async () => {
     vi.restoreAllMocks();
-    const shortcuts = TestBed.inject(ContextShortcutsService);
-    shortcuts.closeSheet();
-    shortcuts.confirmation.set(null);
-    shortcuts.actionError.set(null);
+    TestBed.inject(ContextShortcutsService).reset();
     fixture.destroy();
     await database.closeForTests();
     await deleteNutritionDatabase();
@@ -309,6 +307,7 @@ describe('ProductsPageComponent', () => {
     const detail = await database.getRecipeDetail(recipes[0]!.recipe.id);
     expect(detail?.variants[0]?.name).toBe('Base');
     expect(detail?.variants[0]?.ingredients[0]?.productId).toBe(product.id);
+    expect(detail?.variants[0]?.ingredients[0]?.quantityG).toBe(90);
     expect(fixture.nativeElement.textContent).toContain(CONTEXT_SHORTCUT_MESSAGES.recipeCreated);
     expect(TestBed.inject(Router).url).toBe('/products');
   });
@@ -358,9 +357,8 @@ describe('ProductsPageComponent', () => {
     }
 
     const detail = await database.getRecipeDetail(existing.recipe.id);
-    expect(detail?.variants[0]?.ingredients.some((ingredient) => ingredient.productId === product.id)).toBe(
-      true,
-    );
+    const added = detail?.variants[0]?.ingredients.find((ingredient) => ingredient.productId === product.id);
+    expect(added?.quantityG).toBe(40);
     expect(fixture.nativeElement.textContent).toContain(CONTEXT_SHORTCUT_MESSAGES.ingredientAdded);
     expect(TestBed.inject(Router).url).toBe('/products');
   });
@@ -436,6 +434,54 @@ describe('ProductsPageComponent', () => {
     (fixture.nativeElement.querySelector('.sheet__close') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="menu"]')).toBeNull();
+    expect(TestBed.inject(Router).url).toBe('/products');
+  });
+
+  it('shows the preferred-reference error when appending to an existing recipe', async () => {
+    await database.createProduct({ name: 'Sans ref' });
+    const other = await seedCatalogProduct('Avoine');
+    const existing = await database.createRecipeWithFirstVariant({
+      recipe: { title: 'Porridge', steps: ['Mélanger'], defaultPortions: 1 },
+      variantName: 'Base',
+      ingredients: [{ productId: other.id, quantityG: 50 }],
+    });
+    await productsService.loadCatalog();
+    await TestBed.inject(Router).navigateByUrl('/products');
+    fixture.detectChanges();
+    await waitForLoad();
+    const sansRefCard = [...fixture.nativeElement.querySelectorAll('.product-card')].find((card) =>
+      (card.textContent ?? '').includes('Sans ref'),
+    ) as HTMLElement;
+    (sansRefCard.querySelector('[aria-haspopup="menu"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    clickAction(CONTEXT_MENU_ACTIONS.useInRecipe);
+
+    const sheet = fixture.debugElement.query(By.directive(UseInRecipeSheetComponent))
+      .componentInstance as UseInRecipeSheetComponent;
+    await sheet.onRecipeSelected(existing.recipe.id);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toMatch(/référence préférée/i);
+    expect(fixture.debugElement.query(By.directive(UseInRecipeSheetComponent))).toBeTruthy();
+  });
+
+  it('opens the three actions after a long-press on the catalog card', async () => {
+    await seedCatalogProduct('Skyr nature');
+    await TestBed.inject(Router).navigateByUrl('/products');
+    fixture.detectChanges();
+    await waitForLoad();
+
+    const card = fixture.nativeElement.querySelector('.product-card') as HTMLElement;
+    card.dispatchEvent(
+      new PointerEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, clientX: 8, clientY: 8 }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, LONG_PRESS_DURATION_MS + 30));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain(CONTEXT_MENU_ACTIONS.pantry);
+    expect(text).toContain(CONTEXT_MENU_ACTIONS.useInRecipe);
+    expect(text).toContain(CONTEXT_MENU_ACTIONS.shopping);
     expect(TestBed.inject(Router).url).toBe('/products');
   });
 

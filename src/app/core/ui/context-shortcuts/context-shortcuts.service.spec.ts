@@ -84,6 +84,7 @@ describe('ContextShortcutsService', () => {
       name: 'pantry',
       productId,
       productName: 'Œuf',
+      quantityG: 120,
     });
   });
 
@@ -115,9 +116,22 @@ describe('ContextShortcutsService', () => {
 
     const items = await database.listShoppingListItemsWithProducts();
     expect(items).toHaveLength(2);
-    expect(items.map((item) => item.productId).sort()).toEqual([butterId, eggId].sort());
+    expect(items.find((item) => item.productId === eggId)?.quantityG).toBe(120);
+    expect(items.find((item) => item.productId === butterId)?.quantityG).toBe(10);
     expect(service.confirmation()).toBe(CONTEXT_SHORTCUT_MESSAGES.itemsAdded);
     expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it('surfaces a French error when the recipe cannot be loaded for pantry', async () => {
+    service.openMenu({
+      kind: 'recipe',
+      recipeId: 'missing-recipe-id',
+      recipeTitle: 'Fantôme',
+    });
+    await service.handleMenuAction('pantry');
+
+    expect(service.actionError()).toBe('Recette introuvable.');
+    expect(service.sheet()).toBeNull();
   });
 
   it('shows a French empty message when the default variant has no ingredients', async () => {

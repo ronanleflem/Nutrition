@@ -19,25 +19,40 @@ export class ContextShortcutsService {
   readonly confirmation = signal<string | null>(null);
   readonly actionError = signal<string | null>(null);
 
+  private generation = 0;
+  private inflight = false;
+  private confirmationTimer: ReturnType<typeof setTimeout> | null = null;
+
   openMenu(target: ShortcutTarget): void {
+    this.generation += 1;
     this.actionError.set(null);
-    this.confirmation.set(null);
+    this.clearConfirmation();
     this.sheet.set({ name: 'menu', target });
   }
 
   closeSheet(): void {
+    this.generation += 1;
     this.sheet.set(null);
+  }
+
+  reset(): void {
+    this.generation += 1;
+    this.inflight = false;
+    this.sheet.set(null);
+    this.actionError.set(null);
+    this.clearConfirmation();
   }
 
   async handleMenuAction(action: ContextMenuAction): Promise<void> {
     const current = this.sheet();
-    if (current?.name !== 'menu') {
+    if (current?.name !== 'menu' || this.inflight) {
       return;
     }
 
     const target = current.target;
+    const token = this.generation;
     this.actionError.set(null);
-    this.confirmation.set(null);
+    this.clearConfirmation();
 
     if (target.kind === 'product') {
       if (action === 'pantry') {
@@ -66,20 +81,23 @@ export class ContextShortcutsService {
       return;
     }
 
-    if (action === 'pantry') {
-      await this.openRecipePantry(target.recipeId);
-      return;
-    }
-
-    if (action === 'shopping') {
-      try {
+    this.inflight = true;
+    try {
+      if (action === 'pantry') {
+        await this.openRecipePantry(target.recipeId);
+      } else if (action === 'shopping') {
         await this.addRecipeToShopping(target.recipeId);
-      } catch (error) {
-        this.actionError.set(
-          error instanceof Error ? error.message : 'Impossible d’ajouter à la liste.',
-        );
-        this.sheet.set(null);
       }
+    } catch (error) {
+      if (token !== this.generation) {
+        return;
+      }
+      this.actionError.set(
+        error instanceof Error ? error.message : 'Impossible d’ouvrir le raccourci.',
+      );
+      this.sheet.set(null);
+    } finally {
+      this.inflight = false;
     }
   }
 
@@ -88,35 +106,41 @@ export class ContextShortcutsService {
       name: 'pantry',
       productId: ingredient.productId,
       productName: ingredient.productName,
+      quantityG: ingredient.quantityG,
     });
   }
 
   onPantrySaved(): void {
-    this.confirmation.set(CONTEXT_SHORTCUT_MESSAGES.productAdded);
+    this.setConfirmation(CONTEXT_SHORTCUT_MESSAGES.productAdded);
     this.actionError.set(null);
     this.sheet.set(null);
   }
 
   onShoppingSaved(): void {
-    this.confirmation.set(CONTEXT_SHORTCUT_MESSAGES.itemAdded);
+    this.setConfirmation(CONTEXT_SHORTCUT_MESSAGES.itemAdded);
     this.actionError.set(null);
     this.sheet.set(null);
   }
 
   onRecipeCreated(): void {
-    this.confirmation.set(CONTEXT_SHORTCUT_MESSAGES.recipeCreated);
+    this.setConfirmation(CONTEXT_SHORTCUT_MESSAGES.recipeCreated);
     this.actionError.set(null);
     this.sheet.set(null);
   }
 
   onIngredientAppended(): void {
-    this.confirmation.set(CONTEXT_SHORTCUT_MESSAGES.ingredientAdded);
+    this.setConfirmation(CONTEXT_SHORTCUT_MESSAGES.ingredientAdded);
     this.actionError.set(null);
     this.sheet.set(null);
   }
 
   private async openRecipePantry(recipeId: string): Promise<void> {
+    const token = this.generation;
     const ingredients = await this.defaultVariantIngredients(recipeId);
+    if (token !== this.generation) {
+      return;
+    }
+
     if (ingredients.length === 0) {
       this.actionError.set(CONTEXT_SHORTCUT_MESSAGES.emptyVariant);
       this.sheet.set(null);
@@ -128,6 +152,7 @@ export class ContextShortcutsService {
         name: 'pantry',
         productId: ingredients[0].productId,
         productName: ingredients[0].productName,
+        quantityG: ingredients[0].quantityG,
       });
       return;
     }
@@ -136,7 +161,12 @@ export class ContextShortcutsService {
   }
 
   private async addRecipeToShopping(recipeId: string): Promise<void> {
+    const token = this.generation;
     const ingredients = await this.defaultVariantIngredients(recipeId);
+    if (token !== this.generation) {
+      return;
+    }
+
     if (ingredients.length === 0) {
       this.actionError.set(CONTEXT_SHORTCUT_MESSAGES.emptyVariant);
       this.sheet.set(null);
@@ -145,15 +175,35 @@ export class ContextShortcutsService {
 
     for (const ingredient of ingredients) {
       await this.shopping.addManualItem(ingredient.productId, ingredient.quantityG);
+      if (token !== this.generation) {
+        return;
+      }
     }
 
-    this.confirmation.set(
+    this.setConfirmation(
       ingredients.length === 1
         ? CONTEXT_SHORTCUT_MESSAGES.itemAdded
         : CONTEXT_SHORTCUT_MESSAGES.itemsAdded,
     );
     this.actionError.set(null);
     this.sheet.set(null);
+  }
+
+  private setConfirmation(message: string): void {
+    this.clearConfirmation();
+    this.confirmation.set(message);
+    this.confirmationTimer = setTimeout(() => {
+      this.confirmation.set(null);
+      this.confirmationTimer = null;
+    }, 4000);
+  }
+
+  private clearConfirmation(): void {
+    if (this.confirmationTimer != null) {
+      clearTimeout(this.confirmationTimer);
+      this.confirmationTimer = null;
+    }
+    this.confirmation.set(null);
   }
 
   private async defaultVariantIngredients(recipeId: string): Promise<ShortcutIngredientOption[]> {

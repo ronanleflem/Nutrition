@@ -1386,7 +1386,13 @@ export class DatabaseService {
       quantityG: input.quantityG,
     });
 
-    await this.db!.recipeIngredients.bulkPut([ingredient]);
+    await this.db!.transaction('rw', this.db!.recipeIngredients, this.db!.recipes, async () => {
+      await this.db!.recipeIngredients.bulkPut([ingredient]);
+      await this.db!.recipes.put({
+        ...recipe,
+        updatedAt: new Date().toISOString(),
+      });
+    });
     return ingredient;
   }
 

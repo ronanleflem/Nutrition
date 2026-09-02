@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 
 import { PantryAddSheetComponent } from '../../../features/pantry/pantry-add-sheet.component';
 import { ShoppingItemSheetComponent } from '../../../features/shopping-list/components/shopping-item-sheet/shopping-item-sheet.component';
@@ -19,6 +19,10 @@ import { UseInRecipeSheetComponent } from './use-in-recipe-sheet.component';
   templateUrl: './context-shortcuts-outlet.component.html',
   styleUrl: './context-shortcuts-outlet.component.scss',
 })
-export class ContextShortcutsOutletComponent {
+export class ContextShortcutsOutletComponent implements OnDestroy {
   protected readonly shortcuts = inject(ContextShortcutsService);
+
+  ngOnDestroy(): void {
+    this.shortcuts.reset();
+  }
 }

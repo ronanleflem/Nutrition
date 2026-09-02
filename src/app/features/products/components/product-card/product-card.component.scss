@@ -10,6 +10,8 @@
   color: inherit;
   min-height: var(--spacing-touch-min);
   touch-action: manipulation;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .product-card__body {

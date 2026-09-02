@@ -137,6 +137,7 @@ describe('RecipeDetailPageComponent shortcuts', () => {
     const sheet = fixture.debugElement.query(By.directive(PantryAddSheetComponent))
       .componentInstance as PantryAddSheetComponent;
     expect(sheet.prefillProductId()).toBe(productId);
+    expect(sheet.prefillQuantityG()).toBe(120);
     expect(TestBed.inject(Router).url).toBe(`/recipes/${recipeId}`);
   });
 
@@ -148,6 +149,7 @@ describe('RecipeDetailPageComponent shortcuts', () => {
     const items = await database.listShoppingListItemsWithProducts();
     expect(items).toHaveLength(1);
     expect(items[0]?.productId).toBe(productId);
+    expect(items[0]?.quantityG).toBe(120);
     expect(refresh).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain(CONTEXT_SHORTCUT_MESSAGES.itemAdded);
     expect(TestBed.inject(Router).url).toBe(`/recipes/${recipeId}`);

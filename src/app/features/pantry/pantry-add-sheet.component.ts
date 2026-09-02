@@ -20,6 +20,7 @@ export class PantryAddSheetComponent implements OnInit {
   readonly item = input<PantryItemWithProduct | null>(null);
   readonly prefillProductId = input<string | null>(null);
   readonly prefillProductName = input<string | null>(null);
+  readonly prefillQuantityG = input<number | null>(null);
   readonly closed = output<void>();
   readonly saved = output<void>();
 
@@ -52,8 +53,9 @@ export class PantryAddSheetComponent implements OnInit {
           location: editing.location ?? '',
         });
       } else {
+        const prefillQty = this.prefillQuantityG();
         this.form.patchValue({
-          quantityG: 100,
+          quantityG: prefillQty && prefillQty > 0 ? prefillQty : 100,
           expiryDate: '',
           location: '',
         });

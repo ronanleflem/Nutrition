@@ -70,4 +70,24 @@ describe('LongPressDirective', () => {
     link.dispatchEvent(click);
     expect(click.defaultPrevented).toBe(true);
   });
+
+  it('does not prevent a short-press click on the inner link', () => {
+    pointer('pointerdown');
+    pointer('pointerup');
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+    const link = fixture.nativeElement.querySelector('a') as HTMLAnchorElement;
+    link.dispatchEvent(click);
+    expect(click.defaultPrevented).toBe(false);
+  });
+
+  it('does not swallow a later tap after the suppress window', async () => {
+    pointer('pointerdown');
+    await new Promise((resolve) => setTimeout(resolve, LONG_PRESS_DURATION_MS + 30));
+    pointer('pointerup');
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+    const link = fixture.nativeElement.querySelector('a') as HTMLAnchorElement;
+    link.dispatchEvent(click);
+    expect(click.defaultPrevented).toBe(false);
+  });
 });

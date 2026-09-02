@@ -2,7 +2,7 @@
 title: 'Story 12.3 — Contextual cross-surface shortcuts'
 type: 'feature'
 created: '2026-09-02'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 baseline_commit: '10e7f564064a1cf874afac897e08105cad3447ec'
 context:
@@ -104,3 +104,37 @@ Do not invent drag-to-dismiss; match pantry sheet close behavior.
 - `/products` ⋮ → each of the three sheets; URL stays `/products`; detail tap still works.
 - Long-press a recipe card → pantry / liste; `/recipes/:id` ⋮ same.
 - After shortcuts, Garde-manger / Recettes / Courses show the new rows.
+
+## Suggested Review Order
+
+**Entry and orchestration**
+
+- Root service opens the menu then routes each action to a sheet on the current URL.
+  [`context-shortcuts.service.ts:26`](../../src/app/core/ui/context-shortcuts/context-shortcuts.service.ts#L26)
+
+- Outlet hosts pantry / shopping / recipe sheets and clears leftover state on destroy.
+  [`context-shortcuts-outlet.component.ts:22`](../../src/app/core/ui/context-shortcuts/context-shortcuts-outlet.component.ts#L22)
+
+**Card entry**
+
+- Catalog card: title stays the detail link; ⋮ and long-press emit the shortcut.
+  [`product-card.component.html:1`](../../src/app/features/products/components/product-card/product-card.component.html#L1)
+
+- Recipe list card uses the same split (link + ⋮ + long-press).
+  [`recipes-page.component.html:10`](../../src/app/features/recipes/recipes-page.component.html#L10)
+
+- Recipe fiche ⋮ sits next to Modifier and stays on the detail route.
+  [`recipe-detail-page.component.html:7`](../../src/app/features/recipes/components/recipe-detail-page/recipe-detail-page.component.html#L7)
+
+**Writes**
+
+- Append one ingredient to the default variant without leaving the catalog.
+  [`database.service.ts:1365`](../../src/app/core/database/database.service.ts#L1365)
+
+- Pantry and shopping sheets accept a prefilled product (and optional grams).
+  [`pantry-add-sheet.component.ts:21`](../../src/app/features/pantry/pantry-add-sheet.component.ts#L21)
+
+**Long-press**
+
+- 500 ms hold, cancel on move, suppress only the immediate following click.
+  [`long-press.directive.ts:8`](../../src/app/core/ui/context-shortcuts/long-press.directive.ts#L8)

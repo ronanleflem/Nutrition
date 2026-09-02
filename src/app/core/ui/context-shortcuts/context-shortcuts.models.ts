@@ -22,7 +22,7 @@ export interface ShortcutIngredientOption {
 
 export type ContextSheet =
   | { name: 'menu'; target: ShortcutTarget }
-  | { name: 'pantry'; productId: string; productName: string }
+  | { name: 'pantry'; productId: string; productName: string; quantityG?: number }
   | { name: 'shopping'; productId: string; productName: string }
   | { name: 'use-in-recipe'; productId: string; productName: string }
   | { name: 'pick-ingredient'; ingredients: ShortcutIngredientOption[] };

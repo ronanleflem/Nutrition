@@ -19,6 +19,7 @@
     <app-pantry-add-sheet
       [prefillProductId]="sheet.productId"
       [prefillProductName]="sheet.productName"
+      [prefillQuantityG]="sheet.quantityG ?? null"
       (closed)="shortcuts.closeSheet()"
       (saved)="shortcuts.onPantrySaved()"
     />

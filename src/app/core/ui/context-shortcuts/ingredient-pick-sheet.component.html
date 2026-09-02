@@ -19,7 +19,7 @@
     </header>
 
     <ul class="sheet__list" aria-label="Ingrédients">
-      @for (ingredient of ingredients(); track ingredient.productId) {
+      @for (ingredient of ingredients(); track $index) {
         <li>
           <button type="button" class="sheet__list-button" (click)="selected.emit(ingredient)">
             <span>{{ ingredient.productName }}</span>

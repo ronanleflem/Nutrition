@@ -24,6 +24,7 @@ export class ShoppingItemSheetComponent {
   readonly errorMessage = signal<string | null>(null);
   readonly isEditMode = signal(false);
   readonly hasProducts = signal(false);
+  private appliedPrefillId: string | null = null;
 
   readonly form = this.fb.nonNullable.group({
     productId: [''],
@@ -49,12 +50,16 @@ export class ShoppingItemSheetComponent {
       } else if (prefillId) {
         this.form.controls.productId.disable();
         this.form.controls.newProductName.disable();
+        const quantityG =
+          this.appliedPrefillId === prefillId ? this.form.controls.quantityG.value : 100;
+        this.appliedPrefillId = prefillId;
         this.form.patchValue({
           productId: prefillId,
           newProductName: '',
-          quantityG: 100,
+          quantityG,
         });
       } else {
+        this.appliedPrefillId = null;
         this.form.controls.productId.enable();
         this.form.controls.newProductName.enable();
         this.form.patchValue({

@@ -1,18 +1,24 @@
-import { Directive, HostListener, input, output } from '@angular/core';
+import { Directive, HostListener, input, OnDestroy, output } from '@angular/core';
 
 import { LONG_PRESS_DURATION_MS, LONG_PRESS_MOVE_THRESHOLD_PX } from './context-shortcuts.models';
+
+const CLICK_SUPPRESS_MS = 400;
 
 @Directive({
   selector: '[appLongPress]',
 })
-export class LongPressDirective {
+export class LongPressDirective implements OnDestroy {
   readonly longPressMs = input(LONG_PRESS_DURATION_MS);
   readonly appLongPress = output<void>();
 
   private timer: ReturnType<typeof setTimeout> | null = null;
   private startX = 0;
   private startY = 0;
-  private fired = false;
+  private suppressClickUntil = 0;
+
+  ngOnDestroy(): void {
+    this.clearTimer();
+  }
 
   @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent): void {
@@ -21,12 +27,11 @@ export class LongPressDirective {
     }
 
     this.clearTimer();
-    this.fired = false;
     this.startX = event.clientX;
     this.startY = event.clientY;
     this.timer = setTimeout(() => {
-      this.fired = true;
       this.timer = null;
+      this.suppressClickUntil = Date.now() + CLICK_SUPPRESS_MS;
       this.appLongPress.emit();
     }, this.longPressMs());
   }
@@ -53,13 +58,12 @@ export class LongPressDirective {
 
   @HostListener('click', ['$event'])
   onClick(event: Event): void {
-    if (!this.fired) {
+    if (Date.now() > this.suppressClickUntil) {
       return;
     }
 
     event.preventDefault();
     event.stopPropagation();
-    this.fired = false;
   }
 
   @HostListener('contextmenu', ['$event'])

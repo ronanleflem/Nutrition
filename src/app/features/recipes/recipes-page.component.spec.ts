@@ -148,6 +148,7 @@ describe('RecipesPageComponent', () => {
     const sheet = fixture.debugElement.query(By.directive(PantryAddSheetComponent))
       .componentInstance as PantryAddSheetComponent;
     expect(sheet.prefillProductId()).toBe(productId);
+    expect(sheet.prefillQuantityG()).toBe(120);
     expect(fixture.nativeElement.textContent).toContain('Œuf');
     expect(TestBed.inject(Router).url).toBe('/recipes');
   });
@@ -197,6 +198,8 @@ describe('RecipesPageComponent', () => {
 
     const items = await database.listShoppingListItemsWithProducts();
     expect(items).toHaveLength(2);
+    expect(items.find((item) => item.productId === eggId)?.quantityG).toBe(120);
+    expect(items.find((item) => item.productId === butterId)?.quantityG).toBe(10);
     expect(refresh).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain(CONTEXT_SHORTCUT_MESSAGES.itemsAdded);
     expect(TestBed.inject(Router).url).toBe('/recipes');
@@ -238,7 +241,7 @@ describe('RecipesPageComponent', () => {
     card.dispatchEvent(
       new PointerEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, clientX: 8, clientY: 8 }),
     );
-    await new Promise((resolve) => setTimeout(resolve, LONG_PRESS_DURATION_MS));
+    await new Promise((resolve) => setTimeout(resolve, LONG_PRESS_DURATION_MS + 40));
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain(CONTEXT_MENU_ACTIONS.pantry);
 
