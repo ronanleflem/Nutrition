@@ -1,0 +1,67 @@
+<section class="home-page">
+  @if (loading()) {
+    <p class="home-page__status" role="status">Chargement…</p>
+  } @else if (loadError()) {
+    <p class="home-page__error" role="alert">{{ loadError() }}</p>
+    <button type="button" class="home-page__retry" (click)="reload()">Réessayer</button>
+  } @else if (snapshot(); as dash) {
+    <div class="home-page__cards">
+      <a class="home-card" routerLink="/plan" data-card="meals">
+        <h2 class="home-card__title">Repas du jour</h2>
+        @if (dash.meals.length > 0) {
+          <ul class="home-card__list">
+            @for (meal of dash.meals; track meal.entryId) {
+              <li>
+                <span class="home-card__label">{{ meal.slotLabel }}</span>
+                <span class="home-card__value">{{ meal.recipeTitle }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="home-card__empty">Aucun repas prévu aujourd'hui.</p>
+          <span class="home-card__cta">Ouvrir le plan</span>
+        }
+      </a>
+
+      <a class="home-card" routerLink="/shopping" data-card="shopping">
+        <h2 class="home-card__title">Courses</h2>
+        @if (dash.remainingShoppingCount > 0) {
+          <p class="home-card__count">{{ remainingShoppingLabel(dash.remainingShoppingCount) }}</p>
+        } @else {
+          <p class="home-card__empty">Aucun article restant.</p>
+          <span class="home-card__cta">Ouvrir les courses</span>
+        }
+      </a>
+
+      <a
+        class="home-card"
+        routerLink="/pantry"
+        [queryParams]="{ filter: 'expiring' }"
+        data-card="dlc"
+      >
+        <h2 class="home-card__title">DLC proche</h2>
+        @if (dash.expiringItems.length > 0) {
+          <p class="home-card__count">{{ expiringCountLabel(dash.expiringItems.length) }}</p>
+          <ul class="home-card__names">
+            @for (item of dash.expiringItems; track item.id) {
+              <li>{{ item.name }}</li>
+            }
+          </ul>
+        } @else {
+          <p class="home-card__empty">Aucune alerte DLC proche.</p>
+          <span class="home-card__cta">Voir le garde-manger</span>
+        }
+      </a>
+
+      @if (dash.showExportReminder) {
+        <a class="home-card" routerLink="/settings/export" data-card="export">
+          <h2 class="home-card__title">Sauvegarde</h2>
+          <p class="home-card__empty">
+            Aucune sauvegarde depuis 30 jours — pensez à exporter vos données.
+          </p>
+          <span class="home-card__cta">Exporter</span>
+        </a>
+      }
+    </div>
+  }
+</section>

@@ -109,7 +109,7 @@
   } @else {
     <div class="products-page__list">
       @for (item of catalog(); track item.product.id) {
-        <app-product-card [item]="item" />
+        <app-product-card [item]="item" (shortcut)="onProductShortcut(item, $event)" />
       }
     </div>
   }
@@ -119,6 +119,8 @@
     <span class="products-page__fab-label">Scan</span>
   </a>
 </section>
+
+<app-context-shortcuts-outlet />
 
 @if (pendingDuplicate(); as duplicate) {
   <app-confirm-dialog

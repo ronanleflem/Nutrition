@@ -341,6 +341,48 @@ describe('DatabaseService recipes', () => {
     expect(ingredient?.productArchived).toBe(true);
   });
 
+  it('appends an ingredient to the default variant', async () => {
+    const { recipeId } = await createSampleRecipe();
+    const extraId = await seedProductWithPreferredReference('Fromage');
+
+    const added = await service.appendIngredientToDefaultVariant(recipeId, {
+      productId: extraId,
+      quantityG: 40,
+    });
+
+    expect(added.productId).toBe(extraId);
+    expect(added.quantityG).toBe(40);
+
+    const detail = await service.getRecipeDetail(recipeId);
+    const defaultVariant = detail?.variants.find(
+      (variant) => variant.id === detail.recipe.defaultVariantId,
+    );
+    expect(defaultVariant?.ingredients.map((ingredient) => ingredient.productId)).toContain(extraId);
+  });
+
+  it('rejects append when the product has no preferred reference', async () => {
+    const { recipeId } = await createSampleRecipe();
+    const product = await service.createProduct({ name: 'Sans ref' });
+
+    await expect(
+      service.appendIngredientToDefaultVariant(recipeId, {
+        productId: product.id,
+        quantityG: 20,
+      }),
+    ).rejects.toThrow(/référence préférée/i);
+  });
+
+  it('rejects append for an unknown recipe', async () => {
+    const productId = await seedProductWithPreferredReference('Riz');
+
+    await expect(
+      service.appendIngredientToDefaultVariant('missing-recipe-id', {
+        productId,
+        quantityG: 30,
+      }),
+    ).rejects.toThrow(/introuvable/i);
+  });
+
   it('omits macros from archived preferred references', async () => {
     const { recipeId, productId } = await createSampleRecipe();
     const product = await service.getProduct(productId);

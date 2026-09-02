@@ -1,4 +1,6 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import type { PantryItemWithProduct } from '../../core/models/pantry-item';
 import {
@@ -18,12 +20,18 @@ import { PantryService } from './pantry.service';
   styleUrl: './pantry-page.component.scss',
 })
 export class PantryPageComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly pantry = inject(PantryService);
 
   readonly sheetOpen = signal(false);
   readonly editingItem = signal<PantryItemWithProduct | null>(null);
 
   ngOnInit(): void {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.pantry.setFilterMode(params.get('filter') === 'expiring' ? 'expiring' : 'all');
+    });
     void this.pantry.refresh();
   }
 
@@ -53,11 +61,21 @@ export class PantryPageComponent implements OnInit {
 
   onFilterChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value as PantryFilterMode;
-    this.pantry.setFilterMode(value);
+    void this.applyFilter(value);
   }
 
   showAllItems(): void {
-    this.pantry.setFilterMode('all');
+    void this.applyFilter('all');
+  }
+
+  private applyFilter(mode: PantryFilterMode): void {
+    this.pantry.setFilterMode(mode);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { filter: mode === 'expiring' ? 'expiring' : null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   formatQuantity(quantityG: number): string {

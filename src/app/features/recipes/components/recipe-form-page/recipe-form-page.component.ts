@@ -1,8 +1,9 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import type { Product } from '../../../../core/models/product';
+import { OnboardingService } from '../../../onboarding/onboarding.service';
 import { ProductsService } from '../../../products/services/products.service';
 import { RecipesService } from '../../services/recipes.service';
 import { IngredientProductPickerSheetComponent } from '../ingredient-product-picker-sheet/ingredient-product-picker-sheet.component';
@@ -16,7 +17,9 @@ import { IngredientProductPickerSheetComponent } from '../ingredient-product-pic
 export class RecipeFormPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly recipesService = inject(RecipesService);
+  private readonly onboarding = inject(OnboardingService);
   readonly productsService = inject(ProductsService);
 
   readonly saving = signal(false);
@@ -24,9 +27,14 @@ export class RecipeFormPageComponent implements OnInit {
   readonly ingredientError = signal<string | null>(null);
   readonly blockedProduct = signal<Product | null>(null);
   readonly pickerIngredientIndex = signal<number | null>(null);
+  private onboardingRecipeCreated = false;
 
   readonly eligibleProducts = computed(() =>
     this.productsService.catalog().filter((item) => !!item.product.preferredReferenceId),
+  );
+
+  readonly cancelLink = computed(() =>
+    this.route.snapshot.queryParamMap.get('from') === 'onboarding' ? '/onboarding' : '/recipes',
   );
 
   readonly form = this.fb.nonNullable.group({
@@ -169,7 +177,14 @@ export class RecipeFormPageComponent implements OnInit {
     this.saving.set(true);
     this.submitError.set(null);
 
+    const fromOnboarding = this.route.snapshot.queryParamMap.get('from') === 'onboarding';
+
     try {
+      if (fromOnboarding && this.onboardingRecipeCreated) {
+        await this.finishOnboardingAfterCustomRecipe();
+        return;
+      }
+
       await this.recipesService.createRecipeWithFirstVariant({
         recipe: {
           title: raw.title,
@@ -187,11 +202,25 @@ export class RecipeFormPageComponent implements OnInit {
         })),
       });
 
+      if (fromOnboarding) {
+        this.onboardingRecipeCreated = true;
+        await this.finishOnboardingAfterCustomRecipe();
+        return;
+      }
+
       await this.router.navigate(['/recipes']);
     } catch (error) {
       this.submitError.set(error instanceof Error ? error.message : 'Impossible de créer la recette.');
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  private async finishOnboardingAfterCustomRecipe(): Promise<void> {
+    try {
+      await this.onboarding.completeAfterCustomRecipe();
+    } catch {
+      await this.router.navigateByUrl('/home');
     }
   }
 }

@@ -263,6 +263,26 @@ export class DatabaseService {
     });
   }
 
+  async updateHideHomeOnStartup(hideHome: boolean): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    await this.db!.appSettings.put({
+      ...settings,
+      hideHomeOnStartup: hideHome || undefined,
+    });
+  }
+
+  async updateOnboardingCompleted(completed: boolean): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    await this.db!.appSettings.put({
+      ...settings,
+      onboardingCompleted: completed || undefined,
+    });
+  }
+
   async putUsdaFoodCacheEntry(entry: UsdaFoodCacheEntry): Promise<void> {
     await this.initialize();
     await this.db!.usdaFoodCache.put(entry);
@@ -1340,6 +1360,40 @@ export class DatabaseService {
     });
 
     return { recipe, variantId: variant.id, ingredients };
+  }
+
+  async appendIngredientToDefaultVariant(
+    recipeId: string,
+    input: { productId: string; quantityG: number },
+  ): Promise<RecipeIngredient> {
+    await this.initialize();
+
+    const recipe = await this.db!.recipes.get(recipeId);
+    if (!recipe) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const variant = await this.db!.recipeVariants.get(recipe.defaultVariantId);
+    if (!variant || variant.recipeId !== recipeId) {
+      throw new Error('Variante introuvable pour cette recette.');
+    }
+
+    await this.validateRecipeIngredients([input]);
+
+    const ingredient = createRecipeIngredient({
+      variantId: variant.id,
+      productId: input.productId,
+      quantityG: input.quantityG,
+    });
+
+    await this.db!.transaction('rw', this.db!.recipeIngredients, this.db!.recipes, async () => {
+      await this.db!.recipeIngredients.bulkPut([ingredient]);
+      await this.db!.recipes.put({
+        ...recipe,
+        updatedAt: new Date().toISOString(),
+      });
+    });
+    return ingredient;
   }
 
   async updateRecipe(recipeId: string, input: UpdateRecipeInput): Promise<Recipe> {

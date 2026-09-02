@@ -1,0 +1,109 @@
+.onboarding-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.onboarding-page__progress {
+  margin: 0;
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-meta);
+}
+
+.onboarding-page__title {
+  margin: 0;
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-ink-warm);
+}
+
+.onboarding-page__intro {
+  margin: 0;
+  color: var(--color-ink-secondary);
+}
+
+.onboarding-page__error {
+  margin: 0;
+  color: var(--color-accent-negative);
+}
+
+.onboarding-page__status {
+  margin: 0;
+  color: var(--color-accent-positive);
+  font-size: var(--font-size-meta);
+}
+
+.onboarding-page__actions,
+.onboarding-page__stack,
+.onboarding-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.onboarding-form__fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.onboarding-form__legend,
+.onboarding-form__label {
+  font-size: var(--font-size-meta);
+  color: var(--color-ink-secondary);
+}
+
+.onboarding-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.onboarding-form__input {
+  width: 100%;
+  min-height: var(--spacing-touch-min);
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  font: inherit;
+}
+
+.onboarding-form__field-error {
+  color: var(--color-accent-negative);
+  font-size: var(--font-size-meta);
+}
+
+.onboarding-page__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--spacing-touch-min);
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.onboarding-page__button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.onboarding-page__button--primary {
+  border: none;
+  background: var(--color-accent-positive);
+  color: var(--color-surface-base);
+}
+
+.onboarding-page__button--secondary {
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
+  color: var(--color-ink-primary);
+}

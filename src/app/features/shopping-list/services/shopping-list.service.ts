@@ -68,9 +68,10 @@ export class ShoppingListService {
     }
   }
 
-  async addManualItem(productId: string, quantityG: number): Promise<void> {
-    await this.database.createManualShoppingListItem(productId, quantityG);
+  async addManualItem(productId: string, quantityG: number): Promise<{ id: string }> {
+    const created = await this.database.createManualShoppingListItem(productId, quantityG);
     await this.loadState();
+    return created;
   }
 
   async createProduct(name: string): Promise<Product> {

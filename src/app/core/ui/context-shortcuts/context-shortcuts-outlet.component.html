@@ -1,0 +1,56 @@
+@if (shortcuts.confirmation(); as message) {
+  <p class="context-shortcuts__confirm" role="status">{{ message }}</p>
+}
+
+@if (shortcuts.actionError(); as error) {
+  <p class="context-shortcuts__error" role="alert">{{ error }}</p>
+}
+
+@if (shortcuts.sheet(); as sheet) {
+  @if (sheet.name === 'menu') {
+    <app-context-action-menu
+      [target]="sheet.target"
+      [busy]="shortcuts.busy()"
+      [ignoreBackdrop]="shortcuts.ignoreBackdrop()"
+      (closed)="shortcuts.closeSheet()"
+      (action)="shortcuts.handleMenuAction($event)"
+    />
+  }
+
+  @if (sheet.name === 'pantry') {
+    <app-pantry-add-sheet
+      [prefillProductId]="sheet.productId"
+      [prefillProductName]="sheet.productName"
+      [prefillQuantityG]="sheet.quantityG ?? null"
+      (closed)="shortcuts.closeSheet()"
+      (saved)="shortcuts.onPantrySaved()"
+    />
+  }
+
+  @if (sheet.name === 'shopping') {
+    <app-shopping-item-sheet
+      [prefillProductId]="sheet.productId"
+      [prefillProductName]="sheet.productName"
+      (closed)="shortcuts.closeSheet()"
+      (saved)="shortcuts.onShoppingSaved()"
+    />
+  }
+
+  @if (sheet.name === 'use-in-recipe') {
+    <app-use-in-recipe-sheet
+      [productId]="sheet.productId"
+      [productName]="sheet.productName"
+      (closed)="shortcuts.closeSheet()"
+      (created)="shortcuts.onRecipeCreated()"
+      (appended)="shortcuts.onIngredientAppended()"
+    />
+  }
+
+  @if (sheet.name === 'pick-ingredient') {
+    <app-ingredient-pick-sheet
+      [ingredients]="sheet.ingredients"
+      (closed)="shortcuts.closeSheet()"
+      (selected)="shortcuts.onIngredientPicked($event)"
+    />
+  }
+}

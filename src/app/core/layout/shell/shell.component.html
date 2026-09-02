@@ -1,7 +1,17 @@
 <div class="shell" [class.shell--chrome-hidden]="shellChrome.hidden()">
   @if (!shellChrome.hidden()) {
     <header class="shell__header">
-      <h1 class="shell__title">{{ pageTitle() }}</h1>
+      @if (isHome()) {
+        <h1 class="shell__title">{{ pageTitle() }}</h1>
+      } @else {
+        <a
+          routerLink="/home"
+          class="shell__title shell__title--link"
+          [attr.aria-label]="pageTitle() + ' — Accueil'"
+        >
+          {{ pageTitle() }}
+        </a>
+      }
       <a
         class="shell__settings"
         routerLink="/settings"

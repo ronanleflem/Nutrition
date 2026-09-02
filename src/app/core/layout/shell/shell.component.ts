@@ -46,6 +46,20 @@ export class ShellComponent {
     { initialValue: getPageTitle(this.route) },
   );
 
+  readonly isHome = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      startWith(null),
+      map(() => this.isHomeUrl(this.router.url)),
+    ),
+    { initialValue: this.isHomeUrl(this.router.url) },
+  );
+
+  private isHomeUrl(url: string): boolean {
+    const path = url.split(/[?#]/, 1)[0];
+    return path === '/home';
+  }
+
   dismissBackupReminder(): void {
     void this.backupReminder.dismiss();
   }
