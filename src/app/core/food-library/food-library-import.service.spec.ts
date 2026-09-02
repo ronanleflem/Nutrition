@@ -1,0 +1,90 @@
+import 'fake-indexeddb/auto';
+
+import { TestBed } from '@angular/core/testing';
+import Dexie from 'dexie';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+
+import { DatabaseService } from '../database/database.service';
+import { NUTRITION_DB_NAME } from '../database/nutrition-database';
+import { deleteNutritionDatabase } from '../database/nutrition-database.testing';
+import { toCiqualHit, toOpenNutritionHit } from './food-search-index';
+import {
+  CIQUAL_FIXTURE_CHUNK,
+  OPENNUTRITION_FIXTURE_CHUNK,
+} from './food-search.fixtures';
+import { FoodLibraryImportService } from './food-library-import.service';
+import { GENERIC_REFERENCE_LABEL } from './food-library-import';
+
+describe('FoodLibraryImportService', () => {
+  let database: DatabaseService;
+  let importService: FoodLibraryImportService;
+
+  beforeEach(async () => {
+    await deleteNutritionDatabase();
+    await Dexie.delete(NUTRITION_DB_NAME);
+
+    TestBed.configureTestingModule({});
+    database = TestBed.inject(DatabaseService);
+    importService = TestBed.inject(FoodLibraryImportService);
+  });
+
+  afterEach(async () => {
+    await database.closeForTests();
+    await deleteNutritionDatabase();
+  });
+
+  it('creates product and reference from Ciqual hit', async () => {
+    const hit = toCiqualHit(CIQUAL_FIXTURE_CHUNK.entries[0]);
+    const result = await importService.importFromLibrary(hit);
+
+    expect(result.status).toBe('created');
+    if (result.status !== 'created') {
+      return;
+    }
+
+    expect(result.product).toMatchObject({
+      name: 'Œuf, cru',
+      sourceProvider: 'ciqual',
+      sourceId: 'ciqual-9001',
+    });
+    expect(result.reference).toMatchObject({
+      label: GENERIC_REFERENCE_LABEL,
+      barcode: undefined,
+      kcalPer100g: 143,
+    });
+    expect(result.product.preferredReferenceId).toBe(result.reference.id);
+  });
+
+  it('creates OpenNutrition reference with barcode', async () => {
+    const hit = toOpenNutritionHit(OPENNUTRITION_FIXTURE_CHUNK.entries[0]);
+    const result = await importService.importFromLibrary(hit);
+
+    expect(result.status).toBe('created');
+    if (result.status !== 'created') {
+      return;
+    }
+
+    expect(result.reference.barcode).toBe('3560070467394');
+    expect(result.reference.brand).toBe('Danone');
+  });
+
+  it('returns duplicate when same source is imported twice', async () => {
+    const hit = toCiqualHit(CIQUAL_FIXTURE_CHUNK.entries[0]);
+    await importService.importFromLibrary(hit);
+    const second = await importService.importFromLibrary(hit);
+
+    expect(second.status).toBe('duplicate');
+    if (second.status === 'duplicate') {
+      expect(second.match.reason).toBe('source');
+    }
+  });
+
+  it('can force create despite name duplicate', async () => {
+    const hit = toOpenNutritionHit(OPENNUTRITION_FIXTURE_CHUNK.entries[0]);
+    const first = await importService.importFromLibrary(hit);
+    expect(first.status).toBe('created');
+
+    const forced = await importService.importFromLibrary(hit, { forceCreate: true });
+    expect(forced.status).toBe('created');
+  });
+});

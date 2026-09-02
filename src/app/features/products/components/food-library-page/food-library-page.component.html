@@ -1,0 +1,75 @@
+<section class="food-library-page">
+  <header class="food-library-page__header">
+    <a class="food-library-page__back" routerLink="/products">← Catalogue</a>
+    <h1 class="food-library-page__title">Bibliothèque offline</h1>
+    <p class="food-library-page__intro">
+      Recherchez des ingrédients Ciqual ou OpenNutrition et ajoutez-les à votre catalogue.
+    </p>
+  </header>
+
+  <label class="food-library-page__search">
+    <span class="visually-hidden">Rechercher dans la bibliothèque</span>
+    <input
+      class="food-library-page__search-input"
+      type="search"
+      placeholder="Rechercher un aliment…"
+      aria-label="Rechercher dans la bibliothèque offline"
+      (input)="onSearchInput($event)"
+    />
+  </label>
+
+  @if (searching()) {
+    <p class="food-library-page__status" role="status">Recherche…</p>
+  }
+
+  @if (searchError()) {
+    <p class="food-library-page__error" role="alert">{{ searchError() }}</p>
+  }
+
+  @if (importError()) {
+    <p class="food-library-page__error" role="alert">{{ importError() }}</p>
+  }
+
+  @for (section of sections(); track section.source) {
+    <section class="food-library-page__section" [attr.aria-label]="section.sourceLabel">
+      <h2 class="food-library-page__section-title">{{ section.sourceLabel }}</h2>
+
+      <ul class="food-library-page__list">
+        @for (hit of section.hits; track hit.id) {
+          <li class="food-library-page__item">
+            <div class="food-library-page__item-main">
+              <div class="food-library-page__item-header">
+                <span class="food-library-page__badge">{{ hit.sourceLabel }}</span>
+                <span class="food-library-page__name">{{ hit.displayName }}</span>
+              </div>
+              @if (hit.subtitle) {
+                <span class="food-library-page__subtitle">{{ hit.subtitle }}</span>
+              }
+              <span class="food-library-page__macros">{{ formatMacros(hit) }}</span>
+            </div>
+
+            <button
+              class="food-library-page__import"
+              type="button"
+              [disabled]="importingId() === hit.id"
+              (click)="importHit(hit)"
+            >
+              {{ importingId() === hit.id ? 'Ajout…' : 'Ajouter à mon catalogue' }}
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</section>
+
+@if (pendingDuplicate(); as duplicate) {
+  <app-confirm-dialog
+    title="Produit déjà présent"
+    [message]="duplicate.match.message + ' Utiliser l’existant ou créer quand même ?'"
+    confirmLabel="Créer quand même"
+    cancelLabel="Utiliser l’existant"
+    (confirmed)="createDespiteDuplicate()"
+    (cancelled)="useExistingProduct()"
+  />
+}

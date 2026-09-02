@@ -4,7 +4,7 @@ type: 'feature'
 created: '2026-09-02'
 status: 'in-review'
 review_loop_iteration: 0
-baseline_commit: '665a5be8a2f1c0e8f0e8b0e6f3f0e8c8f0e8b0e6'
+baseline_commit: '665a5bef0fdaa5dc74892c53e3862e161c3065be'
 story_key: '10-3-foodsearchservice-index-local-unifie'
 context:
   - '{project-root}/_bmad-output/implementation-artifacts/epic-10-context.md'

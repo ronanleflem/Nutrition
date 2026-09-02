@@ -1,0 +1,125 @@
+.food-library-page__header {
+  margin-bottom: 16px;
+}
+
+.food-library-page__back {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--color-ink-secondary);
+  text-decoration: none;
+}
+
+.food-library-page__title {
+  margin: 0 0 8px;
+  font-size: var(--font-size-title);
+}
+
+.food-library-page__intro {
+  margin: 0;
+  color: var(--color-ink-secondary);
+}
+
+.food-library-page__search {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.food-library-page__search-input {
+  width: 100%;
+  min-height: var(--spacing-touch-min);
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  font-size: var(--font-size-body);
+}
+
+.food-library-page__status,
+.food-library-page__error {
+  margin-bottom: 12px;
+}
+
+.food-library-page__error {
+  color: var(--color-accent-negative);
+}
+
+.food-library-page__section {
+  margin-bottom: 24px;
+}
+
+.food-library-page__section-title {
+  margin: 0 0 12px;
+  font-size: var(--font-size-subtitle);
+}
+
+.food-library-page__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.food-library-page__item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+}
+
+.food-library-page__item-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.food-library-page__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+}
+
+.food-library-page__name {
+  font-weight: var(--font-weight-semibold);
+}
+
+.food-library-page__subtitle,
+.food-library-page__macros {
+  display: block;
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-caption);
+}
+
+.food-library-page__import {
+  align-self: flex-start;
+  min-height: var(--spacing-touch-min);
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-positive);
+  color: var(--color-surface-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.food-library-page__import:disabled {
+  opacity: 0.7;
+}
+
+@media (min-width: 640px) {
+  .food-library-page__item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

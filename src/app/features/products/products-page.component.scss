@@ -1,5 +1,21 @@
 .products-page__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 16px;
+}
+
+.products-page__library {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--spacing-touch-min);
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
 }
 
 .products-page__add {
