@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 
 import type { RecipeDetail } from '../../../core/models/recipe-detail';
+import type { RecipeIngredient } from '../../../core/models/recipe-ingredient';
 import type { RecipeListItem } from '../../../core/models/recipe-list-item';
 import type { Recipe } from '../../../core/models/recipe';
 import {
@@ -38,6 +39,15 @@ export class RecipesService {
     input: CreateRecipeWithFirstVariantInput,
   ): Promise<CreateRecipeResult> {
     const result = await this.database.createRecipeWithFirstVariant(input);
+    await this.loadRecipes();
+    return result;
+  }
+
+  async appendIngredientToDefaultVariant(
+    recipeId: string,
+    input: { productId: string; quantityG: number },
+  ): Promise<RecipeIngredient> {
+    const result = await this.database.appendIngredientToDefaultVariant(recipeId, input);
     await this.loadRecipes();
     return result;
   }

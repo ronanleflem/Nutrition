@@ -2,6 +2,9 @@ import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular
 import { Router, RouterLink } from '@angular/router';
 
 import { ConfirmDialogComponent } from '../../core/ui/confirm-dialog/confirm-dialog.component';
+import { ContextShortcutsOutletComponent } from '../../core/ui/context-shortcuts/context-shortcuts-outlet.component';
+import { ContextShortcutsService } from '../../core/ui/context-shortcuts/context-shortcuts.service';
+import type { ProductCatalogItem } from '../../core/models/product-catalog';
 import { DatabaseService } from '../../core/database/database.service';
 import { FoodSearchCascadeResultsComponent } from '../../core/food-library/components/food-search-cascade-results/food-search-cascade-results.component';
 import type { FoodLibraryImportDuplicate } from '../../core/food-library/food-library-import';
@@ -45,6 +48,7 @@ import { ScanService } from './services/scan.service';
     EmptyStateComponent,
     FoodSearchCascadeResultsComponent,
     ConfirmDialogComponent,
+    ContextShortcutsOutletComponent,
   ],
   templateUrl: './products-page.component.html',
   styleUrl: './products-page.component.scss',
@@ -58,6 +62,7 @@ export class ProductsPageComponent implements OnInit, OnDestroy {
   private readonly scanService = inject(ScanService);
   private readonly usdaFoodCache = inject(UsdaFoodCacheService);
   private readonly router = inject(Router);
+  private readonly shortcuts = inject(ContextShortcutsService);
 
   private searchSequence = 0;
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -101,6 +106,14 @@ export class ProductsPageComponent implements OnInit, OnDestroy {
     }
 
     this.searchAbort?.abort();
+  }
+
+  onProductShortcut(item: ProductCatalogItem): void {
+    this.shortcuts.openMenu({
+      kind: 'product',
+      productId: item.product.id,
+      productName: item.product.name,
+    });
   }
 
   onSearchInput(event: Event): void {

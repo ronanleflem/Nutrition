@@ -22,10 +22,12 @@
 
     @if (isEditMode()) {
       <p class="sheet__product-name">{{ item()?.productName }}</p>
+    } @else if (isPrefill()) {
+      <p class="sheet__product-name">{{ prefillProductName() }}</p>
     }
 
     <form class="sheet__form" [formGroup]="form" (ngSubmit)="submit()">
-      @if (!isEditMode() && hasProducts()) {
+      @if (!isEditMode() && !isPrefill() && hasProducts()) {
         <label class="field">
           <span class="field__label">Produit</span>
           <select class="field__control" formControlName="productId">
@@ -36,7 +38,7 @@
         </label>
       }
 
-      @if (!isEditMode() && !hasProducts()) {
+      @if (!isEditMode() && !isPrefill() && !hasProducts()) {
         <label class="field">
           <span class="field__label">Nom du produit</span>
           <input

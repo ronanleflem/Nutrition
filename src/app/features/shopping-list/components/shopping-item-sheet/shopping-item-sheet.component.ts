@@ -15,6 +15,8 @@ export class ShoppingItemSheetComponent {
   private readonly fb = inject(FormBuilder);
 
   readonly item = input<ShoppingListItemWithProduct | null>(null);
+  readonly prefillProductId = input<string | null>(null);
+  readonly prefillProductName = input<string | null>(null);
   readonly closed = output<void>();
   readonly saved = output<void>();
 
@@ -33,6 +35,7 @@ export class ShoppingItemSheetComponent {
     effect(() => {
       const editing = this.item();
       const products = this.shopping.products();
+      const prefillId = this.prefillProductId();
       this.hasProducts.set(products.length > 0);
       this.isEditMode.set(editing != null);
 
@@ -43,6 +46,14 @@ export class ShoppingItemSheetComponent {
         });
         this.form.controls.productId.disable();
         this.form.controls.newProductName.disable();
+      } else if (prefillId) {
+        this.form.controls.productId.disable();
+        this.form.controls.newProductName.disable();
+        this.form.patchValue({
+          productId: prefillId,
+          newProductName: '',
+          quantityG: 100,
+        });
       } else {
         this.form.controls.productId.enable();
         this.form.controls.newProductName.enable();
@@ -53,6 +64,10 @@ export class ShoppingItemSheetComponent {
         });
       }
     });
+  }
+
+  isPrefill(): boolean {
+    return !this.isEditMode() && !!this.prefillProductId();
   }
 
   onBackdropClick(event: MouseEvent): void {
@@ -84,9 +99,9 @@ export class ShoppingItemSheetComponent {
 
         await this.shopping.updateItemQuantity(editing.id, raw.quantityG);
       } else {
-        let productId = raw.productId;
+        let productId = this.prefillProductId() ?? raw.productId;
 
-        if (!this.hasProducts()) {
+        if (!this.isPrefill() && !this.hasProducts()) {
           const name = raw.newProductName.trim();
           if (!name) {
             this.errorMessage.set('Saisissez un nom de produit.');

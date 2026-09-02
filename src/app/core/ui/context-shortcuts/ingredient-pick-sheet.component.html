@@ -1,0 +1,32 @@
+<div
+  class="sheet-backdrop"
+  data-backdrop="true"
+  (click)="onBackdropClick($event)"
+  role="presentation"
+>
+  <section
+    class="sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Choisir un ingrédient"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="sheet__header">
+      <h2 class="sheet__title">Choisir un ingrédient</h2>
+      <button type="button" class="sheet__close" aria-label="Fermer" (click)="closed.emit()">
+        ×
+      </button>
+    </header>
+
+    <ul class="sheet__list" aria-label="Ingrédients">
+      @for (ingredient of ingredients(); track ingredient.productId) {
+        <li>
+          <button type="button" class="sheet__list-button" (click)="selected.emit(ingredient)">
+            <span>{{ ingredient.productName }}</span>
+            <span>{{ ingredient.quantityG }} g</span>
+          </button>
+        </li>
+      }
+    </ul>
+  </section>
+</div>

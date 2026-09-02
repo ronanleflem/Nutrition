@@ -1,0 +1,45 @@
+<div
+  class="sheet-backdrop"
+  data-backdrop="true"
+  (click)="onBackdropClick($event)"
+  role="presentation"
+>
+  <section
+    class="sheet"
+    role="menu"
+    aria-label="Actions"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="sheet__header">
+      <h2 class="sheet__title">{{ title() }}</h2>
+      <button type="button" class="sheet__close" aria-label="Fermer" (click)="closed.emit()">
+        ×
+      </button>
+    </header>
+
+    <ul class="sheet__list">
+      <li>
+        <button type="button" class="sheet__list-button" role="menuitem" (click)="choose('pantry')">
+          {{ labels.pantry }}
+        </button>
+      </li>
+      @if (showUseInRecipe()) {
+        <li>
+          <button
+            type="button"
+            class="sheet__list-button"
+            role="menuitem"
+            (click)="choose('use-in-recipe')"
+          >
+            {{ labels.useInRecipe }}
+          </button>
+        </li>
+      }
+      <li>
+        <button type="button" class="sheet__list-button" role="menuitem" (click)="choose('shopping')">
+          {{ labels.shopping }}
+        </button>
+      </li>
+    </ul>
+  </section>
+</div>

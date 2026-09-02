@@ -4,6 +4,8 @@ import { from, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
+import { ContextShortcutsOutletComponent } from '../../../../core/ui/context-shortcuts/context-shortcuts-outlet.component';
+import { ContextShortcutsService } from '../../../../core/ui/context-shortcuts/context-shortcuts.service';
 import type { RecipeDetail, RecipeVariantDetail } from '../../../../core/models/recipe-detail';
 import { RecipeMacroService } from '../../../../core/scoring/recipe-macro.service';
 import { RecipesService } from '../../services/recipes.service';
@@ -13,7 +15,14 @@ import { VariantChipRowComponent } from '../variant-chip-row/variant-chip-row.co
 
 @Component({
   selector: 'app-recipe-detail-page',
-  imports: [RouterLink, VariantChipRowComponent, StarRatingComponent, RecipeMacrosPanelComponent, ConfirmDialogComponent],
+  imports: [
+    RouterLink,
+    VariantChipRowComponent,
+    StarRatingComponent,
+    RecipeMacrosPanelComponent,
+    ConfirmDialogComponent,
+    ContextShortcutsOutletComponent,
+  ],
   templateUrl: './recipe-detail-page.component.html',
   styleUrl: './recipe-detail-page.component.scss',
 })
@@ -22,6 +31,7 @@ export class RecipeDetailPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly recipesService = inject(RecipesService);
   private readonly recipeMacroService = inject(RecipeMacroService);
+  private readonly shortcuts = inject(ContextShortcutsService);
 
   readonly detail = signal<RecipeDetail | null>(null);
   readonly loading = signal(true);
@@ -118,6 +128,14 @@ export class RecipeDetailPageComponent implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  openShortcut(recipeId: string, recipeTitle: string): void {
+    this.shortcuts.openMenu({
+      kind: 'recipe',
+      recipeId,
+      recipeTitle,
+    });
   }
 
   onVariantSelected(variantId: string): void {

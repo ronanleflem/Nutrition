@@ -1362,6 +1362,34 @@ export class DatabaseService {
     return { recipe, variantId: variant.id, ingredients };
   }
 
+  async appendIngredientToDefaultVariant(
+    recipeId: string,
+    input: { productId: string; quantityG: number },
+  ): Promise<RecipeIngredient> {
+    await this.initialize();
+
+    const recipe = await this.db!.recipes.get(recipeId);
+    if (!recipe) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const variant = await this.db!.recipeVariants.get(recipe.defaultVariantId);
+    if (!variant || variant.recipeId !== recipeId) {
+      throw new Error('Variante introuvable pour cette recette.');
+    }
+
+    await this.validateRecipeIngredients([input]);
+
+    const ingredient = createRecipeIngredient({
+      variantId: variant.id,
+      productId: input.productId,
+      quantityG: input.quantityG,
+    });
+
+    await this.db!.recipeIngredients.bulkPut([ingredient]);
+    return ingredient;
+  }
+
   async updateRecipe(recipeId: string, input: UpdateRecipeInput): Promise<Recipe> {
     await this.initialize();
 

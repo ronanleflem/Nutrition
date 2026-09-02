@@ -18,6 +18,8 @@ export class PantryAddSheetComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   readonly item = input<PantryItemWithProduct | null>(null);
+  readonly prefillProductId = input<string | null>(null);
+  readonly prefillProductName = input<string | null>(null);
   readonly closed = output<void>();
   readonly saved = output<void>();
 
@@ -39,6 +41,8 @@ export class PantryAddSheetComponent implements OnInit {
   constructor() {
     effect(() => {
       const editing = this.item();
+      const prefillId = this.prefillProductId();
+      const prefillName = this.prefillProductName();
       this.isEditMode.set(editing != null);
 
       if (editing) {
@@ -53,13 +57,26 @@ export class PantryAddSheetComponent implements OnInit {
           expiryDate: '',
           location: '',
         });
-        this.selectedProductId.set(null);
-        this.selectedProductName.set(null);
+        if (prefillId) {
+          this.selectedProductId.set(prefillId);
+          this.selectedProductName.set(prefillName ?? 'Produit sélectionné');
+        } else {
+          this.selectedProductId.set(null);
+          this.selectedProductName.set(null);
+        }
       }
     });
   }
 
+  isPrefill(): boolean {
+    return !this.isEditMode() && !!this.prefillProductId();
+  }
+
   ngOnInit(): void {
+    if (this.isPrefill()) {
+      return;
+    }
+
     void this.productsService.loadCatalog();
   }
 
