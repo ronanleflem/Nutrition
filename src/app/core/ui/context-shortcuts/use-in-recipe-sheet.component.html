@@ -1,0 +1,63 @@
+<div
+  class="sheet-backdrop"
+  data-backdrop="true"
+  (click)="onBackdropClick($event)"
+  role="presentation"
+>
+  <section
+    class="sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Utiliser dans une recette"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="sheet__header">
+      <h2 class="sheet__title">Utiliser dans une recette</h2>
+      <button type="button" class="sheet__close" aria-label="Fermer" (click)="closed.emit()">
+        ×
+      </button>
+    </header>
+
+    <p class="sheet__product-name">{{ productName() }}</p>
+
+    <form class="sheet__form" [formGroup]="form">
+      <label class="field">
+        <span class="field__label">Quantité (g)</span>
+        <input
+          class="field__control"
+          type="number"
+          min="1"
+          step="1"
+          formControlName="quantityG"
+          inputmode="numeric"
+        />
+      </label>
+
+      @if (errorMessage()) {
+        <p class="sheet__error" role="alert">{{ errorMessage() }}</p>
+      }
+
+      <div class="sheet__actions">
+        <button
+          type="button"
+          class="sheet__btn sheet__btn--primary"
+          [disabled]="submitting()"
+          (click)="createNewRecipe()"
+        >
+          Nouvelle recette
+        </button>
+        <button type="button" class="sheet__btn" [disabled]="submitting()" (click)="openPicker()">
+          Choisir une recette
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+
+@if (pickerOpen()) {
+  <app-recipe-picker-sheet
+    [recipes]="recipes()"
+    (selected)="onRecipeSelected($event)"
+    (closed)="closePicker()"
+  />
+}

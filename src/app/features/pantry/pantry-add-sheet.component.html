@@ -22,10 +22,12 @@
 
     @if (isEditMode()) {
       <p class="sheet__product-name">{{ item()?.productName }}</p>
+    } @else if (isPrefill()) {
+      <p class="sheet__product-name">{{ selectedProductName() }}</p>
     }
 
     <form class="sheet__form" [formGroup]="form" (ngSubmit)="submit()">
-      @if (!isEditMode()) {
+      @if (!isEditMode() && !isPrefill()) {
         <div class="field">
           <span class="field__label">Produit</span>
           @if (selectedProductName()) {

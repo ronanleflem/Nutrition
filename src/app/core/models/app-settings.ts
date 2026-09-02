@@ -14,6 +14,10 @@ export interface AppSettings {
   usdaApiKey?: string;
   /** Si true, les providers online ne s'exécutent qu'après « Rechercher en ligne » (NFR-19). */
   preferManualOnlineSearch?: boolean;
+  /** Si true, le cold start ouvre le garde-manger au lieu de l'accueil. */
+  hideHomeOnStartup?: boolean;
+  /** Réservé à l'onboarding 12.2 — persisté ici, jamais lu par l'accueil. */
+  onboardingCompleted?: boolean;
 }
 
 export function createDefaultAppSettings(): AppSettings {

@@ -1,0 +1,22 @@
+.context-shortcuts__confirm,
+.context-shortcuts__error {
+  position: fixed;
+  left: var(--spacing-screen-gutter);
+  right: var(--spacing-screen-gutter);
+  bottom: calc(var(--spacing-bottom-nav-height) + 16px);
+  z-index: 90;
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-body);
+}
+
+.context-shortcuts__confirm {
+  color: var(--color-ink-primary);
+}
+
+.context-shortcuts__error {
+  color: #e57373;
+}

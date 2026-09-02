@@ -36,6 +36,21 @@
   color: var(--color-ink-secondary);
 }
 
+.settings-page__section .settings-page__link {
+  margin-top: 12px;
+}
+
+.settings-page__field--checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: var(--spacing-touch-min);
+}
+
+.settings-page__label {
+  font-weight: var(--font-weight-semibold);
+}
+
 .settings-page__danger-button {
   min-height: var(--spacing-touch-min);
   padding: 10px 16px;

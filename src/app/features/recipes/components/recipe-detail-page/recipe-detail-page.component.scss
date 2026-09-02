@@ -18,6 +18,28 @@
   gap: 12px;
 }
 
+.recipe-detail__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.recipe-detail__menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--spacing-touch-min);
+  min-height: var(--spacing-touch-min);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .recipe-detail__edit-link {
   min-height: var(--spacing-touch-min);
   padding: 0 12px;

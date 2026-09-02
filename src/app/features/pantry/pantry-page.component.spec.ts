@@ -2,6 +2,8 @@ import 'fake-indexeddb/auto';
 
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { provideRouter, Router, RouterOutlet } from '@angular/router';
 import Dexie from 'dexie';
 
 import { NUTRITION_DB_NAME } from '../../core/database/nutrition-database';
@@ -11,17 +13,28 @@ import { PantryPageComponent } from './pantry-page.component';
 import { PantryService } from './pantry.service';
 
 @Component({
+  selector: 'app-pantry-host',
   template: '<app-pantry-page />',
   imports: [PantryPageComponent],
 })
 class PantryHostComponent {}
 
+@Component({
+  selector: 'app-pantry-routed-host',
+  template: '<router-outlet />',
+  imports: [RouterOutlet],
+})
+class PantryRoutedHostComponent {}
+
 describe('PantryPageComponent', () => {
-  let fixture: import('@angular/core/testing').ComponentFixture<PantryHostComponent> | null = null;
+  let fixture: import('@angular/core/testing').ComponentFixture<
+    PantryHostComponent | PantryRoutedHostComponent
+  > | null = null;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [PantryHostComponent],
+      imports: [PantryHostComponent, PantryRoutedHostComponent],
+      providers: [provideRouter([{ path: 'pantry', component: PantryPageComponent }])],
     });
   });
 
@@ -31,6 +44,7 @@ describe('PantryPageComponent', () => {
   });
 
   afterEach(async () => {
+    TestBed.inject(PantryService).setFilterMode('all');
     await TestBed.inject(PantryService).refresh().catch(() => undefined);
     if (fixture) {
       fixture.destroy();
@@ -122,15 +136,92 @@ describe('PantryPageComponent', () => {
 
     await db.addPantryItem({ productId: product.id, quantityG: 300, expiryDate });
 
+    fixture = TestBed.createComponent(PantryRoutedHostComponent);
+    await TestBed.inject(Router).navigateByUrl('/pantry?filter=expiring');
+    fixture.detectChanges();
     const pantry = TestBed.inject(PantryService);
     await pantry.refresh();
-    pantry.setFilterMode('expiring');
-
-    fixture = TestBed.createComponent(PantryHostComponent);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Aucune alerte DLC proche');
     expect(text).toContain('Afficher tout le stock');
   });
+
+  it('applies the expiring filter from ?filter=expiring', async () => {
+    const db = TestBed.inject(DatabaseService);
+    await db.initialize();
+    const near = await db.createProduct({ name: 'Yaourt' });
+    const far = await db.createProduct({ name: 'Riz' });
+
+    const soon = new Date();
+    soon.setDate(soon.getDate() + 2);
+    const later = new Date();
+    later.setDate(later.getDate() + 10);
+    const format = (date: Date) =>
+      `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+        date.getDate(),
+      ).padStart(2, '0')}`;
+
+    await db.addPantryItem({
+      productId: near.id,
+      quantityG: 200,
+      expiryDate: format(soon),
+    });
+    await db.addPantryItem({
+      productId: far.id,
+      quantityG: 500,
+      expiryDate: format(later),
+    });
+
+    fixture = TestBed.createComponent(PantryRoutedHostComponent);
+    await TestBed.inject(Router).navigateByUrl('/pantry?filter=expiring');
+    fixture.detectChanges();
+    const pantry = TestBed.inject(PantryService);
+    await pantry.refresh();
+    fixture.detectChanges();
+
+    expect(pantry.filterMode()).toBe('expiring');
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Yaourt');
+    expect(text).not.toContain('Riz');
+
+    await TestBed.inject(Router).navigateByUrl('/pantry');
+    fixture.detectChanges();
+    await pantry.refresh();
+    fixture.detectChanges();
+
+    expect(pantry.filterMode()).toBe('all');
+    expect(fixture.nativeElement.textContent).toContain('Riz');
+  });
+
+  it('clears ?filter=expiring from the URL when the user shows all items', async () => {
+    const db = TestBed.inject(DatabaseService);
+    await db.initialize();
+    const product = await db.createProduct({ name: 'Pâtes' });
+    const later = new Date();
+    later.setDate(later.getDate() + 10);
+    const expiryDate = `${later.getFullYear()}-${String(later.getMonth() + 1).padStart(
+      2,
+      '0',
+    )}-${String(later.getDate()).padStart(2, '0')}`;
+    await db.addPantryItem({ productId: product.id, quantityG: 300, expiryDate });
+
+    fixture = TestBed.createComponent(PantryRoutedHostComponent);
+    await TestBed.inject(Router).navigateByUrl('/pantry?filter=expiring');
+    fixture.detectChanges();
+    const pantry = TestBed.inject(PantryService);
+    await pantry.refresh();
+    fixture.detectChanges();
+
+    const page = fixture.debugElement.query(By.directive(PantryPageComponent))
+      .componentInstance as PantryPageComponent;
+    page.showAllItems();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(pantry.filterMode()).toBe('all');
+    expect(TestBed.inject(Router).url).toBe('/pantry');
+  });
 });
+

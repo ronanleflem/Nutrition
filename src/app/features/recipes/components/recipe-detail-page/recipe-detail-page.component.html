@@ -7,7 +7,18 @@
   <header class="recipe-detail__header">
     <div class="recipe-detail__header-row">
       <h1 class="recipe-detail__title">{{ current.recipe.title }}</h1>
-      <a class="recipe-detail__edit-link" [routerLink]="['/recipes', current.recipe.id, 'edit']">Modifier</a>
+      <div class="recipe-detail__header-actions">
+        <button
+          type="button"
+          class="recipe-detail__menu"
+          aria-haspopup="menu"
+          aria-label="Actions"
+          (click)="openShortcut(current.recipe.id, current.recipe.title)"
+        >
+          ⋮
+        </button>
+        <a class="recipe-detail__edit-link" [routerLink]="['/recipes', current.recipe.id, 'edit']">Modifier</a>
+      </div>
     </div>
     @if (current.recipe.durationMin) {
       <p class="recipe-detail__meta">{{ current.recipe.durationMin }} min · {{ current.recipe.defaultPortions }} portions</p>
@@ -119,3 +130,6 @@
     <p class="recipe-detail__error" role="alert">{{ actionError() }}</p>
   }
 }
+
+<app-context-shortcuts-outlet />
+

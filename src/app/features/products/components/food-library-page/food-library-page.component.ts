@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
 import { foodCategoryLabelFromHit } from '../../../../core/food-category/food-category-from-hit';
@@ -57,6 +57,11 @@ export class FoodLibraryPageComponent implements OnDestroy {
   private readonly usdaFoodCache = inject(UsdaFoodCacheService);
   private readonly networkStatus = inject(NetworkStatusService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  readonly fromOnboarding = computed(
+    () => this.route.snapshot.queryParamMap.get('from') === 'onboarding',
+  );
 
   private searchSequence = 0;
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;

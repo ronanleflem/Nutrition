@@ -2,8 +2,10 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router, RouterOutlet } from '@angular/router';
+import { vi } from 'vitest';
 
 import { routes } from './app.routes';
+import { DatabaseService } from './core/database/database.service';
 import { NotFoundPageComponent } from './core/layout/not-found/not-found-page.component';
 
 @Component({ template: '<router-outlet />', imports: [RouterOutlet] })
@@ -12,6 +14,7 @@ class RoutesHostComponent {}
 describe('app routes', () => {
   let fixture: ComponentFixture<RoutesHostComponent>;
   let router: Router;
+  let database: DatabaseService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -21,10 +24,33 @@ describe('app routes', () => {
 
     fixture = TestBed.createComponent(RoutesHostComponent);
     router = TestBed.inject(Router);
+    database = TestBed.inject(DatabaseService);
     fixture.detectChanges();
   });
 
+  async function navigateAndSettle(path: string, expectedText: string): Promise<void> {
+    await router.navigateByUrl(path);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const text = fixture.nativeElement.textContent as string;
+      if (text.includes(expectedText)) {
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      fixture.detectChanges();
+      await fixture.whenStable();
+    }
+
+    throw new Error(
+      `Timed out waiting for "${expectedText}". Got: ${fixture.nativeElement.textContent}`,
+    );
+  }
+
   const lazyRoutes = [
+    { path: '/home', text: 'Repas du jour' },
     { path: '/pantry', text: '+' },
     { path: '/products', text: 'Ajouter un produit' },
     { path: '/recipes', text: '+' },
@@ -32,18 +58,67 @@ describe('app routes', () => {
     { path: '/shopping', text: 'Liste de courses' },
     { path: '/goals', text: 'Objectifs macros' },
     { path: '/settings', text: 'Objectifs macros' },
+    { path: '/onboarding', text: 'Bienvenue' },
   ];
 
   for (const route of lazyRoutes) {
     it(`loads lazy route ${route.path}`, async () => {
-      await router.navigateByUrl(route.path);
-      fixture.detectChanges();
-      await fixture.whenStable();
-      fixture.detectChanges();
-
+      await navigateAndSettle(route.path, route.text);
       expect(fixture.nativeElement.textContent).toContain(route.text);
     });
   }
+
+  it('redirects / to /onboarding when onboardingCompleted is unset', async () => {
+    await navigateAndSettle('/', 'Bienvenue');
+    expect(router.url).toBe('/onboarding');
+  });
+
+  it('redirects / to /onboarding when hideHomeOnStartup is true and onboarding is incomplete', async () => {
+    await database.updateHideHomeOnStartup(true);
+    await navigateAndSettle('/', 'Bienvenue');
+    expect(router.url).toBe('/onboarding');
+  });
+
+  it('redirects / to /home and marks onboarding done when recipes already exist', async () => {
+    await database.updateHideHomeOnStartup(false);
+    vi.spyOn(database, 'listRecipes').mockResolvedValueOnce([
+      {
+        recipe: {
+          id: 'existing',
+          title: 'Soupe',
+          steps: [],
+          defaultPortions: 1,
+          defaultVariantId: 'v1',
+          createdAt: '2026-09-02T00:00:00.000Z',
+          updatedAt: '2026-09-02T00:00:00.000Z',
+        },
+        defaultVariantName: 'Base',
+      },
+    ]);
+    await navigateAndSettle('/', 'Repas du jour');
+    expect(router.url).toBe('/home');
+    expect((await database.getAppSettings()).onboardingCompleted).toBe(true);
+  });
+
+  it('redirects / to /home when onboarding is completed and hideHomeOnStartup is unset', async () => {
+    await database.updateOnboardingCompleted(true);
+    await database.updateHideHomeOnStartup(false);
+    await navigateAndSettle('/', 'Repas du jour');
+    expect(router.url).toBe('/home');
+  });
+
+  it('redirects / to /pantry when onboarding is completed and hideHomeOnStartup is true', async () => {
+    await database.updateOnboardingCompleted(true);
+    await database.updateHideHomeOnStartup(true);
+    await navigateAndSettle('/', '+');
+    expect(router.url).toBe('/pantry');
+  });
+
+  it('redirects / to /home when reading settings fails', async () => {
+    vi.spyOn(database, 'getAppSettings').mockRejectedValueOnce(new Error('fail'));
+    await navigateAndSettle('/', 'Repas du jour');
+    expect(router.url).toBe('/home');
+  });
 
   it('shows not-found page for unknown paths instead of redirecting to pantry', async () => {
     await router.navigateByUrl('/route-inconnue');
