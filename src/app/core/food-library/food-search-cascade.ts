@@ -8,6 +8,7 @@ import type {
 } from './food-search-cascade.types';
 import type { CatalogSearchHit } from './ingredient-picker-search.types';
 import { mergeIngredientPickerSections } from './ingredient-picker-search';
+import { mergeOnlineHits, type CachedOnlineHitsBySource } from './search-cache.utils';
 
 export function buildCascadeFromLocalAndOnline(
   catalogHits: CatalogSearchHit[],
@@ -16,6 +17,7 @@ export function buildCascadeFromLocalAndOnline(
   online:
     | {
         included: false;
+        cached?: CachedOnlineHitsBySource;
       }
     | {
         included: true;
@@ -23,12 +25,16 @@ export function buildCascadeFromLocalAndOnline(
         off: OffSearchProviderResult;
         foodRepo: FoodRepoSearchProviderResult;
         usda: UsdaSearchProviderResult;
+        cached?: CachedOnlineHitsBySource;
       },
+  limitPerSection = 25,
 ): FoodSearchCascadeResult {
   const sections = mergeIngredientPickerSections(catalogHits, localResult);
 
   if (online.included) {
-    appendOnlineSections(sections, online.off, online.foodRepo, online.usda);
+    appendOnlineSections(sections, online.off, online.foodRepo, online.usda, online.cached, limitPerSection);
+  } else if (online.cached) {
+    appendCachedOnlineSections(sections, online.cached);
   }
 
   return {
@@ -64,28 +70,63 @@ function appendOnlineSections(
   offResult: OffSearchProviderResult,
   foodRepoResult: FoodRepoSearchProviderResult,
   usdaResult: UsdaSearchProviderResult,
+  cached: CachedOnlineHitsBySource | undefined,
+  limitPerSection: number,
 ): void {
-  if (offResult.hits.length > 0) {
+  const offHits = mergeOnlineHits(offResult.hits, cached?.off ?? [], limitPerSection);
+  const foodRepoHits = mergeOnlineHits(foodRepoResult.hits, cached?.foodrepo ?? [], limitPerSection);
+  const usdaHits = mergeOnlineHits(usdaResult.hits, cached?.usda ?? [], limitPerSection);
+
+  if (offHits.length > 0) {
     sections.push({
       source: 'off',
-      sourceLabel: offResult.hits[0]?.sourceLabel ?? 'Open Food Facts',
-      hits: offResult.hits,
+      sourceLabel: offHits[0]?.sourceLabel ?? 'Open Food Facts',
+      hits: offHits,
     });
   }
 
-  if (foodRepoResult.hits.length > 0) {
+  if (foodRepoHits.length > 0) {
     sections.push({
       source: 'foodrepo',
-      sourceLabel: foodRepoResult.hits[0]?.sourceLabel ?? 'FoodRepo',
-      hits: foodRepoResult.hits,
+      sourceLabel: foodRepoHits[0]?.sourceLabel ?? 'FoodRepo',
+      hits: foodRepoHits,
     });
   }
 
-  if (usdaResult.hits.length > 0) {
+  if (usdaHits.length > 0) {
     sections.push({
       source: 'usda',
-      sourceLabel: usdaResult.hits[0]?.sourceLabel ?? 'USDA',
-      hits: usdaResult.hits,
+      sourceLabel: usdaHits[0]?.sourceLabel ?? 'USDA',
+      hits: usdaHits,
+    });
+  }
+}
+
+function appendCachedOnlineSections(
+  sections: FoodSearchCascadeSection[],
+  cached: CachedOnlineHitsBySource,
+): void {
+  if (cached.off.length > 0) {
+    sections.push({
+      source: 'off',
+      sourceLabel: cached.off[0]?.sourceLabel ?? 'Open Food Facts',
+      hits: cached.off,
+    });
+  }
+
+  if (cached.foodrepo.length > 0) {
+    sections.push({
+      source: 'foodrepo',
+      sourceLabel: cached.foodrepo[0]?.sourceLabel ?? 'FoodRepo',
+      hits: cached.foodrepo,
+    });
+  }
+
+  if (cached.usda.length > 0) {
+    sections.push({
+      source: 'usda',
+      sourceLabel: cached.usda[0]?.sourceLabel ?? 'USDA',
+      hits: cached.usda,
     });
   }
 }

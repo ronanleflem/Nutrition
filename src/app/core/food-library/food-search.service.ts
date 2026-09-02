@@ -6,6 +6,7 @@ import { OffSearchProvider } from '../off-api/off-search.provider';
 import { UsdaFdcSearchProvider } from '../usda-fdc/usda-search.provider';
 import type { ProductCatalogItem } from '../models/product-catalog';
 import type { FoodLibraryPageSearchResult } from './food-library-search.types';
+import { SearchCacheService } from './search-cache.service';
 import {
   parseCiqualChunk,
   parseOpenNutritionChunk,
@@ -42,6 +43,7 @@ export class FoodSearchService {
   private readonly offSearch = inject(OffSearchProvider);
   private readonly foodRepoSearch = inject(FoodRepoSearchProvider);
   private readonly usdaSearch = inject(UsdaFdcSearchProvider);
+  private readonly searchCache = inject(SearchCacheService);
   private readonly index = new FoodSearchIndex();
   private loadPromise: Promise<void> | null = null;
 
@@ -84,6 +86,7 @@ export class FoodSearchService {
   ): Promise<FoodSearchCascadeResult> {
     const limit = options?.limitPerSection ?? 25;
     const catalog = options?.catalog ?? [];
+    const trimmed = query.trim();
     const catalogStartedAt = performance.now();
     const catalogHits = catalog.length > 0
       ? searchCatalogForIngredientPicker(catalog, query, limit)
@@ -94,17 +97,23 @@ export class FoodSearchService {
     const localResult = await this.searchLocal(query, { limitPerSection: limit });
     const localDurationMs = performance.now() - localStartedAt;
 
+    const cachedOnline =
+      trimmed.length >= FOOD_SEARCH_ONLINE_MIN_QUERY_LENGTH
+        ? await this.searchCache.findMatchingHits(trimmed, limit)
+        : { off: [], foodrepo: [], usda: [] };
+
     const shouldSearchOnline =
       options?.includeOnline === true &&
       this.networkStatus.isOnline() &&
-      query.trim().length >= FOOD_SEARCH_ONLINE_MIN_QUERY_LENGTH;
+      trimmed.length >= FOOD_SEARCH_ONLINE_MIN_QUERY_LENGTH;
 
     if (!shouldSearchOnline) {
       return buildCascadeFromLocalAndOnline(
         catalogHits,
         localResult,
         catalogDurationMs + localDurationMs,
-        { included: false },
+        { included: false, cached: cachedOnline },
+        limit,
       );
     }
 
@@ -116,6 +125,8 @@ export class FoodSearchService {
     ]);
     const onlineDurationMs = performance.now() - onlineStartedAt;
 
+    await this.persistSuccessfulOnlineHits(trimmed, offResult, foodRepoResult, usdaResult);
+
     return buildCascadeFromLocalAndOnline(
       catalogHits,
       localResult,
@@ -126,8 +137,27 @@ export class FoodSearchService {
         off: offResult,
         foodRepo: foodRepoResult,
         usda: usdaResult,
+        cached: cachedOnline,
       },
+      limit,
     );
+  }
+
+  private async persistSuccessfulOnlineHits(
+    query: string,
+    offResult: Awaited<ReturnType<OffSearchProvider['search']>>,
+    foodRepoResult: Awaited<ReturnType<FoodRepoSearchProvider['search']>>,
+    usdaResult: Awaited<ReturnType<UsdaFdcSearchProvider['search']>>,
+  ): Promise<void> {
+    const hits = [
+      ...(offResult.status === 'ok' ? offResult.hits : []),
+      ...(foodRepoResult.status === 'ok' ? foodRepoResult.hits : []),
+      ...(usdaResult.status === 'ok' ? usdaResult.hits : []),
+    ];
+
+    if (hits.length > 0) {
+      await this.searchCache.rememberSuccessfulHits(query, hits);
+    }
   }
 
   async searchLibraryPage(

@@ -61,6 +61,13 @@ import {
   type ShoppingListItemWithProduct,
 } from '../models/shopping-list-item';
 import type { UsdaFoodCacheEntry } from '../models/usda-food-cache';
+import type { SearchCacheEntry } from '../models/search-cache-entry';
+import type { OnlineSearchHit } from '../food-library/food-search-cascade.types';
+import {
+  matchesSearchCacheQuery,
+  toSearchCacheEntry,
+} from '../food-library/search-cache.utils';
+import { SEARCH_CACHE_MAX_ENTRIES, SEARCH_CACHE_TTL_MS } from '../food-library/search-cache.constants';
 import { NutritionalScoreService } from '../scoring/nutritional-score.service';
 import type { BackupData } from '../backup/backup-schema';
 import type { ImportSummary } from '../backup/backup-schema';
@@ -262,6 +269,62 @@ export class DatabaseService {
   async getUsdaFoodCacheEntry(fdcId: number): Promise<UsdaFoodCacheEntry | undefined> {
     await this.initialize();
     return (await this.db!.usdaFoodCache.get(fdcId)) ?? undefined;
+  }
+
+  async rememberSearchCacheHits(query: string, hits: OnlineSearchHit[]): Promise<void> {
+    await this.initialize();
+
+    await this.purgeExpiredSearchCacheEntries();
+
+    const db = this.db!;
+    const now = new Date().toISOString();
+
+    for (const hit of hits) {
+      await db.searchCache.put({
+        ...toSearchCacheEntry(query, hit),
+        cachedAt: now,
+      });
+    }
+
+    const all = await db.searchCache.orderBy('cachedAt').reverse().toArray();
+    if (all.length > SEARCH_CACHE_MAX_ENTRIES) {
+      const stale = all.slice(SEARCH_CACHE_MAX_ENTRIES);
+      await db.searchCache.bulkDelete(stale.map((entry) => entry.id));
+    }
+  }
+
+  async findSearchCacheEntries(query: string): Promise<SearchCacheEntry[]> {
+    await this.initialize();
+    await this.purgeExpiredSearchCacheEntries();
+
+    const trimmed = query.trim();
+    if (!trimmed) {
+      return [];
+    }
+
+    const all = await this.db!.searchCache.orderBy('cachedAt').reverse().toArray();
+    return all.filter((entry) => matchesSearchCacheQuery(entry, trimmed));
+  }
+
+  async countSearchCacheEntries(): Promise<number> {
+    await this.initialize();
+    await this.purgeExpiredSearchCacheEntries();
+    return this.db!.searchCache.count();
+  }
+
+  async clearSearchCache(): Promise<void> {
+    await this.initialize();
+    await this.db!.searchCache.clear();
+  }
+
+  private async purgeExpiredSearchCacheEntries(): Promise<void> {
+    await this.initialize();
+
+    const cutoff = new Date(Date.now() - SEARCH_CACHE_TTL_MS).toISOString();
+    const expired = await this.db!.searchCache.where('cachedAt').below(cutoff).primaryKeys();
+    if (expired.length > 0) {
+      await this.db!.searchCache.bulkDelete(expired);
+    }
   }
 
   async replaceAllFromBackup(data: BackupData): Promise<void> {
