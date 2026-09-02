@@ -76,8 +76,23 @@
 }
 
 .food-library-page__status,
-.food-library-page__error {
+.food-library-page__error,
+.food-library-page__offline {
   margin-bottom: 12px;
+}
+
+.food-library-page__status-off {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--font-size-meta);
+}
+
+.food-library-page__offline {
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-meta);
 }
 
 .food-library-page__error {

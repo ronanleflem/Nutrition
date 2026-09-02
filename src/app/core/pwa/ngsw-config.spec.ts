@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { OFF_API_ORIGIN, OFF_API_URL_PATTERN } from './off-api-origin';
+import { OFF_SEARCH_ORIGIN, OFF_SEARCH_URL_PATTERN } from '../off-api/off-search-origin';
 
 describe('ngsw-config.json', () => {
   const configPath = resolve(process.cwd(), 'ngsw-config.json');
@@ -52,6 +53,16 @@ describe('ngsw-config.json', () => {
     expect(offGroup?.urls[0]).toContain(OFF_API_ORIGIN);
     expect(offGroup?.cacheConfig.maxSize).toBe(0);
     expect(offGroup?.cacheConfig.maxAge).toBe('0u');
+  });
+
+  it('does not persist Open Food Facts Search-a-licious responses in the service worker', () => {
+    const searchGroup = config.dataGroups.find(
+      (group) => group.name === 'open-food-facts-search-no-cache',
+    );
+    expect(searchGroup?.urls).toContain(OFF_SEARCH_URL_PATTERN);
+    expect(searchGroup?.urls[0]).toContain(OFF_SEARCH_ORIGIN);
+    expect(searchGroup?.cacheConfig.maxSize).toBe(0);
+    expect(searchGroup?.cacheConfig.maxAge).toBe('0u');
   });
 });
 

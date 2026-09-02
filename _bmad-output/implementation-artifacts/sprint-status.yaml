@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-30-2026 18:11
-last_updated: 09-02-2026 06:10
+last_updated: 09-02-2026 10:05
 project: Nutrition
 project_key: NOKEY
 tracking_system: file-system
@@ -92,3 +92,7 @@ development_status:
   10-5-recherche-unifiee-lors-ajout-ingredient-recette: review
   10-6-import-groupe-pack-demarrage: review
   epic-10-retrospective: optional
+
+  epic-11: in-progress
+  11-1-provider-off-search-a-licious: in-progress
+  epic-11-retrospective: optional

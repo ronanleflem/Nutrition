@@ -8,6 +8,7 @@ import { FoodSearchService } from '../../../core/food-library/food-search.servic
 import { foodSearchHitToPrefill } from '../../../core/food-library/food-search-hit-prefill';
 import { NetworkStatusService } from '../../../core/network/network-status.service';
 import { OffApiService } from '../../../core/off-api/off-api.service';
+import type { OffProductPrefill } from '../../../core/off-api/off-product-prefill';
 import type { PendingRestoreMatch } from '../models/pending-restore-match';
 import type { ScanFlowState } from '../models/scan-flow-state';
 import { ProductsService } from './products.service';
@@ -128,6 +129,14 @@ export class ScanService {
 
   clearPendingRestore(): void {
     this.pendingRestore.set(null);
+  }
+
+  async openFromOffSearchPrefill(prefill: OffProductPrefill): Promise<void> {
+    await this.openReferenceForm({
+      barcode: prefill.barcode,
+      status: 'off-found',
+      prefill,
+    });
   }
 
   openManualEntry(barcode = ''): void {

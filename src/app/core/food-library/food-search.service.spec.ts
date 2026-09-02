@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { NetworkStatusService } from '../network/network-status.service';
 import { FoodSearchService } from './food-search.service';
 import {
   CIQUAL_FIXTURE_CHUNK,
@@ -15,9 +17,18 @@ const MANIFEST = {
 
 describe('FoodSearchService', () => {
   let service: FoodSearchService;
+  let onlineSignal = signal(true);
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    onlineSignal = signal(true);
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: NetworkStatusService,
+          useValue: { isOnline: onlineSignal.asReadonly() },
+        },
+      ],
+    });
     service = TestBed.inject(FoodSearchService);
   });
 
@@ -25,9 +36,31 @@ describe('FoodSearchService', () => {
     vi.restoreAllMocks();
   });
 
-  function mockLibraryFetch(): void {
+  function mockLibraryFetch(offSearchResponse?: unknown): void {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       const url = String(input);
+
+      if (url.includes('search.openfoodfacts.org/search')) {
+        return {
+          ok: true,
+          json: async () =>
+            offSearchResponse ?? {
+              hits: [
+                {
+                  code: '3033490004743',
+                  product_name_fr: 'Skyr',
+                  brands: ['Danone'],
+                  nutriments: {
+                    'energy-kcal_100g': 48,
+                    proteins_100g: 7,
+                    fat_100g: 0.1,
+                    carbohydrates_100g: 2.8,
+                  },
+                },
+              ],
+            },
+        } as Response;
+      }
 
       if (url.endsWith(FOOD_LIBRARY_MANIFEST_PATH) || url.endsWith('manifest.json')) {
         return {
@@ -137,5 +170,34 @@ describe('FoodSearchService', () => {
       productId: 'prod-oeuf',
       displayName: 'Œuf',
     });
+  });
+
+  it('searchLibraryPage appends OFF section when online', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+
+    const result = await service.searchLibraryPage('skyr danone');
+
+    expect(result.sections.map((section) => section.source)).toContain('off');
+    expect(result.offStatus).toBe('ok');
+    expect(result.sections.find((section) => section.source === 'off')?.hits[0]).toMatchObject({
+      source: 'off',
+      barcode: '3033490004743',
+    });
+  });
+
+  it('searchLibraryPage skips OFF when offline', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(false);
+
+    const result = await service.searchLibraryPage('skyr danone');
+
+    expect(result.sections.every((section) => section.source !== 'off')).toBe(true);
+    expect(result.offStatus).toBeUndefined();
+    expect(
+      vi
+        .mocked(globalThis.fetch)
+        .mock.calls.some((call) => String(call[0]).includes('search.openfoodfacts.org')),
+    ).toBe(false);
   });
 });

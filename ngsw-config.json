@@ -44,6 +44,16 @@
         "maxAge": "0u",
         "timeout": "10s"
       }
+    },
+    {
+      "name": "open-food-facts-search-no-cache",
+      "urls": ["https://search.openfoodfacts.org/**"],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 0,
+        "maxAge": "0u",
+        "timeout": "10s"
+      }
     }
   ]
 }

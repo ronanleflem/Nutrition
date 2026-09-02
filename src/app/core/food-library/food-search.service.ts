@@ -1,6 +1,9 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 
+import { NetworkStatusService } from '../network/network-status.service';
+import { OffSearchProvider } from '../off-api/off-search.provider';
 import type { ProductCatalogItem } from '../models/product-catalog';
+import type { FoodLibraryPageSearchResult, FoodLibrarySearchSection } from './food-library-search.types';
 import {
   parseCiqualChunk,
   parseOpenNutritionChunk,
@@ -21,6 +24,8 @@ import type { IngredientPickerSearchResult } from './ingredient-picker-search.ty
 
 @Injectable({ providedIn: 'root' })
 export class FoodSearchService {
+  private readonly networkStatus = inject(NetworkStatusService);
+  private readonly offSearch = inject(OffSearchProvider);
   private readonly index = new FoodSearchIndex();
   private loadPromise: Promise<void> | null = null;
 
@@ -55,6 +60,52 @@ export class FoodSearchService {
       });
 
     return this.loadPromise;
+  }
+
+  async searchLibraryPage(
+    query: string,
+    options?: { limitPerSection?: number },
+  ): Promise<FoodLibraryPageSearchResult> {
+    const limit = options?.limitPerSection ?? 25;
+    const localStartedAt = performance.now();
+    const localResult = await this.searchLocal(query, { limitPerSection: limit });
+    const localDurationMs = performance.now() - localStartedAt;
+
+    if (!this.networkStatus.isOnline()) {
+      return {
+        sections: localResult.sections.map((section) => ({
+          source: section.source,
+          sourceLabel: section.sourceLabel,
+          hits: section.hits,
+        })),
+        durationMs: localDurationMs,
+      };
+    }
+
+    const offStartedAt = performance.now();
+    const offResult = await this.offSearch.search(query, { limit });
+    const offDurationMs = performance.now() - offStartedAt;
+
+    const sections: FoodLibrarySearchSection[] = localResult.sections.map((section) => ({
+      source: section.source,
+      sourceLabel: section.sourceLabel,
+      hits: section.hits,
+    }));
+
+    if (offResult.hits.length > 0) {
+      sections.push({
+        source: 'off',
+        sourceLabel: offResult.hits[0]?.sourceLabel ?? 'Open Food Facts',
+        hits: offResult.hits,
+      });
+    }
+
+    return {
+      sections,
+      durationMs: localDurationMs + offDurationMs,
+      offStatus: offResult.status,
+      offMsUntilRetry: offResult.msUntilRetry,
+    };
   }
 
   async searchLocal(

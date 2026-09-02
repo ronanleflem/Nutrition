@@ -3,7 +3,8 @@
     <a class="food-library-page__back" routerLink="/products">← Catalogue</a>
     <h1 class="food-library-page__title">Bibliothèque offline</h1>
     <p class="food-library-page__intro">
-      Recherchez des ingrédients Ciqual ou OpenNutrition et ajoutez-les à votre catalogue.
+      Recherchez des ingrédients Ciqual ou OpenNutrition offline, ou des marques via Open Food Facts
+      en ligne.
     </p>
   </header>
 
@@ -32,14 +33,30 @@
     <input
       class="food-library-page__search-input"
       type="search"
-      placeholder="Rechercher un aliment…"
-      aria-label="Rechercher dans la bibliothèque offline"
+      placeholder="Rechercher un aliment (ex. skyr danone)…"
+      aria-label="Rechercher dans la bibliothèque et Open Food Facts"
       (input)="onSearchInput($event)"
     />
   </label>
 
   @if (searching()) {
-    <p class="food-library-page__status" role="status">Recherche…</p>
+    <p class="food-library-page__status" role="status">
+      Recherche…
+      @if (searchingOff()) {
+        <span class="food-library-page__status-off">Open Food Facts…</span>
+      }
+    </p>
+  }
+
+  @if (!isOnline() && searchQuery().trim().length >= 3) {
+    <p class="food-library-page__offline" role="status">
+      Hors ligne — la recherche Open Food Facts est indisponible. Utilisez les sections Ciqual et
+      OpenNutrition ci-dessous.
+    </p>
+  }
+
+  @if (offSearchMessage() && isOnline()) {
+    <p class="food-library-page__offline" role="status">{{ offSearchMessage() }}</p>
   }
 
   @if (searchError()) {
@@ -85,9 +102,15 @@
               class="food-library-page__import"
               type="button"
               [disabled]="importingId() === hit.id"
-              (click)="importHit(hit)"
+              (click)="selectHit(hit)"
             >
-              {{ importingId() === hit.id ? 'Ajout…' : 'Ajouter à mon catalogue' }}
+              @if (isOffSearchHit(hit)) {
+                Prévisualiser
+              } @else if (importingId() === hit.id) {
+                Ajout…
+              } @else {
+                Ajouter à mon catalogue
+              }
             </button>
           </li>
         }
@@ -98,6 +121,16 @@
           <a href="https://www.opennutrition.app/" rel="noopener noreferrer" target="_blank">
             {{ openNutritionCredit }}
           </a>
+        </p>
+      }
+
+      @if (section.source === 'off') {
+        <p class="food-library-page__attribution">
+          Données
+          <a href="https://world.openfoodfacts.org/" rel="noopener noreferrer" target="_blank">
+            Open Food Facts
+          </a>
+          (ODbL)
         </p>
       }
     </section>

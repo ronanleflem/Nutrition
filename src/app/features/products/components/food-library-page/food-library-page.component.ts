@@ -3,16 +3,25 @@ import { Router, RouterLink } from '@angular/router';
 
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
 import { OPENNUTRITION_INLINE_CREDIT } from '../../../../core/food-library/food-library-attribution';
+import {
+  isOffSearchHit,
+  type FoodLibraryPageSearchResult,
+  type FoodLibrarySearchHit,
+  type FoodLibrarySearchSection,
+} from '../../../../core/food-library/food-library-search.types';
 import { FoodLibraryImportService } from '../../../../core/food-library/food-library-import.service';
 import type { StarterPackImportSummary } from '../../../../core/food-library/food-library-import.service';
 import type { FoodLibraryImportDuplicate } from '../../../../core/food-library/food-library-import';
 import { FOOD_LIBRARY_STARTER_PACK_LABEL } from '../../../../core/food-library/food-library-starter-pack';
 import { FoodSearchService } from '../../../../core/food-library/food-search.service';
-import type { FoodSearchHit, FoodSearchSection } from '../../../../core/food-library/food-search.types';
+import type { FoodSearchHit } from '../../../../core/food-library/food-search.types';
+import { NetworkStatusService } from '../../../../core/network/network-status.service';
 import { formatMacrosSummary } from '../../../../core/models/product-reference';
 import { ProductsService } from '../../services/products.service';
+import { ScanService } from '../../services/scan.service';
 
-const SEARCH_DEBOUNCE_MS = 200;
+const SEARCH_DEBOUNCE_MS = 400;
+const MIN_OFFLINE_QUERY_LENGTH = 1;
 
 @Component({
   selector: 'app-food-library-page',
@@ -24,20 +33,27 @@ export class FoodLibraryPageComponent {
   private readonly foodSearch = inject(FoodSearchService);
   private readonly importService = inject(FoodLibraryImportService);
   private readonly productsService = inject(ProductsService);
+  private readonly scanService = inject(ScanService);
+  private readonly networkStatus = inject(NetworkStatusService);
   private readonly router = inject(Router);
 
   private searchSequence = 0;
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
+  readonly isOffSearchHit = isOffSearchHit;
+  readonly isOnline = this.networkStatus.isOnline;
+
   readonly starterPackLabel = FOOD_LIBRARY_STARTER_PACK_LABEL;
   readonly openNutritionCredit = OPENNUTRITION_INLINE_CREDIT;
   readonly searchQuery = signal('');
-  readonly sections = signal<FoodSearchSection[]>([]);
+  readonly sections = signal<FoodLibrarySearchSection[]>([]);
   readonly searching = signal(false);
+  readonly searchingOff = signal(false);
   readonly importingId = signal<string | null>(null);
   readonly importingStarterPack = signal(false);
   readonly starterPackSummary = signal<StarterPackImportSummary | null>(null);
   readonly searchError = signal<string | null>(null);
+  readonly offSearchMessage = signal<string | null>(null);
   readonly importError = signal<string | null>(null);
   readonly pendingDuplicate = signal<{
     hit: FoodSearchHit;
@@ -46,7 +62,7 @@ export class FoodLibraryPageComponent {
 
   readonly loadError = this.foodSearch.loadError;
 
-  formatMacros(hit: FoodSearchHit): string {
+  formatMacros(hit: FoodLibrarySearchHit): string {
     return formatMacrosSummary({
       kcalPer100g: hit.kcal,
       proteinPer100g: hit.proteinG,
@@ -64,6 +80,15 @@ export class FoodLibraryPageComponent {
     const query = (event.target as HTMLInputElement).value;
     this.searchQuery.set(query);
     this.scheduleSearch(query);
+  }
+
+  async selectHit(hit: FoodLibrarySearchHit): Promise<void> {
+    if (isOffSearchHit(hit)) {
+      await this.scanService.openFromOffSearchPrefill(hit.prefill);
+      return;
+    }
+
+    await this.importHit(hit);
   }
 
   async importHit(hit: FoodSearchHit): Promise<void> {
@@ -164,22 +189,29 @@ export class FoodLibraryPageComponent {
     const sequence = ++this.searchSequence;
     const trimmed = query.trim();
 
-    if (!trimmed) {
+    if (!trimmed || trimmed.length < MIN_OFFLINE_QUERY_LENGTH) {
       this.sections.set([]);
       this.searchError.set(null);
+      this.offSearchMessage.set(null);
       return;
     }
 
     this.searching.set(true);
     this.searchError.set(null);
+    this.offSearchMessage.set(null);
+
+    if (this.networkStatus.isOnline() && trimmed.length >= 3) {
+      this.searchingOff.set(true);
+    }
 
     try {
-      const result = await this.foodSearch.searchLocal(trimmed);
+      const result = await this.foodSearch.searchLibraryPage(trimmed);
       if (sequence !== this.searchSequence) {
         return;
       }
 
       this.sections.set(result.sections);
+      this.offSearchMessage.set(this.buildOffSearchMessage(result.offStatus, result.offMsUntilRetry));
     } catch {
       if (sequence !== this.searchSequence) {
         return;
@@ -192,7 +224,24 @@ export class FoodLibraryPageComponent {
     } finally {
       if (sequence === this.searchSequence) {
         this.searching.set(false);
+        this.searchingOff.set(false);
       }
     }
+  }
+
+  private buildOffSearchMessage(
+    status: FoodLibraryPageSearchResult['offStatus'],
+    msUntilRetry?: number,
+  ): string | null {
+    if (status === 'rate_limited' && msUntilRetry != null) {
+      const seconds = Math.ceil(msUntilRetry / 1000);
+      return `Trop de recherches Open Food Facts — réessayez dans ${seconds} s.`;
+    }
+
+    if (status === 'network_error') {
+      return 'Recherche Open Food Facts indisponible pour le moment.';
+    }
+
+    return null;
   }
 }
