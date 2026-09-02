@@ -114,7 +114,7 @@ describe('RecipeDetailPageComponent shortcuts', () => {
   async function choose(label: string): Promise<void> {
     (fixture.nativeElement.querySelector('[aria-haspopup="menu"]') as HTMLButtonElement).click();
     fixture.detectChanges();
-    const button = [...fixture.nativeElement.querySelectorAll('[role="menuitem"]')].find((node) =>
+    const button = [...fixture.nativeElement.querySelectorAll('.sheet__list-button')].find((node) =>
       (node.textContent ?? '').includes(label),
     ) as HTMLButtonElement;
     button.click();

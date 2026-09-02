@@ -230,7 +230,7 @@ describe('ProductsPageComponent', () => {
   }
 
   function clickAction(label: string): void {
-    const button = [...fixture.nativeElement.querySelectorAll('[role="menuitem"]')].find((node) =>
+    const button = [...fixture.nativeElement.querySelectorAll('.sheet__list-button')].find((node) =>
       (node.textContent ?? '').includes(label),
     ) as HTMLButtonElement | undefined;
     expect(button).toBeTruthy();
