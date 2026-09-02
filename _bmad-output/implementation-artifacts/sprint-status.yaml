@@ -86,4 +86,5 @@ development_status:
 
   epic-10: in-progress
   10-1-pipeline-ciqual-chunk-food-library-ciqual: review
+  10-2-pipeline-opennutrition-chunk-food-library-opennutrition: review
   epic-10-retrospective: optional

@@ -8,7 +8,8 @@
     "build:pages": "ng build --configuration=github-pages",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "build:food-library:ciqual": "tsx scripts/build-food-library-ciqual.ts"
+    "build:food-library:ciqual": "tsx scripts/build-food-library-ciqual.ts",
+    "build:food-library:opennutrition": "tsx scripts/build-food-library-opennutrition.ts"
   },
   "private": true,
   "packageManager": "npm@10.9.8",
