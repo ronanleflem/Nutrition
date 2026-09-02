@@ -138,6 +138,7 @@
       <a
         class="onboarding-page__button onboarding-page__button--secondary"
         routerLink="/products/library"
+        [queryParams]="{ from: 'onboarding' }"
         data-action="browse-library"
         (click)="onBrowseLibrary()"
       >

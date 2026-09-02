@@ -35,6 +35,7 @@ export class OnboardingService {
   readonly step2Ready = computed(() => this.packImported() || this.libraryVisited());
 
   private resumeAfterLibrary = false;
+  private resumeAfterCustom = false;
 
   enterWizard(): void {
     if (this.resumeAfterLibrary) {
@@ -44,11 +45,18 @@ export class OnboardingService {
       return;
     }
 
+    if (this.resumeAfterCustom) {
+      this.resumeAfterCustom = false;
+      this.currentStep.set(3);
+      return;
+    }
+
     this.resetWizard();
   }
 
   resetForRelaunch(): void {
     this.resumeAfterLibrary = false;
+    this.resumeAfterCustom = false;
     this.resetWizard();
   }
 
@@ -64,7 +72,7 @@ export class OnboardingService {
   async importStarterPack(): Promise<StarterPackImportSummary> {
     const summary = await this.foodLibrary.importStarterPack();
     this.packSummary.set(summary);
-    this.packImported.set(true);
+    this.packImported.set(summary.added + summary.alreadyPresent > 0);
     return summary;
   }
 
@@ -82,6 +90,8 @@ export class OnboardingService {
   }
 
   startCustomRecipe(): Promise<boolean> {
+    this.resumeAfterLibrary = false;
+    this.resumeAfterCustom = true;
     return this.router.navigate(['/recipes/new'], { queryParams: { from: 'onboarding' } });
   }
 

@@ -79,6 +79,27 @@ describe('app routes', () => {
     expect(router.url).toBe('/onboarding');
   });
 
+  it('redirects / to /home and marks onboarding done when recipes already exist', async () => {
+    await database.updateHideHomeOnStartup(false);
+    vi.spyOn(database, 'listRecipes').mockResolvedValueOnce([
+      {
+        recipe: {
+          id: 'existing',
+          title: 'Soupe',
+          steps: [],
+          defaultPortions: 1,
+          defaultVariantId: 'v1',
+          createdAt: '2026-09-02T00:00:00.000Z',
+          updatedAt: '2026-09-02T00:00:00.000Z',
+        },
+        defaultVariantName: 'Base',
+      },
+    ]);
+    await navigateAndSettle('/', 'Repas du jour');
+    expect(router.url).toBe('/home');
+    expect((await database.getAppSettings()).onboardingCompleted).toBe(true);
+  });
+
   it('redirects / to /home when onboarding is completed and hideHomeOnStartup is unset', async () => {
     await database.updateOnboardingCompleted(true);
     await database.updateHideHomeOnStartup(false);

@@ -1,6 +1,12 @@
 <section class="food-library-page">
   <header class="food-library-page__header">
-    <a class="food-library-page__back" routerLink="/products">← Catalogue</a>
+    @if (fromOnboarding()) {
+      <a class="food-library-page__back" routerLink="/onboarding" data-action="back-to-onboarding">
+        ← Retour au guidage
+      </a>
+    } @else {
+      <a class="food-library-page__back" routerLink="/products">← Catalogue</a>
+    }
     <h1 class="food-library-page__title">Bibliothèque offline</h1>
     <p class="food-library-page__intro">
       Recherchez des ingrédients Ciqual ou OpenNutrition offline, ou des marques via Open Food Facts

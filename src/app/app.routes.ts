@@ -10,7 +10,12 @@ export async function resolveStartupPath(): Promise<string> {
     const database = inject(DatabaseService);
     const settings = await database.getAppSettings();
     if (settings.onboardingCompleted !== true) {
-      return 'onboarding';
+      const recipes = await database.listRecipes();
+      if (recipes.length === 0) {
+        return 'onboarding';
+      }
+
+      await database.updateOnboardingCompleted(true);
     }
     return settings.hideHomeOnStartup === true ? 'pantry' : 'home';
   } catch {

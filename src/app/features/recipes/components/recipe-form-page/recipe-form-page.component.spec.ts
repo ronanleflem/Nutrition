@@ -41,6 +41,7 @@ describe('RecipeFormPageComponent onboarding return', () => {
         provideRouter([
           { path: 'home', component: DummyHomeComponent },
           { path: 'recipes', component: DummyRecipesComponent },
+          { path: 'onboarding', component: DummyHomeComponent },
         ]),
         {
           provide: ActivatedRoute,
@@ -113,5 +114,9 @@ describe('RecipeFormPageComponent onboarding return', () => {
 
     expect((await database.getAppSettings()).onboardingCompleted).toBeUndefined();
     expect(await database.listRecipes()).toEqual([]);
+    expect(
+      (fixture.nativeElement.querySelector('.recipe-form__button--secondary') as HTMLAnchorElement)
+        .getAttribute('href'),
+    ).toBe('/onboarding');
   });
 });

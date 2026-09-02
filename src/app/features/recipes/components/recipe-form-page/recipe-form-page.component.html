@@ -152,7 +152,9 @@
   </section>
 
   <div class="recipe-form__actions">
-    <a class="recipe-form__button recipe-form__button--secondary" routerLink="/recipes">Annuler</a>
+    <a class="recipe-form__button recipe-form__button--secondary" [routerLink]="cancelLink()">
+      Annuler
+    </a>
     <button
       class="recipe-form__button recipe-form__button--primary"
       type="submit"

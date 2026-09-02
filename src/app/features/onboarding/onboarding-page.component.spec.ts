@@ -118,6 +118,7 @@ describe('OnboardingPageComponent', () => {
     vi.spyOn(onboarding, 'saveMacros').mockRejectedValue(new Error('fail'));
     await mount();
 
+    fixture.componentInstance.form.patchValue({ kcal: 1800 });
     await fixture.componentInstance.saveMacros();
     await waitFor(() => fixture.componentInstance.stepError() !== null);
 
@@ -172,13 +173,13 @@ describe('OnboardingPageComponent', () => {
     fixture.detectChanges();
 
     const libraryLink = action('browse-library') as HTMLAnchorElement;
-    expect(libraryLink.getAttribute('href')).toBe('/products/library');
+    expect(libraryLink.getAttribute('href')).toBe('/products/library?from=onboarding');
 
     libraryLink.click();
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(TestBed.inject(Router).url).toBe('/products/library');
+    expect(TestBed.inject(Router).url).toBe('/products/library?from=onboarding');
     expect(onboarding.libraryVisited()).toBe(true);
 
     fixture.destroy();
@@ -200,7 +201,8 @@ describe('OnboardingPageComponent', () => {
     fixture.detectChanges();
 
     expect(onboarding.currentStep()).toBe(3);
-    await fixture.componentInstance.createOmelette();
+    action('create-omelette').click();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(finishSpy).toHaveBeenCalled();
@@ -208,7 +210,7 @@ describe('OnboardingPageComponent', () => {
 
   it('shows a French error on step 3 when omelette creation fails', async () => {
     vi.spyOn(onboarding, 'createOmeletteAndFinish').mockRejectedValue(
-      new Error('Ingrédients introuvables.'),
+      new Error('DexieError'),
     );
     await mount();
 
@@ -218,10 +220,11 @@ describe('OnboardingPageComponent', () => {
     fixture.detectChanges();
     action('continue-step-2').click();
     fixture.detectChanges();
-    await fixture.componentInstance.createOmelette();
+    action('create-omelette').click();
+    await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Ingrédients introuvables.');
+    expect(fixture.nativeElement.textContent).toContain('Impossible de créer la recette. Réessayez.');
     expect(onboarding.currentStep()).toBe(3);
     expect((await database.getAppSettings()).onboardingCompleted).toBeUndefined();
   });
@@ -232,9 +235,10 @@ describe('OnboardingPageComponent', () => {
     action('skip-macros').click();
     fixture.detectChanges();
     onboarding.markLibraryVisit();
+    fixture.detectChanges();
     action('continue-step-2').click();
     fixture.detectChanges();
-    await fixture.componentInstance.startCustomRecipe();
+    action('create-custom').click();
     await fixture.whenStable();
 
     expect(TestBed.inject(Router).url).toBe('/recipes/new?from=onboarding');

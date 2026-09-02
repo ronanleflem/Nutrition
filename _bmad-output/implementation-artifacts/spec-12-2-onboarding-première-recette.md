@@ -2,7 +2,7 @@
 title: 'Story 12.2 — First-recipe onboarding'
 type: 'feature'
 created: '2026-09-02'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 baseline_commit: 'a2013eb97be3aa5552e7df38540f08db40abfaee'
 story_key: '12-2-onboarding-première-recette'
@@ -106,3 +106,32 @@ Do not hide chrome if restore on destroy is uncertain — prefer hiding and rest
 **Manual checks:**
 - Fresh profile `/` → wizard step 1; Passer → pack import → Omelette → Accueil.
 - Settings relaunch opens wizard; `/` still goes to Accueil if they abandon.
+
+## Suggested Review Order
+
+**Startup gate**
+
+- Incomplete first open goes to `/onboarding`; existing recipes auto-complete.
+  [`app.routes.ts:8`](../../src/app/app.routes.ts#L8)
+
+**Wizard state**
+
+- Resume after library (step 2) or custom recipe abandon (step 3).
+  [`onboarding.service.ts:40`](../../src/app/features/onboarding/onboarding.service.ts#L40)
+
+- Real Omelette recipe then persist the flag and open Accueil.
+  [`onboarding.service.ts:98`](../../src/app/features/onboarding/onboarding.service.ts#L98)
+
+- Three-step UI: skippable macros, pack or library, omelette or custom.
+  [`onboarding-page.component.html:1`](../../src/app/features/onboarding/onboarding-page.component.html#L1)
+
+**Settings and return paths**
+
+- Relaunch does not clear the completion flag.
+  [`settings-page.component.html:25`](../../src/app/features/settings/settings-page.component.html#L25)
+
+**Persistence**
+
+- Flag write mirrors hide-home, no schema bump.
+  [`database.service.ts:276`](../../src/app/core/database/database.service.ts#L276)
+

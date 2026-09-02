@@ -32,6 +32,10 @@ export class RecipeFormPageComponent implements OnInit {
     this.productsService.catalog().filter((item) => !!item.product.preferredReferenceId),
   );
 
+  readonly cancelLink = computed(() =>
+    this.route.snapshot.queryParamMap.get('from') === 'onboarding' ? '/onboarding' : '/recipes',
+  );
+
   readonly form = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.pattern(/\S/)]],
     durationMin: [''],

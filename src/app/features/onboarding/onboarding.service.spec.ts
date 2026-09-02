@@ -102,6 +102,7 @@ describe('OnboardingService', () => {
     const first = await service.importStarterPack();
     expect(first.added).toBe(50);
     expect(service.step2Ready()).toBe(true);
+    expect(importService.importStarterPack).toHaveBeenCalledWith();
 
     const second = await service.importStarterPack();
     expect(second.added).toBe(0);
@@ -178,6 +179,28 @@ describe('OnboardingService', () => {
 
     expect(TestBed.inject(Router).url).toBe('/recipes/new?from=onboarding');
     expect((await database.getAppSettings()).onboardingCompleted).toBeUndefined();
+  });
+
+  it('resumes step 3 after abandoning the custom recipe form', async () => {
+    service.markLibraryVisit();
+    service.goToStep3();
+    await service.startCustomRecipe();
+    service.enterWizard();
+
+    expect(service.currentStep()).toBe(3);
+  });
+
+  it('does not enable step 2 when the pack import finds nothing', async () => {
+    const importService = TestBed.inject(FoodLibraryImportService);
+    vi.spyOn(importService, 'importStarterPack').mockResolvedValue({
+      added: 0,
+      alreadyPresent: 0,
+      missing: 50,
+      total: 50,
+    });
+
+    await service.importStarterPack();
+    expect(service.step2Ready()).toBe(false);
   });
 
   it('completes onboarding after a custom recipe and opens Accueil', async () => {

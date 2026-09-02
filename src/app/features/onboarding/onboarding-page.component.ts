@@ -11,7 +11,8 @@ import { FOOD_LIBRARY_STARTER_PACK_LABEL } from '../../core/food-library/food-li
 import type { StarterPackImportSummary } from '../../core/food-library/food-library-import.service';
 import { ShellChromeService } from '../../core/layout/shell-chrome.service';
 import type { UpdateMacroGoalsInput } from '../../core/models/macro-goals';
-import { OnboardingService } from './onboarding.service';
+import { MacroGoalsService } from '../macro-goals/services/macro-goals.service';
+import { OMELETTE_INGREDIENTS_MISSING_ERROR, OnboardingService } from './onboarding.service';
 
 function optionalMinZeroValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
@@ -39,6 +40,7 @@ function normalizeGoalValue(value: number | null | undefined): number | null {
 export class OnboardingPageComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly shellChrome = inject(ShellChromeService);
+  private readonly macroGoals = inject(MacroGoalsService);
   readonly onboarding = inject(OnboardingService);
 
   readonly starterPackLabel = FOOD_LIBRARY_STARTER_PACK_LABEL;
@@ -58,6 +60,7 @@ export class OnboardingPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.shellChrome.setHidden(true);
     this.onboarding.enterWizard();
+    void this.prefillMacros();
   }
 
   ngOnDestroy(): void {
@@ -88,6 +91,11 @@ export class OnboardingPageComponent implements OnInit, OnDestroy {
         carbsG: normalizeGoalValue(raw.carbsG),
         fiberG: normalizeGoalValue(raw.fiberG),
       };
+      const hasValue = Object.values(payload).some((value) => value != null);
+      if (!hasValue) {
+        this.onboarding.skipMacros();
+        return;
+      }
       await this.onboarding.saveMacros(payload);
     } catch {
       this.stepError.set('Impossible d’enregistrer les objectifs.');
@@ -130,7 +138,9 @@ export class OnboardingPageComponent implements OnInit, OnDestroy {
       await this.onboarding.createOmeletteAndFinish();
     } catch (error) {
       this.stepError.set(
-        error instanceof Error ? error.message : 'Impossible de créer la recette. Réessayez.',
+        error instanceof Error && error.message === OMELETTE_INGREDIENTS_MISSING_ERROR
+          ? error.message
+          : 'Impossible de créer la recette. Réessayez.',
       );
     } finally {
       this.creatingRecipe.set(false);
@@ -138,6 +148,29 @@ export class OnboardingPageComponent implements OnInit, OnDestroy {
   }
 
   formatPackSummary(summary: StarterPackImportSummary): string {
-    return `${summary.added} ajoutés, ${summary.alreadyPresent} déjà présents`;
+    const parts = [
+      `${summary.added} ajoutés`,
+      `${summary.alreadyPresent} déjà présents`,
+    ];
+    if (summary.missing > 0) {
+      parts.push(`${summary.missing} introuvables`);
+    }
+    return parts.join(', ');
+  }
+
+  private async prefillMacros(): Promise<void> {
+    await this.macroGoals.load();
+    const goals = this.macroGoals.goals();
+    if (!goals) {
+      return;
+    }
+
+    this.form.patchValue({
+      kcal: goals.kcal ?? null,
+      proteinG: goals.proteinG ?? null,
+      fatG: goals.fatG ?? null,
+      carbsG: goals.carbsG ?? null,
+      fiberG: goals.fiberG ?? null,
+    });
   }
 }
