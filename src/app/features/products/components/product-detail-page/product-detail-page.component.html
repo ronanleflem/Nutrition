@@ -10,7 +10,7 @@
         <h2 class="product-detail__title">{{ item.product.name }}</h2>
       </div>
       @if (item.product.category) {
-        <p class="product-detail__category">{{ item.product.category }}</p>
+        <app-food-category-label [category]="item.product.category" class="product-detail__category" />
       }
       @if (item.preferredReference) {
         <p class="product-detail__store">

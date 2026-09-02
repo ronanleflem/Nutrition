@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import type { Product } from '../../../../core/models/product';
 import type { ProductReference } from '../../../../core/models/product-reference';
 import { ReferenceRowComponent } from '../../../products/components/reference-row/reference-row.component';
+import { FoodCategoryLabelComponent } from '../../../../core/ui/food-category-label/food-category-label.component';
 import { ProductsService } from '../../../products/services/products.service';
 
 interface ArchivedProductItem {
@@ -13,7 +14,7 @@ interface ArchivedProductItem {
 
 @Component({
   selector: 'app-archived-products-page',
-  imports: [RouterLink, ReferenceRowComponent],
+  imports: [RouterLink, ReferenceRowComponent, FoodCategoryLabelComponent],
   templateUrl: './archived-products-page.component.html',
   styleUrl: './archived-products-page.component.scss',
 })

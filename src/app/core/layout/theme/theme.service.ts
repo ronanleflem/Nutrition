@@ -9,14 +9,14 @@ export class ThemeService {
 
   readonly currentTheme = signal<AppTheme>('dark');
 
-  applyTheme(theme: AppTheme): AppTheme {
-    document.documentElement.dataset['theme'] = theme;
-    this.currentTheme.set(theme);
-    return theme;
+  applyTheme(_theme?: AppTheme): AppTheme {
+    document.documentElement.dataset['theme'] = 'dark';
+    this.currentTheme.set('dark');
+    return 'dark';
   }
 
   async applyFromSettings(): Promise<AppTheme> {
-    const settings = await this.database.getAppSettings();
-    return this.applyTheme(settings.theme);
+    await this.database.getAppSettings();
+    return this.applyTheme('dark');
   }
 }

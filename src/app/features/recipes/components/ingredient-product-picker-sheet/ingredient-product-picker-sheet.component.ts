@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
+import { foodCategoryLabelFromHit } from '../../../../core/food-category/food-category-from-hit';
+import { FoodCategoryLabelComponent } from '../../../../core/ui/food-category-label/food-category-label.component';
 import { DatabaseService } from '../../../../core/database/database.service';
 import type { FoodLibraryImportDuplicate } from '../../../../core/food-library/food-library-import';
 import { OPENNUTRITION_INLINE_CREDIT } from '../../../../core/food-library/food-library-attribution';
@@ -39,7 +41,7 @@ import { ScanService } from '../../../products/services/scan.service';
 
 @Component({
   selector: 'app-ingredient-product-picker-sheet',
-  imports: [FormsModule, RouterLink, ConfirmDialogComponent],
+  imports: [FormsModule, RouterLink, ConfirmDialogComponent, FoodCategoryLabelComponent],
   templateUrl: './ingredient-product-picker-sheet.component.html',
   styleUrl: './ingredient-product-picker-sheet.component.scss',
 })
@@ -66,6 +68,7 @@ export class IngredientProductPickerSheetComponent implements OnDestroy {
   readonly closed = output<void>();
 
   readonly openNutritionCredit = OPENNUTRITION_INLINE_CREDIT;
+  readonly categoryLabelFromHit = foodCategoryLabelFromHit;
   readonly searchQuery = signal('');
   readonly sections = signal<IngredientSearchSection[]>([]);
   readonly searching = signal(false);

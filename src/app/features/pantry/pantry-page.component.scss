@@ -7,50 +7,6 @@
   font-size: var(--font-size-body);
 }
 
-.pantry__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 32px 16px;
-  text-align: center;
-}
-
-.pantry__empty-title {
-  margin: 0;
-  font-size: var(--font-size-title);
-  font-weight: var(--font-weight-semibold);
-}
-
-.pantry__empty-text {
-  margin: 0;
-  color: var(--color-ink-secondary);
-  font-size: var(--font-size-body);
-}
-
-.pantry__empty-cta {
-  min-height: var(--spacing-touch-min);
-  padding: 10px 20px;
-  border: none;
-  border-radius: var(--radius-md);
-  background: var(--color-accent-positive-muted);
-  color: var(--color-ink-primary);
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-}
-
-.pantry__empty-icon {
-  margin: 0;
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.pantry__empty-cta--secondary {
-  background: var(--color-surface-overlay);
-  border: 1px solid var(--color-border-strong);
-}
-
 .pantry__controls {
   display: flex;
   flex-wrap: wrap;

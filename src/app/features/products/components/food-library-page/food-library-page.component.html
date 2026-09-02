@@ -142,7 +142,10 @@
                 <span class="food-library-page__badge">{{ hit.sourceLabel }}</span>
                 <span class="food-library-page__name">{{ hit.displayName }}</span>
               </div>
-              @if (hit.subtitle) {
+              @if (categoryLabelFromHit(hit); as category) {
+                <app-food-category-label [category]="category" class="food-library-page__category" />
+              }
+              @if (hit.subtitle && hit.source !== 'ciqual') {
                 <span class="food-library-page__subtitle">{{ hit.subtitle }}</span>
               }
               <span class="food-library-page__macros">{{ formatMacros(hit) }}</span>

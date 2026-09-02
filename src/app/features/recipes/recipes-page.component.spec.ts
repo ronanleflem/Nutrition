@@ -24,6 +24,6 @@ describe('RecipesPageComponent', () => {
     fixture.detectChanges();
 
     const element: HTMLElement = fixture.nativeElement;
-    expect(element.textContent).toContain('Aucune recette pour le moment.');
+    expect(element.textContent).toContain('Ajoutez votre première recette');
   });
 });

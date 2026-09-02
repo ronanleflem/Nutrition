@@ -37,11 +37,7 @@
     }
 
     @if (!hasRecipes()) {
-      <app-empty-state
-        message="Aucune recette — créez-en une pour planifier votre semaine."
-        ctaLabel="Créer une recette"
-        ctaLink="/recipes/new"
-      />
+      <app-empty-state variant="recipes" />
     } @else if (!hasResults()) {
       <p class="sheet__empty" role="status">Aucune recette ne correspond à votre recherche.</p>
     } @else {

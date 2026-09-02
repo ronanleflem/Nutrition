@@ -35,17 +35,9 @@
     @if (shopping.loading() && shopping.items().length === 0) {
       <p class="shopping-page__status" role="status">Chargement…</p>
     } @else if (!shopping.hasPlanEntries() && !shopping.hasManualItems()) {
-      <app-empty-state
-        message="Aucun repas planifié cette semaine. Ajoutez des articles manuellement ou remplissez votre plan."
-        ctaLabel="Ouvrir le plan"
-        ctaLink="/plan"
-      />
+      <app-empty-state variant="meal-plan" />
     } @else if (shopping.items().length === 0) {
-      <app-empty-state
-        message="Votre garde-manger couvre tout le plan, ou la liste n'a pas encore été générée."
-        ctaLabel="Voir le plan"
-        ctaLink="/plan"
-      />
+      <app-empty-state variant="shopping-list" />
     } @else {
       <button type="button" class="shopping-page__store-mode-btn" (click)="enterStoreMode()">
         Mode Courses

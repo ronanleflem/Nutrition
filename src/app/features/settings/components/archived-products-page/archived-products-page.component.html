@@ -20,7 +20,10 @@
             <div class="archived-products-page__info">
               <span class="archived-products-page__name">{{ item.product.name }}</span>
               @if (item.product.category) {
-                <span class="archived-products-page__category">{{ item.product.category }}</span>
+                <app-food-category-label
+                  [category]="item.product.category"
+                  class="archived-products-page__category"
+                />
               }
             </div>
             <button

@@ -10,10 +10,12 @@ import { isCatalogSearchHit as isPickerCatalogHit } from '../../ingredient-picke
 import type { FoodSearchCascadeSection } from '../../food-search-cascade.types';
 import type { IngredientSearchHit } from '../../ingredient-picker-search.types';
 import { formatMacrosSummary } from '../../../models/product-reference';
+import { foodCategoryLabelFromHit } from '../../../food-category/food-category-from-hit';
+import { FoodCategoryLabelComponent } from '../../../ui/food-category-label/food-category-label.component';
 
 @Component({
   selector: 'app-food-search-cascade-results',
-  imports: [RouterLink],
+  imports: [RouterLink, FoodCategoryLabelComponent],
   templateUrl: './food-search-cascade-results.component.html',
   styleUrl: './food-search-cascade-results.component.scss',
 })
@@ -32,6 +34,7 @@ export class FoodSearchCascadeResultsComponent {
   readonly isCatalogSearchHit = isPickerCatalogHit;
   readonly isOnlineSearchHit = isOnlineSearchHit;
   readonly isLibrarySearchHit = isLibrarySearchHit;
+  readonly categoryLabelFromHit = foodCategoryLabelFromHit;
 
   formatMacros(hit: IngredientSearchHit): string {
     return formatMacrosSummary({

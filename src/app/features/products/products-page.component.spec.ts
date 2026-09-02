@@ -94,7 +94,7 @@ describe('ProductsPageComponent', () => {
     fixture.detectChanges();
     await waitForLoad();
 
-    expect(fixture.nativeElement.textContent).toContain('Aucun produit dans votre catalogue.');
+    expect(fixture.nativeElement.textContent).toContain('Votre catalogue est prêt');
   });
 
   it('lists created products after load', async () => {
@@ -104,7 +104,7 @@ describe('ProductsPageComponent', () => {
     await waitForLoad();
 
     expect(fixture.nativeElement.textContent).toContain('Poulet blanc');
-    expect(fixture.nativeElement.textContent).toContain('VIANDE');
+    expect(fixture.nativeElement.textContent).toContain('Viande');
   });
 
   async function runSearch(query: string): Promise<void> {

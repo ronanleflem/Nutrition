@@ -11,26 +11,27 @@ sources:
   - ../../../specs/spec-nutrition/SPEC.md
   - ../../../project-context.md
 colors:
-  surface-base: '#121212'
-  surface-raised: '#1E1E1E'
-  surface-overlay: '#2A2A2A'
-  surface-inset: '#0D0D0D'
+  surface-base: '#1A1F1A'
+  surface-raised: '#242B24'
+  surface-overlay: '#2F372F'
+  surface-inset: '#121612'
   ink-primary: '#F5F5F5'
-  ink-secondary: '#B0B0B0'
-  ink-disabled: '#6B6B6B'
-  accent-positive: '#7CB87C'
-  accent-positive-muted: '#4A6B4A'
-  accent-warning: '#E8B86D'
-  accent-danger: '#E57373'
-  accent-info: '#64B5F6'
-  border-subtle: '#333333'
-  border-strong: '#4A4A4A'
+  ink-secondary: '#B8C4B8'
+  ink-warm: '#E8E0D4'
+  ink-disabled: '#6B756B'
+  accent-positive: '#8FBC8F'
+  accent-positive-muted: '#5A7A58'
+  accent-warning: '#C4A77D'
+  accent-danger: '#D98A7A'
+  accent-info: '#7EB0C9'
+  border-subtle: '#3A443A'
+  border-strong: '#505A50'
   priority-green: '#4CAF50'
   priority-yellow: '#FFC107'
   priority-gray: '#9E9E9E'
-  macro-under: '#64B5F6'
-  macro-met: '#7CB87C'
-  macro-over: '#E8B86D'
+  macro-under: '#7EB0C9'
+  macro-met: '#8FBC8F'
+  macro-over: '#C4A77D'
   scan-overlay: 'rgba(0,0,0,0.65)'
 typography:
   display:
@@ -117,19 +118,20 @@ components:
 
 Nutrition est un **assistant courses-cuisine-planification** pour un usage solo en France — pas un journal calorique gamifié. L'esthétique suit cette posture : **fonctionnel, calme, sombre par défaut**, pensée pour le magasin (OLED, contraste élevé) et le dimanche soir (planification rapide).
 
-Le thème sombre n'est pas décoratif : il réduit l'éblouissement en rayon et économise la batterie. Les accents sauge (`{colors.accent-positive}`) signalent les actions constructives (ajouter, confirmer, objectif atteint) — jamais la décoration. Les indicateurs nutritionnels (priorité 🟢🟡, macros atteint/dépassé) utilisent une palette sémantique distincte des actions UI.
+Le thème sombre adopte une palette **forêt** : fond teinté vert profond, accents mousse (`{colors.accent-positive}`) pour les actions constructives, terre cuite (`{colors.accent-warning}`) pour les alertes douces, crème (`{colors.ink-warm}`) pour titres et empty states. Les indicateurs nutritionnels (priorité 🟢🟡, macros atteint/dépassé) utilisent une palette sémantique distincte des actions UI.
 
 Pas de streaks, pas de badges de gamification, pas d'animations distrayantes en Mode Courses.
 
 ## Colors
 
-- **Surface Base (`{colors.surface-base}`)** — Fond principal de l'app. Canvas OLED profond.
+- **Surface Base (`{colors.surface-base}`)** — Fond principal. Canvas OLED profond teinté vert forêt (`#1A1F1A`).
 - **Surface Raised (`{colors.surface-raised}`)** — Cartes produit, panneaux, bottom nav. Légèrement plus clair pour hiérarchie tonale.
 - **Surface Overlay (`{colors.surface-overlay}`)** — Modales, bottom sheets, champs de formulaire.
 - **Ink Primary (`{colors.ink-primary}`)** — Texte principal. Ratio ≥ 4.5:1 sur `{colors.surface-base}` (WCAG AA).
 - **Ink Secondary (`{colors.ink-secondary}`)** — Métadonnées, labels, sous-titres enseigne/marque.
-- **Accent Positive (`{colors.accent-positive}`)** — FAB scan, boutons primaires, macro « atteint ». Sauge discret, pas de vert fluo.
-- **Accent Warning (`{colors.accent-warning}`)** — DLC proche, macro dépassé, alertes non bloquantes.
+- **Ink Warm (`{colors.ink-warm}`)** — Titres d'empty states et accents chaleureux. Crème `#E8E0D4`.
+- **Accent Positive (`{colors.accent-positive}`)** — FAB scan, boutons primaires, macro « atteint ». Vert mousse `#8FBC8F`.
+- **Accent Warning (`{colors.accent-warning}`)** — DLC proche, macro dépassé, alertes non bloquantes. Terre cuite `#C4A77D`.
 - **Accent Danger (`{colors.accent-danger}`)** — Erreurs, confirmations destructives. Utilisé avec parcimonie.
 - **Priority tokens** — `{colors.priority-green}` / `{colors.priority-yellow}` / `{colors.priority-gray}` mappent les priorités catalogue Excel (🟢🟡).
 - **Macro tokens** — `{colors.macro-under}` / `{colors.macro-met}` / `{colors.macro-over}` pour barres de synthèse journalière.
