@@ -1,6 +1,6 @@
 export const APP_SETTINGS_SINGLETON_ID = 'singleton' as const;
 
-export type AppTheme = 'dark' | 'light';
+export type AppTheme = 'dark';
 
 export interface AppSettings {
   id: typeof APP_SETTINGS_SINGLETON_ID;
