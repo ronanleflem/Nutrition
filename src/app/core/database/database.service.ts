@@ -1462,6 +1462,33 @@ export class DatabaseService {
     return updated;
   }
 
+  async updateRecipePhotoBlobId(recipeId: string, photoBlobId: string | null): Promise<Recipe> {
+    await this.initialize();
+
+    const existing = await this.db!.recipes.get(recipeId);
+    if (!existing) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const previousId = existing.photoBlobId;
+    const updated: Recipe = {
+      ...existing,
+      photoBlobId: photoBlobId ?? undefined,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.db!.recipes.put(updated);
+
+    if (previousId && previousId !== photoBlobId) {
+      const referenced = await this.isImageBlobReferenced(previousId);
+      if (!referenced) {
+        await this.deleteImageBlob(previousId);
+      }
+    }
+
+    return updated;
+  }
+
   async countMealPlanEntriesForRecipe(recipeId: string): Promise<number> {
     await this.initialize();
     return this.db!.mealPlanEntries.where('recipeId').equals(recipeId).count();
@@ -1783,6 +1810,7 @@ export class DatabaseService {
       throw new Error('Recette introuvable.');
     }
 
+    const photoBlobId = recipe.photoBlobId;
     const variants = await this.db!.recipeVariants.where('recipeId').equals(recipeId).toArray();
     const variantIds = variants.map((variant) => variant.id);
 
@@ -1801,6 +1829,13 @@ export class DatabaseService {
         await this.db!.recipes.delete(recipeId);
       },
     );
+
+    if (photoBlobId) {
+      const referenced = await this.isImageBlobReferenced(photoBlobId);
+      if (!referenced) {
+        await this.deleteImageBlob(photoBlobId);
+      }
+    }
   }
 
   /** Test helper to reset in-memory state after closing the Dexie connection. */

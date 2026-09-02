@@ -34,6 +34,59 @@
         <p class="recipe-detail__notes-text">{{ current.recipe.notes }}</p>
       </section>
     }
+
+    <section class="recipe-detail__photo" aria-labelledby="recipe-photo-title">
+      <div class="recipe-detail__photo-header">
+        <h2 id="recipe-photo-title" class="recipe-detail__section-title">Photo</h2>
+        <div class="recipe-detail__photo-menu-wrap">
+          <button
+            type="button"
+            class="recipe-detail__photo-menu-button"
+            aria-haspopup="menu"
+            [attr.aria-expanded]="showPhotoMenu()"
+            [disabled]="photoBusy()"
+            (click)="togglePhotoMenu()"
+          >
+            {{ hasPhoto() ? 'Gérer la photo' : 'Ajouter une photo' }}
+          </button>
+          @if (showPhotoMenu()) {
+            <ul class="recipe-detail__photo-menu" role="menu">
+              <li role="none">
+                <button
+                  type="button"
+                  class="recipe-detail__photo-menu-item"
+                  role="menuitem"
+                  (click)="openPhotoPicker(photoInput)"
+                >
+                  {{ hasPhoto() ? 'Changer la photo' : 'Ajouter une photo' }}
+                </button>
+              </li>
+              @if (hasPhoto()) {
+                <li role="none">
+                  <button
+                    type="button"
+                    class="recipe-detail__photo-menu-item"
+                    role="menuitem"
+                    (click)="removePhoto()"
+                  >
+                    Retirer la photo
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+          <input
+            #photoInput
+            class="recipe-detail__photo-input"
+            type="file"
+            accept="image/*"
+            tabindex="-1"
+            aria-hidden="true"
+            (change)="onPhotoSelected($event)"
+          />
+        </div>
+      </div>
+    </section>
   </header>
 
   <app-variant-chip-row

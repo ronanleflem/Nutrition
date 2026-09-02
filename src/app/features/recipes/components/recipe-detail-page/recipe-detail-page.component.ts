@@ -6,6 +6,8 @@ import { switchMap } from 'rxjs/operators';
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
 import { ContextShortcutsOutletComponent } from '../../../../core/ui/context-shortcuts/context-shortcuts-outlet.component';
 import { ContextShortcutsService } from '../../../../core/ui/context-shortcuts/context-shortcuts.service';
+import { RECIPE_PHOTO_REPLACE_ERROR } from '../../../../core/images/recipe-photo.messages';
+import { RecipePhotoService } from '../../../../core/images/recipe-photo.service';
 import type { RecipeDetail, RecipeVariantDetail } from '../../../../core/models/recipe-detail';
 import { RecipeMacroService } from '../../../../core/scoring/recipe-macro.service';
 import { RecipesService } from '../../services/recipes.service';
@@ -32,6 +34,7 @@ export class RecipeDetailPageComponent implements OnInit {
   private readonly recipesService = inject(RecipesService);
   private readonly recipeMacroService = inject(RecipeMacroService);
   private readonly shortcuts = inject(ContextShortcutsService);
+  private readonly recipePhoto = inject(RecipePhotoService);
 
   readonly detail = signal<RecipeDetail | null>(null);
   readonly loading = signal(true);
@@ -43,6 +46,10 @@ export class RecipeDetailPageComponent implements OnInit {
   readonly showDeleteConfirm = signal(false);
   readonly deleting = signal(false);
   readonly planEntryCount = signal(0);
+  readonly photoBusy = signal(false);
+  readonly showPhotoMenu = signal(false);
+
+  readonly hasPhoto = computed(() => !!this.detail()?.recipe.photoBlobId);
 
   readonly deleteConfirmMessage = computed(() => {
     const count = this.planEntryCount();
@@ -209,6 +216,62 @@ export class RecipeDetailPageComponent implements OnInit {
       this.actionError.set(error instanceof Error ? error.message : 'Suppression impossible.');
     } finally {
       this.deleting.set(false);
+    }
+  }
+
+  togglePhotoMenu(): void {
+    this.showPhotoMenu.update((value) => !value);
+  }
+
+  closePhotoMenu(): void {
+    this.showPhotoMenu.set(false);
+  }
+
+  openPhotoPicker(input: HTMLInputElement): void {
+    this.closePhotoMenu();
+    input.click();
+  }
+
+  async onPhotoSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+
+    if (!file || !this.recipeId) {
+      return;
+    }
+
+    this.photoBusy.set(true);
+    this.actionError.set(null);
+
+    try {
+      await this.recipePhoto.attachPhoto(this.recipeId, file);
+      await this.loadDetail(this.recipeId);
+    } catch (error) {
+      this.actionError.set(
+        error instanceof Error ? error.message : RECIPE_PHOTO_REPLACE_ERROR,
+      );
+    } finally {
+      this.photoBusy.set(false);
+    }
+  }
+
+  async removePhoto(): Promise<void> {
+    if (!this.recipeId || this.photoBusy()) {
+      return;
+    }
+
+    this.closePhotoMenu();
+    this.photoBusy.set(true);
+    this.actionError.set(null);
+
+    try {
+      await this.recipePhoto.removePhoto(this.recipeId);
+      await this.loadDetail(this.recipeId);
+    } catch (error) {
+      this.actionError.set(error instanceof Error ? error.message : 'Impossible de retirer la photo.');
+    } finally {
+      this.photoBusy.set(false);
     }
   }
 }

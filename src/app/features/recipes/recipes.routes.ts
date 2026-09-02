@@ -10,6 +10,14 @@ export const RECIPES_ROUTES: Routes = [
   { path: '', component: RecipesPageComponent, data: { title: 'Recettes' } },
   { path: 'new', component: RecipeFormPageComponent, data: { title: 'Nouvelle recette' } },
   {
+    path: ':id/photo-prompt',
+    loadComponent: () =>
+      import('./components/photo-prompt-page/photo-prompt-page.component').then(
+        (m) => m.PhotoPromptPageComponent,
+      ),
+    data: { title: 'Ajouter une photo' },
+  },
+  {
     path: ':id/variants/new',
     component: RecipeVariantFormPageComponent,
     data: { title: 'Nouvelle variante' },

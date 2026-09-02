@@ -1,0 +1,80 @@
+@if (loading()) {
+  <p class="photo-prompt__status" role="status">Chargement…</p>
+} @else if (loadError()) {
+  <p class="photo-prompt__error" role="alert">{{ loadError() }}</p>
+} @else {
+  <main class="photo-prompt">
+    <h1 class="photo-prompt__title">Ajouter une photo ?</h1>
+    <p class="photo-prompt__subtitle">
+      La recette « {{ recipeTitle() }} » est enregistrée. Vous pourrez ajouter une photo plus tard.
+    </p>
+
+    <div class="photo-prompt__placeholder" aria-hidden="true">
+      <svg width="56" height="56" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6">
+        <ellipse cx="20" cy="28" rx="12" ry="5" />
+        <path d="M10 28c2-10 8-14 10-14s8 4 10 14" />
+      </svg>
+    </div>
+
+    @if (infoMessage()) {
+      <p class="photo-prompt__info" role="status">{{ infoMessage() }}</p>
+    }
+
+    @if (actionError()) {
+      <p class="photo-prompt__error" role="alert">{{ actionError() }}</p>
+    }
+
+    <div class="photo-prompt__actions">
+      @if (showGallery()) {
+        <button
+          #galleryButton
+          type="button"
+          class="photo-prompt__button photo-prompt__button--primary"
+          [disabled]="saving()"
+          (click)="openGalleryPicker(galleryInput)"
+        >
+          Galerie
+        </button>
+        <input
+          #galleryInput
+          class="photo-prompt__file-input"
+          type="file"
+          accept="image/*"
+          tabindex="-1"
+          aria-hidden="true"
+          (change)="onFileSelected($event)"
+        />
+      }
+
+      @if (showCamera()) {
+        <button
+          type="button"
+          class="photo-prompt__button photo-prompt__button--secondary"
+          [disabled]="saving()"
+          (click)="openCameraPicker(cameraInput)"
+        >
+          Caméra
+        </button>
+        <input
+          #cameraInput
+          class="photo-prompt__file-input"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          tabindex="-1"
+          aria-hidden="true"
+          (change)="onFileSelected($event)"
+        />
+      }
+
+      <button
+        type="button"
+        class="photo-prompt__button photo-prompt__button--ghost"
+        [disabled]="saving()"
+        (click)="onLater()"
+      >
+        Plus tard
+      </button>
+    </div>
+  </main>
+}
