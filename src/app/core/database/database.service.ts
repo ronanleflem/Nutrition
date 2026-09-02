@@ -61,6 +61,7 @@ import {
   type ShoppingListItemWithProduct,
 } from '../models/shopping-list-item';
 import type { UsdaFoodCacheEntry } from '../models/usda-food-cache';
+import { USDA_FOOD_CACHE_MAX_ENTRIES } from '../usda-fdc/usda-food-cache.constants';
 import type { SearchCacheEntry } from '../models/search-cache-entry';
 import type { OnlineSearchHit } from '../food-library/food-search-cascade.types';
 import {
@@ -75,6 +76,7 @@ import {
   buildActiveBarcodeIndex,
   buildNameBrandIndex,
   collectImportedProductKeys,
+  mergeAppSettingsPreservingApiKeys,
   mergeLastExportAt,
   mergeMacroGoals,
   pickImportedAppSettings,
@@ -264,6 +266,12 @@ export class DatabaseService {
   async putUsdaFoodCacheEntry(entry: UsdaFoodCacheEntry): Promise<void> {
     await this.initialize();
     await this.db!.usdaFoodCache.put(entry);
+
+    const all = await this.db!.usdaFoodCache.orderBy('cachedAt').reverse().toArray();
+    if (all.length > USDA_FOOD_CACHE_MAX_ENTRIES) {
+      const stale = all.slice(USDA_FOOD_CACHE_MAX_ENTRIES);
+      await this.db!.usdaFoodCache.bulkDelete(stale.map((row) => row.fdcId));
+    }
   }
 
   async getUsdaFoodCacheEntry(fdcId: number): Promise<UsdaFoodCacheEntry | undefined> {
@@ -345,6 +353,9 @@ export class DatabaseService {
     ];
 
     await db.transaction('rw', tables, async () => {
+        const localSettings =
+          (await db.appSettings.get(APP_SETTINGS_SINGLETON_ID)) ?? createDefaultAppSettings();
+
         await db.shoppingListItems.clear();
         await db.mealPlanEntries.clear();
         await db.recipeIngredients.clear();
@@ -385,10 +396,9 @@ export class DatabaseService {
         await db.macroGoals.put(importedGoals ?? createDefaultMacroGoals());
 
         const importedSettings = pickImportedAppSettings(data.appSettings);
-        await db.appSettings.put({
-          ...(importedSettings ?? createDefaultAppSettings()),
-          id: APP_SETTINGS_SINGLETON_ID,
-        });
+        await db.appSettings.put(
+          mergeAppSettingsPreservingApiKeys(localSettings, importedSettings ?? createDefaultAppSettings()),
+        );
     });
   }
 

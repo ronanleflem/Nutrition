@@ -12,6 +12,7 @@ export interface FoodSearchCascadeRunOptions {
   catalog?: ProductCatalogItem[];
   forceOnline?: boolean;
   limitPerSection?: number;
+  abortSignal?: AbortSignal;
 }
 
 export interface FoodSearchCascadeRunOutcome {
@@ -61,6 +62,7 @@ export async function runFoodSearchCascade(
     catalog: options.catalog,
     limitPerSection: options.limitPerSection,
     includeOnline,
+    abortSignal: options.abortSignal,
   });
 
   return {

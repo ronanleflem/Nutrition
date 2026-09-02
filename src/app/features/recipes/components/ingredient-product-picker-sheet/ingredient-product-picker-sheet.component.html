@@ -53,12 +53,19 @@
 
     @if (!isOnline() && searchQuery().trim().length >= 3) {
       <p class="sheet__offline" role="status">
-        Recherche en ligne indisponible — sections locales uniquement.
+        {{ offlineSearchBanner() }}
       </p>
     }
 
     @if (offSearchMessage() && isOnline()) {
       <p class="sheet__offline" role="status">{{ offSearchMessage() }}</p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoStatus() === 'unauthorized') {
+      <p class="sheet__offline" role="status">
+        Clé FoodRepo invalide —
+        <a routerLink="/settings/data-sources" fragment="cles-api">vérifiez vos paramètres</a>.
+      </p>
     }
 
     @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoSearchMessage()) {
@@ -69,6 +76,13 @@
       <p class="sheet__offline" role="status">
         Élargissez avec FoodRepo —
         <a routerLink="/settings/data-sources" fragment="cles-api">Configurer FoodRepo</a>.
+      </p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && usdaStatus() === 'unauthorized') {
+      <p class="sheet__offline" role="status">
+        Clé USDA invalide —
+        <a routerLink="/settings/data-sources" fragment="cles-api">vérifiez vos paramètres</a>.
       </p>
     }
 
@@ -161,7 +175,8 @@
             <p class="ingredient-picker__attribution">
               Données
               <a href="https://www.foodrepo.org/" rel="noopener noreferrer" target="_blank">FoodRepo</a>
-              (CC-BY 4.0)
+              (CC-BY 4.0) ·
+              <a routerLink="/settings/data-sources" fragment="cles-api">Configurer</a>
             </p>
           }
 
@@ -171,7 +186,8 @@
               <a href="https://fdc.nal.usda.gov/" rel="noopener noreferrer" target="_blank">
                 USDA FoodData Central
               </a>
-              (domaine public)
+              (domaine public) ·
+              <a routerLink="/settings/data-sources" fragment="cles-api">Configurer USDA</a>
             </p>
           }
         </section>

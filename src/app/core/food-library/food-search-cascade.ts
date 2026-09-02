@@ -9,6 +9,7 @@ import type {
 import type { CatalogSearchHit } from './ingredient-picker-search.types';
 import { mergeIngredientPickerSections } from './ingredient-picker-search';
 import { mergeOnlineHits, type CachedOnlineHitsBySource } from './search-cache.utils';
+import type { OnlineProviderKeyStatuses } from './online-search-provider-utils';
 
 export function buildCascadeFromLocalAndOnline(
   catalogHits: CatalogSearchHit[],
@@ -28,6 +29,7 @@ export function buildCascadeFromLocalAndOnline(
         cached?: CachedOnlineHitsBySource;
       },
   limitPerSection = 25,
+  keyStatuses?: OnlineProviderKeyStatuses,
 ): FoodSearchCascadeResult {
   const sections = mergeIngredientPickerSections(catalogHits, localResult);
 
@@ -43,8 +45,8 @@ export function buildCascadeFromLocalAndOnline(
     onlineSearched: online.included,
     offStatus: online.included ? online.off.status : undefined,
     offMsUntilRetry: online.included ? online.off.msUntilRetry : undefined,
-    foodRepoStatus: online.included ? online.foodRepo.status : undefined,
-    usdaStatus: online.included ? online.usda.status : undefined,
+    foodRepoStatus: online.included ? online.foodRepo.status : keyStatuses?.foodRepoStatus,
+    usdaStatus: online.included ? online.usda.status : keyStatuses?.usdaStatus,
   };
 }
 

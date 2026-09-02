@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, OnDestroy, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -18,6 +18,10 @@ import {
   buildUsdaCascadeMessage,
 } from '../../../../core/food-library/food-search-cascade-messages';
 import { runFoodSearchCascade } from '../../../../core/food-library/food-search-cascade-runner';
+import {
+  buildOfflineSearchBanner,
+  hasCachedOnlineSections,
+} from '../../../../core/food-library/online-search-provider-utils';
 import { ONLINE_CASCADE_SOURCES } from '../../../../core/food-library/food-search-cascade.types';
 import {
   FOOD_SEARCH_ONLINE_DEBOUNCE_MS,
@@ -39,7 +43,7 @@ import { ScanService } from '../../../products/services/scan.service';
   templateUrl: './ingredient-product-picker-sheet.component.html',
   styleUrl: './ingredient-product-picker-sheet.component.scss',
 })
-export class IngredientProductPickerSheetComponent {
+export class IngredientProductPickerSheetComponent implements OnDestroy {
   private readonly foodSearch = inject(FoodSearchService);
   private readonly database = inject(DatabaseService);
   private readonly importService = inject(FoodLibraryImportService);
@@ -50,6 +54,7 @@ export class IngredientProductPickerSheetComponent {
 
   private searchSequence = 0;
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private searchAbort: AbortController | null = null;
   private lastQuery = '';
 
   readonly isCatalogSearchHit = isCatalogSearchHit;
@@ -80,6 +85,17 @@ export class IngredientProductPickerSheetComponent {
   } | null>(null);
 
   readonly loadError = this.foodSearch.loadError;
+  readonly offlineSearchBanner = computed(() =>
+    buildOfflineSearchBanner(hasCachedOnlineSections(this.sections())),
+  );
+
+  ngOnDestroy(): void {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    this.searchAbort?.abort();
+  }
 
   formatMacros(hit: IngredientSearchHit): string {
     return formatMacrosSummary({
@@ -126,7 +142,7 @@ export class IngredientProductPickerSheetComponent {
       }
 
       this.closed.emit();
-      await this.scanService.openFromOffSearchPrefill(hit.prefill);
+      await this.scanService.openFromOnlineSearchPrefill(hit.prefill, hit.source);
       return;
     }
 
@@ -203,6 +219,10 @@ export class IngredientProductPickerSheetComponent {
   }
 
   private async runSearch(query: string, forceOnline = false): Promise<void> {
+    this.searchAbort?.abort();
+    this.searchAbort = new AbortController();
+    const abortSignal = this.searchAbort.signal;
+
     const sequence = ++this.searchSequence;
     const trimmed = query.trim();
     this.lastQuery = trimmed;
@@ -234,9 +254,9 @@ export class IngredientProductPickerSheetComponent {
         this.foodSearch,
         this.database,
         this.networkStatus,
-        { query: trimmed, catalog: this.catalog(), forceOnline },
+        { query: trimmed, catalog: this.catalog(), forceOnline, abortSignal },
       );
-      if (sequence !== this.searchSequence) {
+      if (sequence !== this.searchSequence || abortSignal.aborted) {
         return;
       }
 
@@ -249,7 +269,7 @@ export class IngredientProductPickerSheetComponent {
       this.usdaStatus.set(result.usdaStatus);
       this.usdaSearchMessage.set(buildUsdaCascadeMessage(result.usdaStatus));
     } catch {
-      if (sequence !== this.searchSequence) {
+      if (sequence !== this.searchSequence || abortSignal.aborted) {
         return;
       }
 

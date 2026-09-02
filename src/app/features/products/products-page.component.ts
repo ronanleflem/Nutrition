@@ -1,8 +1,10 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
+import { ConfirmDialogComponent } from '../../core/ui/confirm-dialog/confirm-dialog.component';
 import { DatabaseService } from '../../core/database/database.service';
 import { FoodSearchCascadeResultsComponent } from '../../core/food-library/components/food-search-cascade-results/food-search-cascade-results.component';
+import type { FoodLibraryImportDuplicate } from '../../core/food-library/food-library-import';
 import { FoodLibraryImportService } from '../../core/food-library/food-library-import.service';
 import {
   isLibrarySearchHit,
@@ -22,6 +24,11 @@ import {
   FOOD_SEARCH_ONLINE_MIN_QUERY_LENGTH,
   FoodSearchService,
 } from '../../core/food-library/food-search.service';
+import type { FoodSearchHit } from '../../core/food-library/food-search.types';
+import {
+  buildOfflineSearchBanner,
+  hasCachedOnlineSections,
+} from '../../core/food-library/online-search-provider-utils';
 import type { IngredientSearchHit } from '../../core/food-library/ingredient-picker-search.types';
 import { NetworkStatusService } from '../../core/network/network-status.service';
 import { UsdaFoodCacheService } from '../../core/usda-fdc/usda-food-cache.service';
@@ -32,11 +39,17 @@ import { ScanService } from './services/scan.service';
 
 @Component({
   selector: 'app-products-page',
-  imports: [RouterLink, ProductCardComponent, EmptyStateComponent, FoodSearchCascadeResultsComponent],
+  imports: [
+    RouterLink,
+    ProductCardComponent,
+    EmptyStateComponent,
+    FoodSearchCascadeResultsComponent,
+    ConfirmDialogComponent,
+  ],
   templateUrl: './products-page.component.html',
   styleUrl: './products-page.component.scss',
 })
-export class ProductsPageComponent implements OnInit {
+export class ProductsPageComponent implements OnInit, OnDestroy {
   private readonly productsService = inject(ProductsService);
   private readonly foodSearch = inject(FoodSearchService);
   private readonly database = inject(DatabaseService);
@@ -48,6 +61,7 @@ export class ProductsPageComponent implements OnInit {
 
   private searchSequence = 0;
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private searchAbort: AbortController | null = null;
   private lastQuery = '';
 
   readonly catalog = this.productsService.catalog;
@@ -64,14 +78,29 @@ export class ProductsPageComponent implements OnInit {
   readonly foodRepoStatus = signal<'ok' | 'skipped' | 'no_api_key' | 'unauthorized' | 'network_error' | undefined>(undefined);
   readonly usdaSearchMessage = signal<string | null>(null);
   readonly usdaStatus = signal<'ok' | 'skipped' | 'no_api_key' | 'unauthorized' | 'network_error' | undefined>(undefined);
+  readonly pendingDuplicate = signal<{
+    hit: FoodSearchHit;
+    match: FoodLibraryImportDuplicate['match'];
+  } | null>(null);
 
   readonly isOnline = this.networkStatus.isOnline;
   readonly hasCatalog = computed(() => this.catalog().length > 0);
   readonly hasSearchQuery = computed(() => this.searchQuery().trim().length > 0);
   readonly showBrowseList = computed(() => !this.hasSearchQuery());
+  readonly offlineSearchBanner = computed(() =>
+    buildOfflineSearchBanner(hasCachedOnlineSections(this.sections())),
+  );
 
   ngOnInit(): void {
     void this.productsService.loadCatalog();
+  }
+
+  ngOnDestroy(): void {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    this.searchAbort?.abort();
   }
 
   onSearchInput(event: Event): void {
@@ -102,7 +131,7 @@ export class ProductsPageComponent implements OnInit {
         await this.usdaFoodCache.put(hit.cacheEntry);
       }
 
-      await this.scanService.openFromOffSearchPrefill(hit.prefill);
+      await this.scanService.openFromOnlineSearchPrefill(hit.prefill, hit.source);
       return;
     }
 
@@ -115,6 +144,11 @@ export class ProductsPageComponent implements OnInit {
 
     try {
       const result = await this.importService.importFromLibrary(hit);
+      if (result.status === 'duplicate') {
+        this.pendingDuplicate.set({ hit, match: result.match });
+        return;
+      }
+
       if (result.status === 'created') {
         await this.productsService.loadCatalog();
         await this.router.navigate(['/products', result.product.id]);
@@ -124,6 +158,44 @@ export class ProductsPageComponent implements OnInit {
     } finally {
       this.importingId.set(null);
     }
+  }
+
+  async useExistingProduct(): Promise<void> {
+    const pending = this.pendingDuplicate();
+    if (!pending) {
+      return;
+    }
+
+    this.pendingDuplicate.set(null);
+    await this.router.navigate(['/products', pending.match.existingProduct.id]);
+  }
+
+  async createDespiteDuplicate(): Promise<void> {
+    const pending = this.pendingDuplicate();
+    if (!pending) {
+      return;
+    }
+
+    this.importingId.set(pending.hit.id);
+    this.searchError.set(null);
+
+    try {
+      const result = await this.importService.importFromLibrary(pending.hit, { forceCreate: true });
+      this.pendingDuplicate.set(null);
+
+      if (result.status === 'created') {
+        await this.productsService.loadCatalog();
+        await this.router.navigate(['/products', result.product.id]);
+      }
+    } catch {
+      this.searchError.set('Import impossible. Réessayez.');
+    } finally {
+      this.importingId.set(null);
+    }
+  }
+
+  cancelDuplicateDialog(): void {
+    this.pendingDuplicate.set(null);
   }
 
   private scheduleSearch(query: string): void {
@@ -143,6 +215,10 @@ export class ProductsPageComponent implements OnInit {
   }
 
   private async runSearch(query: string, forceOnline = false): Promise<void> {
+    this.searchAbort?.abort();
+    this.searchAbort = new AbortController();
+    const abortSignal = this.searchAbort.signal;
+
     const sequence = ++this.searchSequence;
     const trimmed = query.trim();
     this.lastQuery = trimmed;
@@ -172,9 +248,9 @@ export class ProductsPageComponent implements OnInit {
         this.foodSearch,
         this.database,
         this.networkStatus,
-        { query: trimmed, catalog: this.catalog(), forceOnline },
+        { query: trimmed, catalog: this.catalog(), forceOnline, abortSignal },
       );
-      if (sequence !== this.searchSequence) {
+      if (sequence !== this.searchSequence || abortSignal.aborted) {
         return;
       }
 
@@ -187,7 +263,7 @@ export class ProductsPageComponent implements OnInit {
       this.usdaStatus.set(result.usdaStatus);
       this.usdaSearchMessage.set(buildUsdaCascadeMessage(result.usdaStatus));
     } catch {
-      if (sequence !== this.searchSequence) {
+      if (sequence !== this.searchSequence || abortSignal.aborted) {
         return;
       }
 

@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 
 import { NetworkStatusService } from '../network/network-status.service';
+import { DatabaseService } from '../database/database.service';
 import { FoodRepoSearchProvider } from '../foodrepo-api/foodrepo-search.provider';
 import { OffSearchProvider } from '../off-api/off-search.provider';
 import { UsdaFdcSearchProvider } from '../usda-fdc/usda-search.provider';
@@ -27,6 +28,7 @@ import {
   searchCatalogForIngredientPicker,
 } from './ingredient-picker-search';
 import type { IngredientPickerSearchResult } from './ingredient-picker-search.types';
+import { probeOnlineProviderKeyStatuses } from './online-search-provider-utils';
 
 export const FOOD_SEARCH_ONLINE_MIN_QUERY_LENGTH = 3;
 export const FOOD_SEARCH_ONLINE_DEBOUNCE_MS = 400;
@@ -35,11 +37,13 @@ export interface FoodSearchCascadeOptions {
   limitPerSection?: number;
   includeOnline?: boolean;
   catalog?: ProductCatalogItem[];
+  abortSignal?: AbortSignal;
 }
 
 @Injectable({ providedIn: 'root' })
 export class FoodSearchService {
   private readonly networkStatus = inject(NetworkStatusService);
+  private readonly database = inject(DatabaseService);
   private readonly offSearch = inject(OffSearchProvider);
   private readonly foodRepoSearch = inject(FoodRepoSearchProvider);
   private readonly usdaSearch = inject(UsdaFdcSearchProvider);
@@ -108,6 +112,19 @@ export class FoodSearchService {
       trimmed.length >= FOOD_SEARCH_ONLINE_MIN_QUERY_LENGTH;
 
     if (!shouldSearchOnline) {
+      const keyStatuses = probeOnlineProviderKeyStatuses(await this.database.getAppSettings());
+
+      return buildCascadeFromLocalAndOnline(
+        catalogHits,
+        localResult,
+        catalogDurationMs + localDurationMs,
+        { included: false, cached: cachedOnline },
+        limit,
+        keyStatuses,
+      );
+    }
+
+    if (options?.abortSignal?.aborted) {
       return buildCascadeFromLocalAndOnline(
         catalogHits,
         localResult,
@@ -117,15 +134,22 @@ export class FoodSearchService {
       );
     }
 
+    const providerOptions = { limit, abortSignal: options?.abortSignal };
     const onlineStartedAt = performance.now();
     const [offResult, foodRepoResult, usdaResult] = await Promise.all([
-      this.offSearch.search(query, { limit }),
-      this.foodRepoSearch.search(query, { limit }),
-      this.usdaSearch.search(query, { limit }),
+      this.offSearch.search(query, providerOptions),
+      this.foodRepoSearch.search(query, providerOptions),
+      this.usdaSearch.search(query, providerOptions),
     ]);
     const onlineDurationMs = performance.now() - onlineStartedAt;
 
-    await this.persistSuccessfulOnlineHits(trimmed, offResult, foodRepoResult, usdaResult);
+    if (!options?.abortSignal?.aborted) {
+      try {
+        await this.persistSuccessfulOnlineHits(trimmed, offResult, foodRepoResult, usdaResult);
+      } catch {
+        // Cache write failure must not block search results.
+      }
+    }
 
     return buildCascadeFromLocalAndOnline(
       catalogHits,

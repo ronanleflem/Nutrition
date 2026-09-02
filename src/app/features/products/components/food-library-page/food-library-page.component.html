@@ -61,12 +61,19 @@
 
   @if (!isOnline() && searchQuery().trim().length >= 3) {
     <p class="food-library-page__offline" role="status">
-      Recherche en ligne indisponible — utilisez les sections Ciqual et OpenNutrition ci-dessous.
+      {{ offlineSearchBanner() }}
     </p>
   }
 
   @if (offSearchMessage() && isOnline()) {
     <p class="food-library-page__offline" role="status">{{ offSearchMessage() }}</p>
+  }
+
+  @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoStatus() === 'unauthorized') {
+    <p class="food-library-page__offline" role="status">
+      Clé FoodRepo invalide —
+      <a routerLink="/settings/data-sources" fragment="cles-api">vérifiez vos paramètres</a>.
+    </p>
   }
 
   @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoSearchMessage()) {
@@ -77,6 +84,13 @@
     <p class="food-library-page__offline" role="status">
       Élargissez la recherche marques avec FoodRepo —
       <a routerLink="/settings/data-sources" fragment="cles-api">Configurer FoodRepo</a>.
+    </p>
+  }
+
+  @if (isOnline() && searchQuery().trim().length >= 3 && usdaStatus() === 'unauthorized') {
+    <p class="food-library-page__offline" role="status">
+      Clé USDA invalide —
+      <a routerLink="/settings/data-sources" fragment="cles-api">vérifiez vos paramètres</a>.
     </p>
   }
 

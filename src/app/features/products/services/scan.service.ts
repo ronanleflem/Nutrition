@@ -10,7 +10,7 @@ import { NetworkStatusService } from '../../../core/network/network-status.servi
 import { OffApiService } from '../../../core/off-api/off-api.service';
 import type { OffProductPrefill } from '../../../core/off-api/off-product-prefill';
 import type { PendingRestoreMatch } from '../models/pending-restore-match';
-import type { ScanFlowState } from '../models/scan-flow-state';
+import type { OnlineSearchPrefillSource, ScanFlowState } from '../models/scan-flow-state';
 import { ProductsService } from './products.service';
 
 @Injectable({ providedIn: 'root' })
@@ -131,12 +131,26 @@ export class ScanService {
     this.pendingRestore.set(null);
   }
 
-  async openFromOffSearchPrefill(prefill: OffProductPrefill): Promise<void> {
+  async openFromOnlineSearchPrefill(
+    prefill: OffProductPrefill,
+    source: OnlineSearchPrefillSource = 'off',
+  ): Promise<void> {
+    const statusBySource: Record<OnlineSearchPrefillSource, ScanFlowState['status']> = {
+      off: 'off-found',
+      foodrepo: 'foodrepo-found',
+      usda: 'usda-found',
+    };
+
     await this.openReferenceForm({
       barcode: prefill.barcode,
-      status: 'off-found',
+      status: statusBySource[source],
       prefill,
     });
+  }
+
+  /** @deprecated Use openFromOnlineSearchPrefill */
+  async openFromOffSearchPrefill(prefill: OffProductPrefill): Promise<void> {
+    await this.openFromOnlineSearchPrefill(prefill, 'off');
   }
 
   openManualEntry(barcode = ''): void {

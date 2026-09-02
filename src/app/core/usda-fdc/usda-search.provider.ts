@@ -29,7 +29,10 @@ export class UsdaFdcSearchProvider {
   private readonly sessionCache = new Map<string, UsdaSearchProviderResult>();
   private aliasesPromise: ReturnType<typeof loadFrEnFoodAliases> | null = null;
 
-  async search(query: string, options?: { limit?: number }): Promise<UsdaSearchProviderResult> {
+  async search(
+    query: string,
+    options?: { limit?: number; abortSignal?: AbortSignal },
+  ): Promise<UsdaSearchProviderResult> {
     const trimmed = query.trim();
     if (trimmed.length < MIN_QUERY_LENGTH) {
       return { status: 'skipped', hits: [] };
@@ -42,7 +45,7 @@ export class UsdaFdcSearchProvider {
     }
 
     const limit = options?.limit ?? DEFAULT_PAGE_SIZE;
-    const cacheKey = `${apiKey}:${trimmed.toLowerCase()}:${limit}`;
+    const cacheKey = `${trimmed.toLowerCase()}:${limit}`;
     const cached = this.sessionCache.get(cacheKey);
     if (cached) {
       return cached;
@@ -54,6 +57,11 @@ export class UsdaFdcSearchProvider {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), SEARCH_TIMEOUT_MS);
+      options?.abortSignal?.addEventListener('abort', () => controller.abort(), { once: true });
+      if (options?.abortSignal?.aborted) {
+        clearTimeout(timeoutId);
+        return { status: 'skipped', hits: [] };
+      }
 
       const url = new URL(`${USDA_FDC_API_ORIGIN}${USDA_FDC_SEARCH_PATH}`);
       url.searchParams.set('api_key', apiKey);
@@ -72,15 +80,11 @@ export class UsdaFdcSearchProvider {
       clearTimeout(timeoutId);
 
       if (response.status === 401 || response.status === 403) {
-        const result: UsdaSearchProviderResult = { status: 'unauthorized', hits: [] };
-        this.sessionCache.set(cacheKey, result);
-        return result;
+        return { status: 'unauthorized', hits: [] };
       }
 
       if (!response.ok) {
-        const result: UsdaSearchProviderResult = { status: 'network_error', hits: [] };
-        this.sessionCache.set(cacheKey, result);
-        return result;
+        return { status: 'network_error', hits: [] };
       }
 
       const payload = (await response.json()) as UsdaSearchApiResponse;
@@ -89,9 +93,11 @@ export class UsdaFdcSearchProvider {
       this.sessionCache.set(cacheKey, result);
       return result;
     } catch {
-      const result: UsdaSearchProviderResult = { status: 'network_error', hits: [] };
-      this.sessionCache.set(cacheKey, result);
-      return result;
+      if (options?.abortSignal?.aborted) {
+        return { status: 'skipped', hits: [] };
+      }
+
+      return { status: 'network_error', hits: [] };
     }
   }
 

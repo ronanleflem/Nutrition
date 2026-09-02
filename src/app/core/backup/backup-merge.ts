@@ -119,6 +119,23 @@ export function pickImportedAppSettings(settings: AppSettings[]): AppSettings | 
   return settings.find((entry) => entry.id === 'singleton') ?? settings[0];
 }
 
+/** Preserve locally stored API keys when restoring a backup that omits them (NFR-21). */
+export function mergeAppSettingsPreservingApiKeys(
+  local: AppSettings,
+  imported: AppSettings | undefined,
+): AppSettings {
+  if (!imported) {
+    return local;
+  }
+
+  return {
+    ...imported,
+    id: local.id,
+    foodRepoApiKey: local.foodRepoApiKey ?? imported.foodRepoApiKey,
+    usdaApiKey: local.usdaApiKey ?? imported.usdaApiKey,
+  };
+}
+
 export function pickImportedMacroGoals(goals: MacroGoals[]): MacroGoals | undefined {
   return goals.find((entry) => entry.id === 'singleton') ?? goals[0];
 }

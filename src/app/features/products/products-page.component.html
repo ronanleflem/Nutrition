@@ -40,7 +40,7 @@
 
     @if (!isOnline() && searchQuery().trim().length >= 3) {
       <p class="products-page__offline" role="status">
-        Recherche en ligne indisponible — sections locales uniquement.
+        {{ offlineSearchBanner() }}
       </p>
     }
 
@@ -48,14 +48,28 @@
       <p class="products-page__offline" role="status">{{ offSearchMessage() }}</p>
     }
 
-    @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoSearchMessage()) {
-      <p class="products-page__offline" role="status">{{ foodRepoSearchMessage() }}</p>
+    @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoStatus() === 'unauthorized') {
+      <p class="products-page__offline" role="status">
+        Clé FoodRepo invalide —
+        <a routerLink="/settings/data-sources" fragment="cles-api">vérifiez vos paramètres</a>.
+      </p>
     }
 
     @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoStatus() === 'no_api_key') {
       <p class="products-page__offline" role="status">
         Élargissez avec FoodRepo —
         <a routerLink="/settings/data-sources" fragment="cles-api">Configurer FoodRepo</a>.
+      </p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoSearchMessage()) {
+      <p class="products-page__offline" role="status">{{ foodRepoSearchMessage() }}</p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && usdaStatus() === 'unauthorized') {
+      <p class="products-page__offline" role="status">
+        Clé USDA invalide —
+        <a routerLink="/settings/data-sources" fragment="cles-api">vérifiez vos paramètres</a>.
       </p>
     }
 
@@ -105,3 +119,15 @@
     <span class="products-page__fab-label">Scan</span>
   </a>
 </section>
+
+@if (pendingDuplicate(); as duplicate) {
+  <app-confirm-dialog
+    title="Produit similaire"
+    [message]="duplicate.match.message + ' Utiliser l’existant ou créer quand même ?'"
+    confirmLabel="Utiliser l’existant"
+    cancelLabel="Créer quand même"
+    (confirmed)="useExistingProduct()"
+    (dismissed)="createDespiteDuplicate()"
+    (closed)="cancelDuplicateDialog()"
+  />
+}

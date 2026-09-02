@@ -79,12 +79,26 @@ describe('OffSearchProvider', () => {
     expect(vi.mocked(globalThis.fetch)).toHaveBeenCalledTimes(10);
   });
 
-  it('returns network_error on failed fetch', async () => {
-    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
+  it('returns network_error on failed fetch without caching the failure', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ hits: [] }), { status: 200 }));
+
+    const first = await provider.search('skyr danone');
+    expect(first.status).toBe('network_error');
+
+    const second = await provider.search('skyr danone');
+    expect(second.status).toBe('ok');
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('maps HTTP 429 to rate_limited', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('', { status: 429 }));
 
     const result = await provider.search('skyr danone');
 
-    expect(result.status).toBe('network_error');
+    expect(result.status).toBe('rate_limited');
     expect(result.hits).toEqual([]);
   });
 

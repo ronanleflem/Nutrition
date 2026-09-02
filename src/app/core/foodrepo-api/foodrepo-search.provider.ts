@@ -31,7 +31,10 @@ export class FoodRepoSearchProvider {
   private readonly database = inject(DatabaseService);
   private readonly sessionCache = new Map<string, FoodRepoSearchProviderResult>();
 
-  async search(query: string, options?: { limit?: number }): Promise<FoodRepoSearchProviderResult> {
+  async search(
+    query: string,
+    options?: { limit?: number; abortSignal?: AbortSignal },
+  ): Promise<FoodRepoSearchProviderResult> {
     const trimmed = query.trim();
     if (trimmed.length < MIN_QUERY_LENGTH) {
       return { status: 'skipped', hits: [] };
@@ -44,7 +47,7 @@ export class FoodRepoSearchProvider {
     }
 
     const limit = options?.limit ?? DEFAULT_PAGE_SIZE;
-    const cacheKey = `${apiKey}:${trimmed.toLowerCase()}:${limit}`;
+    const cacheKey = `${trimmed.toLowerCase()}:${limit}`;
     const cached = this.sessionCache.get(cacheKey);
     if (cached) {
       return cached;
@@ -53,13 +56,18 @@ export class FoodRepoSearchProvider {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), SEARCH_TIMEOUT_MS);
+      options?.abortSignal?.addEventListener('abort', () => controller.abort(), { once: true });
+      if (options?.abortSignal?.aborted) {
+        clearTimeout(timeoutId);
+        return { status: 'skipped', hits: [] };
+      }
 
       const response = await fetch(`${FOODREPO_API_ORIGIN}${FOODREPO_SEARCH_PATH}`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/vnd.api+json',
-          Authorization: `Token token="${apiKey}"`,
+          Authorization: `Token token="${apiKey.replace(/"/g, '')}"`,
         },
         body: JSON.stringify(buildSearchBody(trimmed, limit)),
         signal: controller.signal,
@@ -68,15 +76,11 @@ export class FoodRepoSearchProvider {
       clearTimeout(timeoutId);
 
       if (response.status === 401 || response.status === 403) {
-        const result: FoodRepoSearchProviderResult = { status: 'unauthorized', hits: [] };
-        this.sessionCache.set(cacheKey, result);
-        return result;
+        return { status: 'unauthorized', hits: [] };
       }
 
       if (!response.ok) {
-        const result: FoodRepoSearchProviderResult = { status: 'network_error', hits: [] };
-        this.sessionCache.set(cacheKey, result);
-        return result;
+        return { status: 'network_error', hits: [] };
       }
 
       const payload = (await response.json()) as FoodRepoSearchApiResponse;
@@ -85,9 +89,11 @@ export class FoodRepoSearchProvider {
       this.sessionCache.set(cacheKey, result);
       return result;
     } catch {
-      const result: FoodRepoSearchProviderResult = { status: 'network_error', hits: [] };
-      this.sessionCache.set(cacheKey, result);
-      return result;
+      if (options?.abortSignal?.aborted) {
+        return { status: 'skipped', hits: [] };
+      }
+
+      return { status: 'network_error', hits: [] };
     }
   }
 

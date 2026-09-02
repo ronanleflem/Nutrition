@@ -109,6 +109,18 @@ describe('BackupService', () => {
     const localSettings = await database.getAppSettings();
     expect(localSettings.usdaApiKey).toBe('secret-usda-key');
   });
+
+  it('preserves local API keys when restoring a backup that omits them', async () => {
+    await database.updateFoodRepoApiKey('local-foodrepo');
+    await database.updateUsdaApiKey('local-usda');
+
+    const payload = await backupService.buildExportPayload();
+    await database.replaceAllFromBackup(payload.data);
+
+    const settings = await database.getAppSettings();
+    expect(settings.foodRepoApiKey).toBe('local-foodrepo');
+    expect(settings.usdaApiKey).toBe('local-usda');
+  });
 });
 
 function stubFileDownload(downloads: Array<{ blob: Blob; filename: string }>): void {

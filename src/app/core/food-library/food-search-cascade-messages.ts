@@ -24,7 +24,7 @@ export function buildFoodRepoCascadeMessage(
   }
 
   if (status === 'unauthorized') {
-    return 'Clé FoodRepo invalide — vérifiez vos paramètres.';
+    return null;
   }
 
   if (status === 'network_error') {
@@ -42,7 +42,7 @@ export function buildUsdaCascadeMessage(
   }
 
   if (status === 'unauthorized') {
-    return 'Clé USDA invalide — vérifiez vos paramètres.';
+    return null;
   }
 
   if (status === 'network_error') {

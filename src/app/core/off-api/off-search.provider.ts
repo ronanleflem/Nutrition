@@ -29,7 +29,10 @@ export class OffSearchProvider {
   private readonly rateLimiter = new OffSearchRateLimiter();
   private readonly sessionCache = new Map<string, OffSearchProviderResult>();
 
-  async search(query: string, options?: { limit?: number }): Promise<OffSearchProviderResult> {
+  async search(
+    query: string,
+    options?: { limit?: number; abortSignal?: AbortSignal },
+  ): Promise<OffSearchProviderResult> {
     const trimmed = query.trim();
     if (trimmed.length < MIN_QUERY_LENGTH) {
       return { status: 'skipped', hits: [] };
@@ -49,8 +52,6 @@ export class OffSearchProvider {
       };
     }
 
-    this.rateLimiter.recordRequest();
-
     try {
       const limit = options?.limit ?? DEFAULT_PAGE_SIZE;
       const url = new URL(`${OFF_SEARCH_ORIGIN}/search`);
@@ -60,6 +61,11 @@ export class OffSearchProvider {
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), SEARCH_TIMEOUT_MS);
+      options?.abortSignal?.addEventListener('abort', () => controller.abort(), { once: true });
+      if (options?.abortSignal?.aborted) {
+        clearTimeout(timeoutId);
+        return { status: 'skipped', hits: [] };
+      }
 
       const response = await fetch(url.toString(), {
         method: 'GET',
@@ -69,11 +75,19 @@ export class OffSearchProvider {
 
       clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        const result: OffSearchProviderResult = { status: 'network_error', hits: [] };
-        this.sessionCache.set(cacheKey, result);
-        return result;
+      if (response.status === 429) {
+        return {
+          status: 'rate_limited',
+          hits: [],
+          msUntilRetry: this.rateLimiter.msUntilNextSlot(),
+        };
       }
+
+      if (!response.ok) {
+        return { status: 'network_error', hits: [] };
+      }
+
+      this.rateLimiter.recordRequest();
 
       const payload = (await response.json()) as OffSearchApiResponse;
       const hits = mapSearchHits(payload.hits ?? []);
@@ -81,9 +95,11 @@ export class OffSearchProvider {
       this.sessionCache.set(cacheKey, result);
       return result;
     } catch {
-      const result: OffSearchProviderResult = { status: 'network_error', hits: [] };
-      this.sessionCache.set(cacheKey, result);
-      return result;
+      if (options?.abortSignal?.aborted) {
+        return { status: 'skipped', hits: [] };
+      }
+
+      return { status: 'network_error', hits: [] };
     }
   }
 
@@ -97,16 +113,14 @@ function mapSearchHits(rawHits: OffSearchApiHit[]): OffSearchHit[] {
   const hits: OffSearchHit[] = [];
 
   for (const raw of rawHits) {
-    const barcode = raw.code?.trim();
-    if (!barcode) {
-      continue;
-    }
-
+    const barcode = raw.code?.trim() ?? '';
     const prefill = mapOffProductFields(barcode, raw);
+    const hitId = barcode ? `off:${barcode}` : `off:name:${prefill.label.toLowerCase().replace(/\s+/g, '-')}`;
+
     hits.push({
       source: 'off',
       sourceLabel: OFF_SEARCH_SOURCE_LABEL,
-      id: `off:${barcode}`,
+      id: hitId,
       barcode,
       displayName: prefill.label,
       subtitle: prefill.brand,

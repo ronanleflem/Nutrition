@@ -63,7 +63,7 @@ context:
 
 **Acceptance Criteria:**
 - Given any product picker surface, when searching, then cascade order is respected.
-- Given offline, when searching, then sections 4–6 absent with offline message.
+- Given offline, when searching, then live providers 4–6 are not called; cached online hits may still appear (story 11.5).
 - Given manual preference, when typing, then online providers wait for « Rechercher en ligne ».
 - Given online auto mode, when debounce satisfied (≥ 3 chars), then providers 4–6 run in parallel.
 

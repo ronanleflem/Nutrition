@@ -18,7 +18,7 @@ Extend the unified food search cascade with online providers (Open Food Facts Se
 ## Requirements & Constraints
 
 - Cascade order (locked): Mon catalogue → Ciqual → OpenNutrition → OFF → FoodRepo → USDA.
-- Empty sections hidden; offline = sections 1–3 only + explicit offline message for online sections.
+- Empty sections hidden; offline = sections 1–3 live + cached online hits (story 11.5) with explicit offline message.
 - OFF search: GET read-only to `search.openfoodfacts.org` with `langs=fr`; no personal data sent.
 - Rate limits: OFF ≤ 10 req/min; debounce ≥ 400 ms; min 3 characters for online search.
 - API timeout 5 s with explicit error when offline or unreachable.
@@ -37,7 +37,7 @@ Extend the unified food search cascade with online providers (Open Food Facts Se
 
 - Single search field across picker surfaces; online providers load after debounce with per-section spinners (story 11.4).
 - Optional manual « Rechercher en ligne » button (NFR-19) — story 11.4.
-- Offline: hide online sections, message + link to offline library.
+- Offline: hide live online sections, message + link to offline library; cached OFF/FoodRepo/USDA hits from IndexedDB still shown (story 11.5).
 
 ## Cross-Story Dependencies
 
