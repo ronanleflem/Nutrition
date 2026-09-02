@@ -5,9 +5,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { convertToParamMap, provideRouter, Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import Dexie from 'dexie';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DatabaseService } from '../../../../core/database/database.service';
+import { OnboardingService } from '../../../onboarding/onboarding.service';
 import { NUTRITION_DB_NAME } from '../../../../core/database/nutrition-database';
 import { deleteNutritionDatabase } from '../../../../core/database/nutrition-database.testing';
 import { RecipeFormPageComponent } from './recipe-form-page.component';
@@ -107,6 +108,19 @@ describe('RecipeFormPageComponent onboarding return', () => {
     expect((await database.listRecipes())[0].recipe.title).toBe('Soupe');
     expect((await database.getAppSettings()).onboardingCompleted).toBeUndefined();
     expect(TestBed.inject(Router).url).toBe('/recipes');
+  });
+
+  it('navigates home without creating a second recipe if completing onboarding fails', async () => {
+    const productId = await setup(true);
+    vi.spyOn(TestBed.inject(OnboardingService), 'completeAfterCustomRecipe').mockRejectedValue(
+      new Error('Flag indisponible.'),
+    );
+
+    await submitRecipe(productId);
+    await submitRecipe(productId);
+
+    expect(await database.listRecipes()).toHaveLength(1);
+    expect(TestBed.inject(Router).url).toBe('/home');
   });
 
   it('leaves the flag unchanged when the onboarding form is abandoned', async () => {

@@ -121,6 +121,8 @@ export class OnboardingService {
   }
 
   private async completeAndGoHome(): Promise<void> {
+    this.resumeAfterLibrary = false;
+    this.resumeAfterCustom = false;
     await this.database.updateOnboardingCompleted(true);
     this.resetWizard();
     await this.router.navigateByUrl('/home');

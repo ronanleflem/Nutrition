@@ -47,6 +47,11 @@
   cursor: pointer;
 }
 
+.sheet__close:focus-visible {
+  outline: 2px solid var(--color-accent-positive);
+  outline-offset: 2px;
+}
+
 .sheet__product-name {
   margin: 0 0 12px;
   color: var(--color-ink-secondary);
@@ -87,7 +92,7 @@
 
 .sheet__error {
   margin: 0;
-  color: #e57373;
+  color: var(--color-accent-negative);
   font-size: var(--font-size-meta);
 }
 
@@ -113,6 +118,11 @@
 .sheet__btn--primary {
   border-color: var(--color-accent-positive-muted);
   background: var(--color-accent-positive-muted);
+}
+
+.sheet__btn:focus-visible {
+  outline: 2px solid var(--color-accent-positive);
+  outline-offset: 2px;
 }
 
 .sheet__btn:disabled {
@@ -142,4 +152,14 @@
   color: var(--color-ink-primary);
   text-align: left;
   cursor: pointer;
+}
+
+.sheet__list-button:focus-visible {
+  outline: 2px solid var(--color-accent-positive);
+  outline-offset: 2px;
+}
+
+.sheet__list-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

@@ -21,7 +21,7 @@ context:
 ## Boundaries & Constraints
 
 **Always:**
-- Surfaces: catalog `ProductCard`; recipe list cards; recipe detail (« fiche »). ⋮ (44px, `aria-haspopup="menu"`) and long-press (~500 ms; cancel if pointer moves). Tap on the title/body still opens detail.
+- Surfaces: catalog `ProductCard` and recipe list cards — ⋮ (44px, `aria-haspopup="menu"`) and long-press (~500 ms; cancel if pointer moves). Recipe detail (« fiche ») — ⋮ only (no long-press: conflicts with scroll / text selection). Tap on the title/body still opens detail.
 - Product target — three actions: « Ajouter au garde-manger », « Utiliser dans une recette », « Ajouter à la liste manuelle ».
 - Recipe target — « Ajouter au garde-manger » (pick one default-variant ingredient if several) and « Ajouter à la liste manuelle » (all default-variant ingredients). Hide « Utiliser dans une recette ».
 - Each action is a sheet overlay: backdrop + × dismiss like `pantry-add-sheet`. Stay on the current URL. Success: factual French line (« Produit ajouté. »).
@@ -80,21 +80,22 @@ context:
 
 **Acceptance Criteria:**
 - Given a Product card, when the user long-presses or taps ⋮, then the three actions appear and each opens a sheet without changing route.
-- Given a recipe card or fiche, when the user opens the same menu, then pantry (one ingredient) and manual-list (all default-variant ingredients) run without changing route.
+- Given a recipe card, when the user long-presses or taps ⋮, then pantry (one ingredient) and manual-list (all default-variant ingredients) run without changing route.
+- Given a recipe fiche, when the user taps ⋮, then the same pantry and manual-list actions run without changing route.
 - Given a successful shortcut, when the sheet closes, then the matching IndexedDB row exists and a factual French confirmation is shown.
 
 ### Review Findings
 
-- [ ] [Review][Decision] La fiche recette a le ⋮ mais pas de long-press, alors que le Always exige les deux sur catalogue, cartes et fiche
-- [ ] [Review][Patch] Le relâchement après long-press clique le backdrop et referme le menu (fenêtre de suppress sur la carte seulement, 400 ms dès l’emit) [long-press.directive.ts:32]
-- [ ] [Review][Patch] « Ajouter à la liste manuelle » depuis une recette écrit les ingrédients un par un sans rollback [context-shortcuts.service.ts:176]
-- [ ] [Review][Patch] Le menu utilise `role="menu"` sans clavier / `aria-expanded` ; les feuilles existantes sont des `dialog` [context-action-menu.component.html:9]
-- [ ] [Review][Patch] `onRecipeSelected` n’ignore pas un second tap pendant `submitting` [use-in-recipe-sheet.component.ts:85]
-- [ ] [Review][Patch] `loadRecipes()` sans catch — rejet non géré, picker vide sans message [use-in-recipe-sheet.component.ts:37]
-- [ ] [Review][Patch] `contextmenu` est bloqué sans ouvrir le menu (pas d’équivalent desktop au long-press) [long-press.directive.ts:69]
-- [ ] [Review][Patch] Pendant `handleMenuAction` recette, le menu reste cliquable sans état occupé [context-shortcuts.service.ts:84]
-- [ ] [Review][Patch] Couleur d’erreur `#e57373` en dur et pas de `:focus-visible` sur close / boutons de feuille [context-shortcuts-sheet.scss:90]
-- [ ] [Review][Patch] `ContextShortcutsOutletComponent.ngOnDestroy` → `reset()` n’est jamais asserté (service `providedIn: 'root'`) [context-shortcuts-outlet.component.ts:25]
+- [x] [Review][Decision] La fiche recette a le ⋮ mais pas de long-press — décidé : ⋮ seulement sur la fiche
+- [x] [Review][Patch] Le relâchement après long-press clique le backdrop et referme le menu (fenêtre de suppress sur la carte seulement, 400 ms dès l’emit) [long-press.directive.ts:32]
+- [x] [Review][Patch] « Ajouter à la liste manuelle » depuis une recette écrit les ingrédients un par un sans rollback [context-shortcuts.service.ts:176]
+- [x] [Review][Patch] Le menu utilise `role="menu"` sans clavier / `aria-expanded` ; les feuilles existantes sont des `dialog` [context-action-menu.component.html:9]
+- [x] [Review][Patch] `onRecipeSelected` n’ignore pas un second tap pendant `submitting` [use-in-recipe-sheet.component.ts:85]
+- [x] [Review][Patch] `loadRecipes()` sans catch — rejet non géré, picker vide sans message [use-in-recipe-sheet.component.ts:37]
+- [x] [Review][Patch] `contextmenu` est bloqué sans ouvrir le menu (pas d’équivalent desktop au long-press) [long-press.directive.ts:69]
+- [x] [Review][Patch] Pendant `handleMenuAction` recette, le menu reste cliquable sans état occupé [context-shortcuts.service.ts:84]
+- [x] [Review][Patch] Couleur d’erreur `#e57373` en dur et pas de `:focus-visible` sur close / boutons de feuille [context-shortcuts-sheet.scss:90]
+- [x] [Review][Patch] `ContextShortcutsOutletComponent.ngOnDestroy` → `reset()` n’est jamais asserté (service `providedIn: 'root'`) [context-shortcuts-outlet.component.ts:25]
 - [x] [Review][Defer] `appendIngredientToDefaultVariant` relit la recette hors transaction puis `put` le snapshot [database.service.ts:1371] — deferred, pre-existing
 
 ## Spec Change Log

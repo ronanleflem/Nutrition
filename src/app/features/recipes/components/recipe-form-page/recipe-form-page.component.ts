@@ -27,6 +27,7 @@ export class RecipeFormPageComponent implements OnInit {
   readonly ingredientError = signal<string | null>(null);
   readonly blockedProduct = signal<Product | null>(null);
   readonly pickerIngredientIndex = signal<number | null>(null);
+  private onboardingRecipeCreated = false;
 
   readonly eligibleProducts = computed(() =>
     this.productsService.catalog().filter((item) => !!item.product.preferredReferenceId),
@@ -176,7 +177,14 @@ export class RecipeFormPageComponent implements OnInit {
     this.saving.set(true);
     this.submitError.set(null);
 
+    const fromOnboarding = this.route.snapshot.queryParamMap.get('from') === 'onboarding';
+
     try {
+      if (fromOnboarding && this.onboardingRecipeCreated) {
+        await this.finishOnboardingAfterCustomRecipe();
+        return;
+      }
+
       await this.recipesService.createRecipeWithFirstVariant({
         recipe: {
           title: raw.title,
@@ -194,8 +202,9 @@ export class RecipeFormPageComponent implements OnInit {
         })),
       });
 
-      if (this.route.snapshot.queryParamMap.get('from') === 'onboarding') {
-        await this.onboarding.completeAfterCustomRecipe();
+      if (fromOnboarding) {
+        this.onboardingRecipeCreated = true;
+        await this.finishOnboardingAfterCustomRecipe();
         return;
       }
 
@@ -204,6 +213,14 @@ export class RecipeFormPageComponent implements OnInit {
       this.submitError.set(error instanceof Error ? error.message : 'Impossible de créer la recette.');
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  private async finishOnboardingAfterCustomRecipe(): Promise<void> {
+    try {
+      await this.onboarding.completeAfterCustomRecipe();
+    } catch {
+      await this.router.navigateByUrl('/home');
     }
   }
 }

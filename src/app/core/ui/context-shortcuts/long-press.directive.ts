@@ -15,6 +15,7 @@ export class LongPressDirective implements OnDestroy {
   private startX = 0;
   private startY = 0;
   private suppressClickUntil = 0;
+  private didFire = false;
 
   ngOnDestroy(): void {
     this.clearTimer();
@@ -27,10 +28,12 @@ export class LongPressDirective implements OnDestroy {
     }
 
     this.clearTimer();
+    this.didFire = false;
     this.startX = event.clientX;
     this.startY = event.clientY;
     this.timer = setTimeout(() => {
       this.timer = null;
+      this.didFire = true;
       this.suppressClickUntil = Date.now() + CLICK_SUPPRESS_MS;
       this.appLongPress.emit();
     }, this.longPressMs());
@@ -54,6 +57,9 @@ export class LongPressDirective implements OnDestroy {
   @HostListener('pointerleave')
   onPointerEnd(): void {
     this.clearTimer();
+    if (this.didFire) {
+      this.suppressClickUntil = Date.now() + CLICK_SUPPRESS_MS;
+    }
   }
 
   @HostListener('click', ['$event'])
@@ -69,6 +75,10 @@ export class LongPressDirective implements OnDestroy {
   @HostListener('contextmenu', ['$event'])
   onContextMenu(event: Event): void {
     event.preventDefault();
+    this.clearTimer();
+    this.didFire = true;
+    this.suppressClickUntil = Date.now() + CLICK_SUPPRESS_MS;
+    this.appLongPress.emit();
   }
 
   private clearTimer(): void {

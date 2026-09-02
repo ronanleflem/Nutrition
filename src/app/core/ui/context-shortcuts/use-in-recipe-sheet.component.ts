@@ -34,7 +34,9 @@ export class UseInRecipeSheetComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    void this.recipesService.loadRecipes();
+    void this.recipesService.loadRecipes().catch(() => {
+      this.errorMessage.set('Impossible de charger les recettes.');
+    });
   }
 
   onBackdropClick(event: MouseEvent): void {
@@ -83,7 +85,7 @@ export class UseInRecipeSheetComponent implements OnInit {
   }
 
   async onRecipeSelected(recipeId: string): Promise<void> {
-    if (!this.ensureQuantity()) {
+    if (this.submitting() || !this.ensureQuantity()) {
       return;
     }
 

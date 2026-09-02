@@ -23,12 +23,12 @@ import { FoodCategoryLabelComponent } from '../../../../core/ui/food-category-la
 })
 export class ProductCardComponent {
   readonly item = input.required<ProductCatalogItem>();
-  readonly shortcut = output<void>();
+  readonly shortcut = output<boolean>();
 
   onMenuClick(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    this.shortcut.emit();
+    this.shortcut.emit(false);
   }
 
   storeLine(): string | null {

@@ -1,4 +1,4 @@
-<article class="product-card" appLongPress (appLongPress)="shortcut.emit()">
+<article class="product-card" appLongPress (appLongPress)="shortcut.emit(true)">
   <a class="product-card__body" [routerLink]="['/products', item().product.id]">
     <div class="product-card__top">
       <app-priority-badge [priority]="item().product.priority" />

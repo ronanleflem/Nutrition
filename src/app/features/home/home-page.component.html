@@ -1,10 +1,9 @@
 <section class="home-page">
-  <h1 class="home-page__title">Accueil</h1>
-
   @if (loading()) {
     <p class="home-page__status" role="status">Chargement…</p>
   } @else if (loadError()) {
     <p class="home-page__error" role="alert">{{ loadError() }}</p>
+    <button type="button" class="home-page__retry" (click)="reload()">Réessayer</button>
   } @else if (snapshot(); as dash) {
     <div class="home-page__cards">
       <a class="home-card" routerLink="/plan" data-card="meals">

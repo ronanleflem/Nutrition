@@ -26,12 +26,15 @@ export class RecipesPageComponent implements OnInit {
     void this.recipesService.loadRecipes();
   }
 
-  openShortcut(item: RecipeListItem): void {
-    this.shortcuts.openMenu({
-      kind: 'recipe',
-      recipeId: item.recipe.id,
-      recipeTitle: item.recipe.title,
-    });
+  openShortcut(item: RecipeListItem, fromLongPress = false): void {
+    this.shortcuts.openMenu(
+      {
+        kind: 'recipe',
+        recipeId: item.recipe.id,
+        recipeTitle: item.recipe.title,
+      },
+      { fromLongPress },
+    );
   }
 
   onMenuClick(event: Event, item: RecipeListItem): void {

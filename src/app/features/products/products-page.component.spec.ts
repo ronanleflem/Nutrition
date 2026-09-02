@@ -427,13 +427,13 @@ describe('ProductsPageComponent', () => {
 
     (fixture.nativeElement.querySelector('[data-backdrop="true"]') as HTMLElement).click();
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[role="menu"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
     expect(TestBed.inject(Router).url).toBe('/products');
 
     await openProductMenu();
     (fixture.nativeElement.querySelector('.sheet__close') as HTMLButtonElement).click();
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[role="menu"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
     expect(TestBed.inject(Router).url).toBe('/products');
   });
 

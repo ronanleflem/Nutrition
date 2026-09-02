@@ -209,4 +209,13 @@ describe('OnboardingService', () => {
     expect((await database.getAppSettings()).onboardingCompleted).toBe(true);
     expect(TestBed.inject(Router).url).toBe('/home');
   });
+
+  it('clears custom-recipe resume so a later visit starts at step 1', async () => {
+    await service.startCustomRecipe();
+    await service.completeAfterCustomRecipe();
+    service.enterWizard();
+
+    expect(service.currentStep()).toBe(1);
+    expect(service.step2Ready()).toBe(false);
+  });
 });

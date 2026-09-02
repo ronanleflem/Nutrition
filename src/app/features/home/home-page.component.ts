@@ -21,6 +21,10 @@ export class HomePageComponent implements OnInit {
     void this.load();
   }
 
+  reload(): void {
+    void this.load();
+  }
+
   remainingShoppingLabel(count: number): string {
     return count <= 1 ? `${count} article restant` : `${count} articles restants`;
   }

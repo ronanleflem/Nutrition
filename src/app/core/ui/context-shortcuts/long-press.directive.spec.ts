@@ -80,6 +80,24 @@ describe('LongPressDirective', () => {
     expect(click.defaultPrevented).toBe(false);
   });
 
+  it('extends click suppression until pointerup after a long-press', async () => {
+    pointer('pointerdown');
+    await new Promise((resolve) => setTimeout(resolve, LONG_PRESS_DURATION_MS + 30));
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    pointer('pointerup');
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+    const link = fixture.nativeElement.querySelector('a') as HTMLAnchorElement;
+    link.dispatchEvent(click);
+    expect(click.defaultPrevented).toBe(true);
+  });
+
+  it('opens the shortcut on contextmenu', () => {
+    const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+    host.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(fixture.componentInstance.fired).toBe(true);
+  });
+
   it('does not swallow a later tap after the suppress window', async () => {
     pointer('pointerdown');
     await new Promise((resolve) => setTimeout(resolve, LONG_PRESS_DURATION_MS + 30));

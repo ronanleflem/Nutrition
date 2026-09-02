@@ -6,8 +6,10 @@
 >
   <section
     class="sheet"
-    role="menu"
+    role="dialog"
+    aria-modal="true"
     aria-label="Actions"
+    [attr.aria-busy]="busy() ? true : null"
     (click)="$event.stopPropagation()"
   >
     <header class="sheet__header">
@@ -19,7 +21,7 @@
 
     <ul class="sheet__list">
       <li>
-        <button type="button" class="sheet__list-button" role="menuitem" (click)="choose('pantry')">
+        <button type="button" class="sheet__list-button" [disabled]="busy()" (click)="choose('pantry')">
           {{ labels.pantry }}
         </button>
       </li>
@@ -28,7 +30,7 @@
           <button
             type="button"
             class="sheet__list-button"
-            role="menuitem"
+            [disabled]="busy()"
             (click)="choose('use-in-recipe')"
           >
             {{ labels.useInRecipe }}
@@ -36,7 +38,7 @@
         </li>
       }
       <li>
-        <button type="button" class="sheet__list-button" role="menuitem" (click)="choose('shopping')">
+        <button type="button" class="sheet__list-button" [disabled]="busy()" (click)="choose('shopping')">
           {{ labels.shopping }}
         </button>
       </li>

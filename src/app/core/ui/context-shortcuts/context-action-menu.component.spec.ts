@@ -44,6 +44,20 @@ describe('ContextActionMenuComponent', () => {
     expect(text).not.toContain(CONTEXT_MENU_ACTIONS.useInRecipe);
   });
 
+  it('renders as a dialog, not a menu', () => {
+    fixture.componentRef.setInput('target', {
+      kind: 'product',
+      productId: 'p1',
+      productName: 'Skyr',
+    });
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog).toBeTruthy();
+    expect(dialog.getAttribute('aria-modal')).toBe('true');
+    expect(fixture.nativeElement.querySelector('[role="menu"]')).toBeNull();
+  });
+
   it('closes on backdrop click and on ×', () => {
     fixture.componentRef.setInput('target', {
       kind: 'product',
@@ -61,5 +75,21 @@ describe('ContextActionMenuComponent', () => {
     closed.length = 0;
     (fixture.nativeElement.querySelector('.sheet__close') as HTMLButtonElement).click();
     expect(closed).toEqual(['closed']);
+  });
+
+  it('ignores an immediate backdrop click after a long-press open', () => {
+    fixture.componentRef.setInput('target', {
+      kind: 'product',
+      productId: 'p1',
+      productName: 'Skyr',
+    });
+    fixture.componentRef.setInput('ignoreBackdrop', true);
+    fixture.detectChanges();
+
+    const closed: string[] = [];
+    fixture.componentInstance.closed.subscribe(() => closed.push('closed'));
+
+    (fixture.nativeElement.querySelector('.sheet-backdrop') as HTMLElement).click();
+    expect(closed).toEqual([]);
   });
 });

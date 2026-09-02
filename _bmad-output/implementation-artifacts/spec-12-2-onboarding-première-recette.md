@@ -24,8 +24,8 @@ context:
 **Always:**
 - Steps: (1) optional macro goals, Skip allowed with no write; (2) `FoodLibraryImportService.importStarterPack()` or a link to `/products/library`; (3) create a real `Recipe` + first variant — suggested template « Omelette » with pack/library ingredients (œuf, beurre, sel).
 - Skip only on step 1. Steps 2–3 must complete (pack import or library visit, then a created recipe).
-- Persist `onboardingCompleted: true` only after step 3 succeeds; then navigate `/home`.
-- Cold start: if `onboardingCompleted !== true` → `/onboarding`; else keep 12.1 (`hideHomeOnStartup` → pantry, otherwise home).
+- Persist `onboardingCompleted: true` after step 3 succeeds, then navigate `/home`. Cold start may also persist the flag when recipes already exist (migration).
+- Cold start: if `onboardingCompleted !== true` and there are no recipes → `/onboarding`; if recipes already exist, persist the flag then keep 12.1 (`hideHomeOnStartup` → pantry, otherwise home).
 - Settings: « Relancer le guidage recette » opens `/onboarding` without clearing the flag (abandon must not trap the next `/`).
 - French UI, IndexedDB only. Reuse Epic 5 / 10 / 4 APIs — do not duplicate pack IDs or recipe validation.
 - Hide bottom nav during `/onboarding` via `ShellChromeService` and restore on destroy.
@@ -44,7 +44,8 @@ context:
 
 | Scenario | Input / State | Expected Output / Behavior | Error Handling |
 |----------|--------------|---------------------------|----------------|
-| Cold start incomplete | `onboardingCompleted` unset | `/` → `/onboarding` step 1 | Settings read fail → `/home` (12.1 fallback) |
+| Cold start incomplete | `onboardingCompleted` unset, no recipes | `/` → `/onboarding` step 1 | Settings read fail → `/home` (12.1 fallback) |
+| Cold start existing recipes | Flag unset, `listRecipes()` non-empty | Persist flag; 12.1 home/pantry redirect | N/A |
 | Cold start done | `onboardingCompleted: true` | Existing 12.1 home/pantry redirect | N/A |
 | Step 1 skip | User taps « Passer » | Advance to step 2; no macro write | N/A |
 | Step 1 save | Valid kcal/P/L/G/fibres | `MacroGoalsService.save`; then step 2 | French error; stay on step 1 |
@@ -84,16 +85,16 @@ context:
 - [x] `src/app/app.routes.spec.ts` + settings/db specs -- cover I/O matrix
 
 **Acceptance Criteria:**
-- Given first open (`onboardingCompleted` false), when the app starts, then the 3-step wizard runs (macros skippable; pack or library; real recipe).
+- Given first open (`onboardingCompleted` false and no recipes), when the app starts, then the 3-step wizard runs (macros skippable; pack or library; real recipe).
 - Given step 3 succeeds with the Omelette template (or a saved custom recipe), when the wizard finishes, then `onboardingCompleted` is true and Accueil opens.
 - Given Settings, when the user taps « Relancer le guidage recette », then the wizard opens again.
 
 ### Review Findings
 
-- [ ] [Review][Decision] Auto-complétion du guidage dès qu’une recette existe — `resolveStartupPath` pose `onboardingCompleted` et saute le wizard, alors que le Always figé exige `/onboarding` tant que le flag n’est pas vrai après l’étape 3
-- [ ] [Review][Patch] `completeAndGoHome` ne remet pas `resumeAfterCustom` / `resumeAfterLibrary` à false — une visite ultérieure de `/onboarding` peut sauter à l’étape 3 [onboarding.service.ts:123]
-- [ ] [Review][Patch] Si `createRecipeWithFirstVariant` réussit puis `completeAfterCustomRecipe` échoue, un nouvel envoi recrée une recette [recipe-form-page.component.ts:180]
-- [ ] [Review][Patch] Aucun test n’observe le lien « ← Retour au guidage » de `/products/library?from=onboarding` [food-library-page.component.ts:62]
+- [x] [Review][Decision] Auto-complétion du guidage dès qu’une recette existe — décidé : garder la migration (flag + 12.1)
+- [x] [Review][Patch] `completeAndGoHome` ne remet pas `resumeAfterCustom` / `resumeAfterLibrary` à false — une visite ultérieure de `/onboarding` peut sauter à l’étape 3 [onboarding.service.ts:123]
+- [x] [Review][Patch] Si `createRecipeWithFirstVariant` réussit puis `completeAfterCustomRecipe` échoue, un nouvel envoi recrée une recette [recipe-form-page.component.ts:180]
+- [x] [Review][Patch] Aucun test n’observe le lien « ← Retour au guidage » de `/products/library?from=onboarding` [food-library-page.component.ts:62]
 
 ## Spec Change Log
 

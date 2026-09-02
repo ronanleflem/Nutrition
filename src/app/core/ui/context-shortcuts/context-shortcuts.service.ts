@@ -18,26 +18,33 @@ export class ContextShortcutsService {
   readonly sheet = signal<ContextSheet | null>(null);
   readonly confirmation = signal<string | null>(null);
   readonly actionError = signal<string | null>(null);
+  readonly busy = signal(false);
+  readonly ignoreBackdrop = signal(false);
 
   private generation = 0;
   private inflight = false;
   private confirmationTimer: ReturnType<typeof setTimeout> | null = null;
 
-  openMenu(target: ShortcutTarget): void {
+  openMenu(target: ShortcutTarget, options?: { fromLongPress?: boolean }): void {
     this.generation += 1;
     this.actionError.set(null);
+    this.busy.set(false);
+    this.ignoreBackdrop.set(options?.fromLongPress === true);
     this.clearConfirmation();
     this.sheet.set({ name: 'menu', target });
   }
 
   closeSheet(): void {
     this.generation += 1;
+    this.ignoreBackdrop.set(false);
     this.sheet.set(null);
   }
 
   reset(): void {
     this.generation += 1;
     this.inflight = false;
+    this.busy.set(false);
+    this.ignoreBackdrop.set(false);
     this.sheet.set(null);
     this.actionError.set(null);
     this.clearConfirmation();
@@ -82,6 +89,7 @@ export class ContextShortcutsService {
     }
 
     this.inflight = true;
+    this.busy.set(true);
     try {
       if (action === 'pantry') {
         await this.openRecipePantry(target.recipeId);
@@ -98,6 +106,7 @@ export class ContextShortcutsService {
       this.sheet.set(null);
     } finally {
       this.inflight = false;
+      this.busy.set(false);
     }
   }
 
@@ -173,11 +182,19 @@ export class ContextShortcutsService {
       return;
     }
 
-    for (const ingredient of ingredients) {
-      await this.shopping.addManualItem(ingredient.productId, ingredient.quantityG);
-      if (token !== this.generation) {
-        return;
+    const addedIds: string[] = [];
+    try {
+      for (const ingredient of ingredients) {
+        const item = await this.shopping.addManualItem(ingredient.productId, ingredient.quantityG);
+        addedIds.push(item.id);
+        if (token !== this.generation) {
+          await this.rollbackManualItems(addedIds);
+          return;
+        }
       }
+    } catch (error) {
+      await this.rollbackManualItems(addedIds);
+      throw error;
     }
 
     this.setConfirmation(
@@ -204,6 +221,16 @@ export class ContextShortcutsService {
       this.confirmationTimer = null;
     }
     this.confirmation.set(null);
+  }
+
+  private async rollbackManualItems(itemIds: string[]): Promise<void> {
+    for (const itemId of [...itemIds].reverse()) {
+      try {
+        await this.shopping.deleteItem(itemId);
+      } catch {
+        // Best-effort rollback; the user-facing error comes from the failed add.
+      }
+    }
   }
 
   private async defaultVariantIngredients(recipeId: string): Promise<ShortcutIngredientOption[]> {

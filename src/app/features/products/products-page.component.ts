@@ -108,12 +108,15 @@ export class ProductsPageComponent implements OnInit, OnDestroy {
     this.searchAbort?.abort();
   }
 
-  onProductShortcut(item: ProductCatalogItem): void {
-    this.shortcuts.openMenu({
-      kind: 'product',
-      productId: item.product.id,
-      productName: item.product.name,
-    });
+  onProductShortcut(item: ProductCatalogItem, fromLongPress = false): void {
+    this.shortcuts.openMenu(
+      {
+        kind: 'product',
+        productId: item.product.id,
+        productName: item.product.name,
+      },
+      { fromLongPress },
+    );
   }
 
   onSearchInput(event: Event): void {

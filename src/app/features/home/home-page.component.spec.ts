@@ -11,6 +11,7 @@ import { deleteNutritionDatabase } from '../../core/database/nutrition-database.
 import { APP_SETTINGS_SINGLETON_ID } from '../../core/models/app-settings';
 import { toLocalIsoDate } from '../meal-plan/utils/week-dates';
 import { ShoppingListService } from '../shopping-list/services/shopping-list.service';
+import { HomeDashboardService } from './home-dashboard.service';
 import { HomePageComponent } from './home-page.component';
 
 describe('HomePageComponent', () => {
@@ -143,4 +144,41 @@ describe('HomePageComponent', () => {
     expect(refresh).not.toHaveBeenCalled();
     refresh.mockRestore();
   });
+
+  it('shows a retry control when the dashboard fails to load', async () => {
+    const load = vi
+      .spyOn(HomeDashboardService.prototype, 'loadDashboard')
+      .mockRejectedValueOnce(new Error('IndexedDB'))
+      .mockResolvedValueOnce({
+        meals: [],
+        remainingShoppingCount: 0,
+        expiringItems: [],
+        showExportReminder: false,
+      });
+
+    await mount();
+
+    expect(fixture.nativeElement.textContent).toContain('Chargement de l’accueil impossible');
+    expect(fixture.nativeElement.querySelector('[data-card]')).toBeNull();
+
+    (fixture.nativeElement.querySelector('.home-page__retry') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    await mountWait(fixture);
+
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(fixture.nativeElement.querySelector('[data-card="meals"]')).toBeTruthy();
+    load.mockRestore();
+  });
 });
+
+async function mountWait(fixture: ComponentFixture<HomePageComponent>): Promise<void> {
+  for (let attempt = 0; attempt < 50; attempt++) {
+    await fixture.whenStable();
+    fixture.detectChanges();
+    if (!fixture.componentInstance.loading()) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  throw new Error('Home dashboard load timed out');
+}

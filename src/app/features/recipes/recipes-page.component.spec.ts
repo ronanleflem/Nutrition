@@ -254,6 +254,6 @@ describe('RecipesPageComponent', () => {
     card.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: 40, clientY: 8 }));
     await new Promise((resolve) => setTimeout(resolve, LONG_PRESS_DURATION_MS));
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[role="menu"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
   });
 });

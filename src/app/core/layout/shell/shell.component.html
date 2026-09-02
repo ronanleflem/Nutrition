@@ -4,7 +4,11 @@
       @if (isHome()) {
         <h1 class="shell__title">{{ pageTitle() }}</h1>
       } @else {
-        <a routerLink="/home" class="shell__title shell__title--link" aria-label="Accueil">
+        <a
+          routerLink="/home"
+          class="shell__title shell__title--link"
+          [attr.aria-label]="pageTitle() + ' — Accueil'"
+        >
           {{ pageTitle() }}
         </a>
       }

@@ -46,3 +46,4 @@ export const NEW_RECIPE_FROM_PRODUCT_STEP = 'Préparer.';
 export const NEW_RECIPE_FROM_PRODUCT_VARIANT = 'Base';
 export const LONG_PRESS_DURATION_MS = 500;
 export const LONG_PRESS_MOVE_THRESHOLD_PX = 10;
+export const LONG_PRESS_BACKDROP_IGNORE_MS = 400;

@@ -124,7 +124,7 @@ describe('ShellComponent', () => {
 
     const titleLink = getShellElement().querySelector('a.shell__title') as HTMLAnchorElement;
     expect(titleLink).toBeTruthy();
-    expect(titleLink.getAttribute('aria-label')).toBe('Accueil');
+    expect(titleLink.getAttribute('aria-label')).toBe('Garde-manger — Accueil');
     expect(titleLink.getAttribute('href')).toBe('/home');
     expect(titleLink.textContent?.trim()).toBe('Garde-manger');
   });

@@ -122,6 +122,31 @@ describe('ContextShortcutsService', () => {
     expect(refresh).not.toHaveBeenCalled();
   });
 
+  it('rolls back earlier shopping rows when a later add fails', async () => {
+    const eggId = await seedProduct('Œuf');
+    const butterId = await seedProduct('Beurre');
+    const recipeId = await seedRecipe('Omelette', [
+      { productId: eggId, quantityG: 120 },
+      { productId: butterId, quantityG: 10 },
+    ]);
+
+    const original = shopping.addManualItem.bind(shopping);
+    let calls = 0;
+    vi.spyOn(shopping, 'addManualItem').mockImplementation(async (productId, quantityG) => {
+      calls += 1;
+      if (calls === 2) {
+        throw new Error('Liste indisponible.');
+      }
+      return original(productId, quantityG);
+    });
+
+    service.openMenu({ kind: 'recipe', recipeId, recipeTitle: 'Omelette' });
+    await service.handleMenuAction('shopping');
+
+    expect(service.actionError()).toBe('Liste indisponible.');
+    expect(await database.listShoppingListItemsWithProducts()).toEqual([]);
+  });
+
   it('surfaces a French error when the recipe cannot be loaded for pantry', async () => {
     service.openMenu({
       kind: 'recipe',

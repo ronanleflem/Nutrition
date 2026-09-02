@@ -10,6 +10,8 @@
   @if (sheet.name === 'menu') {
     <app-context-action-menu
       [target]="sheet.target"
+      [busy]="shortcuts.busy()"
+      [ignoreBackdrop]="shortcuts.ignoreBackdrop()"
       (closed)="shortcuts.closeSheet()"
       (action)="shortcuts.handleMenuAction($event)"
     />

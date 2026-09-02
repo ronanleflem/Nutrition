@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto';
 
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter, Router, RouterOutlet } from '@angular/router';
 import Dexie from 'dexie';
 
@@ -192,6 +193,35 @@ describe('PantryPageComponent', () => {
 
     expect(pantry.filterMode()).toBe('all');
     expect(fixture.nativeElement.textContent).toContain('Riz');
+  });
+
+  it('clears ?filter=expiring from the URL when the user shows all items', async () => {
+    const db = TestBed.inject(DatabaseService);
+    await db.initialize();
+    const product = await db.createProduct({ name: 'Pâtes' });
+    const later = new Date();
+    later.setDate(later.getDate() + 10);
+    const expiryDate = `${later.getFullYear()}-${String(later.getMonth() + 1).padStart(
+      2,
+      '0',
+    )}-${String(later.getDate()).padStart(2, '0')}`;
+    await db.addPantryItem({ productId: product.id, quantityG: 300, expiryDate });
+
+    fixture = TestBed.createComponent(PantryRoutedHostComponent);
+    await TestBed.inject(Router).navigateByUrl('/pantry?filter=expiring');
+    fixture.detectChanges();
+    const pantry = TestBed.inject(PantryService);
+    await pantry.refresh();
+    fixture.detectChanges();
+
+    const page = fixture.debugElement.query(By.directive(PantryPageComponent))
+      .componentInstance as PantryPageComponent;
+    page.showAllItems();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(pantry.filterMode()).toBe('all');
+    expect(TestBed.inject(Router).url).toBe('/pantry');
   });
 });
 
