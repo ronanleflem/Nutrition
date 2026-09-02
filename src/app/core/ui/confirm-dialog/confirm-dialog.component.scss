@@ -38,7 +38,16 @@
 
 .confirm-dialog__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
+}
+
+.confirm-dialog__button--tertiary {
+  flex: 1 1 100%;
+  border: none;
+  background: transparent;
+  color: var(--color-ink-secondary);
+  text-decoration: underline;
 }
 
 .confirm-dialog__button {

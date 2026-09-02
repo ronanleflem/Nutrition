@@ -37,6 +37,8 @@ Offline : sections 1–3. Online : 1–3 instantané, 4–6 en parallèle après
 
 **Attribution requise :** écran Paramètres → Sources de données.
 
+**OpenNutrition ODbL (story 10.2) :** toute interface affichant des données OpenNutrition doit créditer [OpenNutrition](https://www.opennutrition.app). Les données issues d'Open Food Facts conservent l'attribution « (c) Open Food Facts contributors ». Rebuild trimestriel depuis `opennutrition-dataset-*.zip` (https://downloads.opennutrition.app/) ; subset FR/EU filtré au build (~5–15k entrées).
+
 ### Phase 2 — APIs marques (réseau, lecture seule)
 
 | Source | URL | Licence | Auth | Rate limit | Rôle |

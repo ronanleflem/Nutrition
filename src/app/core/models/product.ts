@@ -1,5 +1,7 @@
 export type ProductPriority = 'green' | 'yellow' | 'gray';
 
+export type ProductSourceProvider = 'ciqual' | 'opennutrition';
+
 export interface Product {
   id: string;
   name: string;
@@ -9,6 +11,8 @@ export interface Product {
   notes?: string;
   preferredReferenceId?: string;
   recommendedStores: string[];
+  sourceProvider?: ProductSourceProvider;
+  sourceId?: string;
   deletedAt?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -19,6 +23,8 @@ export interface CreateProductInput {
   category?: string;
   priority?: ProductPriority;
   notes?: string;
+  sourceProvider?: ProductSourceProvider;
+  sourceId?: string;
 }
 
 export interface UpdateProductInput {
@@ -37,6 +43,8 @@ export function createProduct(input: CreateProductInput): Product {
     category: input.category?.trim() || undefined,
     priority: input.priority,
     notes: input.notes?.trim() || undefined,
+    sourceProvider: input.sourceProvider,
+    sourceId: input.sourceId,
     recommendedStores: [],
     deletedAt: null,
     createdAt: now,

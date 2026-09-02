@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { isActiveProduct } from '../../../core/models/product';
 import { isValidEan, normalizeBarcodeInput } from '../../../core/barcode/ean';
 import { DatabaseService } from '../../../core/database/database.service';
+import { FoodSearchService } from '../../../core/food-library/food-search.service';
+import { foodSearchHitToPrefill } from '../../../core/food-library/food-search-hit-prefill';
 import { NetworkStatusService } from '../../../core/network/network-status.service';
 import { OffApiService } from '../../../core/off-api/off-api.service';
 import type { PendingRestoreMatch } from '../models/pending-restore-match';
@@ -16,6 +18,7 @@ export class ScanService {
   private readonly productsService = inject(ProductsService);
   private readonly networkStatus = inject(NetworkStatusService);
   private readonly offApi = inject(OffApiService);
+  private readonly foodSearch = inject(FoodSearchService);
   private readonly router = inject(Router);
 
   readonly flowState = signal<ScanFlowState | null>(null);
@@ -48,6 +51,16 @@ export class ScanService {
       }
 
       if (!this.networkStatus.isOnline()) {
+        const libraryHit = await this.lookupOfflineLibraryBarcode(barcode);
+        if (libraryHit) {
+          this.openReferenceForm({
+            barcode,
+            status: 'offline-library-found',
+            prefill: foodSearchHitToPrefill(libraryHit, barcode),
+          });
+          return;
+        }
+
         this.openReferenceForm({
           barcode,
           status: 'offline',
@@ -66,9 +79,29 @@ export class ScanService {
       }
 
       if (lookup.status === 'network_error') {
+        const libraryHit = await this.lookupOfflineLibraryBarcode(barcode);
+        if (libraryHit) {
+          this.openReferenceForm({
+            barcode,
+            status: 'offline-library-found',
+            prefill: foodSearchHitToPrefill(libraryHit, barcode),
+          });
+          return;
+        }
+
         this.openReferenceForm({
           barcode,
           status: 'network-error',
+        });
+        return;
+      }
+
+      const libraryHit = await this.lookupOfflineLibraryBarcode(barcode);
+      if (libraryHit) {
+        this.openReferenceForm({
+          barcode,
+          status: 'offline-library-found',
+          prefill: foodSearchHitToPrefill(libraryHit, barcode),
         });
         return;
       }
@@ -107,6 +140,14 @@ export class ScanService {
 
   clearFlowState(): void {
     this.flowState.set(null);
+  }
+
+  private async lookupOfflineLibraryBarcode(barcode: string) {
+    try {
+      return await this.foodSearch.searchByBarcode(barcode);
+    } catch {
+      return null;
+    }
   }
 
   private async openReferenceForm(state: ScanFlowState): Promise<void> {

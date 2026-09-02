@@ -129,6 +129,26 @@
   color: var(--color-accent-positive);
 }
 
+.recipe-form__product-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--spacing-touch-min);
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-base);
+  color: var(--color-ink-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.recipe-form__product-button--empty {
+  color: var(--color-ink-secondary);
+}
+
+
 .recipe-form__actions {
   display: flex;
   gap: 12px;

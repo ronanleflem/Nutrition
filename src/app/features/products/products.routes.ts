@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+import { FoodLibraryPageComponent } from './components/food-library-page/food-library-page.component';
 import { ProductDetailPageComponent } from './components/product-detail-page/product-detail-page.component';
 import { ProductFormPageComponent } from './components/product-form-page/product-form-page.component';
 import { ReferenceFormPageComponent } from './components/reference-form-page/reference-form-page.component';
@@ -10,6 +11,11 @@ import { ProductsPageComponent } from './products-page.component';
 export const PRODUCTS_ROUTES: Routes = [
   { path: '', component: ProductsPageComponent },
   { path: 'scan', component: ScannerPageComponent, data: { title: 'Scanner' } },
+  {
+    path: 'library',
+    component: FoodLibraryPageComponent,
+    data: { title: 'Bibliothèque offline' },
+  },
   {
     path: 'scan/reference',
     component: ScanReferencePageComponent,

@@ -35,6 +35,12 @@ describe('ngsw-config.json', () => {
     expect(iconGroup?.resources.files).toContain('/icons/**');
   });
 
+  it('lazy-loads offline food library chunks', () => {
+    const foodLibraryGroup = config.assetGroups.find((group) => group.name === 'food-library');
+    expect(foodLibraryGroup?.installMode).toBe('lazy');
+    expect(foodLibraryGroup?.resources.files).toContain('/assets/food-library/**');
+  });
+
   it('uses freshness for navigation requests to support offline shell routing', () => {
     expect(config.navigationRequestStrategy).toBe('freshness');
     expect(config.index).toBe('/index.html');

@@ -1,0 +1,70 @@
+<section class="data-sources-page">
+  <header class="data-sources-page__header">
+    <a class="data-sources-page__back" routerLink="/settings">← Paramètres</a>
+    <h1 class="data-sources-page__title">Sources de données</h1>
+  </header>
+
+  <p class="data-sources-page__intro">
+    Nutrition embarque des bases open data pour la recherche offline et enrichit les produits via des
+    APIs en lecture seule lorsque vous êtes connecté.
+  </p>
+
+  <section class="data-sources-page__section" aria-labelledby="offline-sources-title">
+    <h2 id="offline-sources-title" class="data-sources-page__section-title">Bibliothèque offline</h2>
+
+    <article class="data-sources-page__card">
+      <h3 class="data-sources-page__card-title">
+        <a [href]="sources.ciqual.url" rel="noopener noreferrer" target="_blank">
+          {{ sources.ciqual.label }}
+        </a>
+      </h3>
+      <p class="data-sources-page__card-body">
+        Ingrédients génériques français officiels (ANSES), embarqués dans l'application.
+      </p>
+      <p class="data-sources-page__license">
+        Licence :
+        <a [href]="sources.ciqual.licenseUrl" rel="noopener noreferrer" target="_blank">
+          {{ sources.ciqual.license }}
+        </a>
+      </p>
+    </article>
+
+    <article class="data-sources-page__card">
+      <h3 class="data-sources-page__card-title">
+        <a [href]="sources.opennutrition.url" rel="noopener noreferrer" target="_blank">
+          {{ sources.opennutrition.label }}
+        </a>
+      </h3>
+      <p class="data-sources-page__card-body">
+        Génériques et produits de marque avec code-barres (subset FR/EU embarqué).
+      </p>
+      <p class="data-sources-page__license">
+        Licence :
+        <a [href]="sources.opennutrition.licenseUrl" rel="noopener noreferrer" target="_blank">
+          {{ sources.opennutrition.license }}
+        </a>
+      </p>
+    </article>
+  </section>
+
+  <section class="data-sources-page__section" aria-labelledby="online-sources-title">
+    <h2 id="online-sources-title" class="data-sources-page__section-title">Enrichissement en ligne</h2>
+
+    <article class="data-sources-page__card">
+      <h3 class="data-sources-page__card-title">
+        <a [href]="sources.openFoodFacts.url" rel="noopener noreferrer" target="_blank">
+          {{ sources.openFoodFacts.label }}
+        </a>
+      </h3>
+      <p class="data-sources-page__card-body">
+        Scan et recherche de produits de marque lorsque vous êtes connecté.
+      </p>
+      <p class="data-sources-page__license">{{ sources.openFoodFacts.note }}</p>
+    </article>
+  </section>
+
+  <p class="data-sources-page__privacy">
+    Aucune donnée personnelle (garde-manger, plan de repas, objectifs) n'est envoyée à ces services.
+    Seuls les termes de recherche ou codes-barres sont transmis aux APIs en ligne.
+  </p>
+</section>

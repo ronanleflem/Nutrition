@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<TABLE>
+   <ALIM>
+      <alim_code> 9001 </alim_code>
+      <alim_nom_fr> Œuf, cru </alim_nom_fr>
+      <alim_nom_eng> Egg, raw </alim_nom_eng>
+      <alim_nom_sci missing=" " />
+      <alim_grp_code> 02 </alim_grp_code>
+      <alim_ssgrp_code> 0201 </alim_ssgrp_code>
+      <alim_ssssgrp_code> 020101 </alim_ssssgrp_code>
+   </ALIM>
+   <ALIM>
+      <alim_code> 9002 </alim_code>
+      <alim_nom_fr> Pomme, crue </alim_nom_fr>
+      <alim_nom_eng> Apple, raw </alim_nom_eng>
+      <alim_nom_sci> Malus domestica </alim_nom_sci>
+      <alim_grp_code> 02 </alim_grp_code>
+      <alim_ssgrp_code> 0202 </alim_ssgrp_code>
+      <alim_ssssgrp_code> 000000 </alim_ssssgrp_code>
+   </ALIM>
+   <ALIM>
+      <alim_code> 9003 </alim_code>
+      <alim_nom_fr> Aliment sans énergie </alim_nom_fr>
+      <alim_nom_eng> Food without energy </alim_nom_eng>
+      <alim_grp_code> 02 </alim_grp_code>
+      <alim_ssgrp_code> 0202 </alim_ssgrp_code>
+      <alim_ssssgrp_code> 000000 </alim_ssssgrp_code>
+   </ALIM>
+</TABLE>

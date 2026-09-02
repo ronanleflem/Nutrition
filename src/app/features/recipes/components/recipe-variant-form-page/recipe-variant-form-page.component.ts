@@ -7,11 +7,12 @@ import { switchMap } from 'rxjs/operators';
 import type { Product } from '../../../../core/models/product';
 import { ProductsService } from '../../../products/services/products.service';
 import { RecipesService } from '../../services/recipes.service';
+import { IngredientProductPickerSheetComponent } from '../ingredient-product-picker-sheet/ingredient-product-picker-sheet.component';
 import { StarRatingComponent } from '../star-rating/star-rating.component';
 
 @Component({
   selector: 'app-recipe-variant-form-page',
-  imports: [ReactiveFormsModule, RouterLink, StarRatingComponent],
+  imports: [ReactiveFormsModule, RouterLink, StarRatingComponent, IngredientProductPickerSheetComponent],
   templateUrl: './recipe-variant-form-page.component.html',
   styleUrl: './recipe-variant-form-page.component.scss',
 })
@@ -20,7 +21,7 @@ export class RecipeVariantFormPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly recipesService = inject(RecipesService);
-  private readonly productsService = inject(ProductsService);
+  readonly productsService = inject(ProductsService);
 
   readonly loading = signal(true);
   readonly saving = signal(false);
@@ -28,6 +29,7 @@ export class RecipeVariantFormPageComponent implements OnInit {
   readonly submitError = signal<string | null>(null);
   readonly ingredientError = signal<string | null>(null);
   readonly blockedProduct = signal<Product | null>(null);
+  readonly pickerIngredientIndex = signal<number | null>(null);
   readonly rating = signal<number | undefined>(undefined);
 
   readonly eligibleProducts = computed(() =>
@@ -131,6 +133,31 @@ export class RecipeVariantFormPageComponent implements OnInit {
 
     this.ingredientError.set(null);
     this.blockedProduct.set(null);
+  }
+
+  openIngredientPicker(index: number): void {
+    this.pickerIngredientIndex.set(index);
+  }
+
+  closeIngredientPicker(): void {
+    this.pickerIngredientIndex.set(null);
+  }
+
+  onIngredientProductSelected(productId: string): void {
+    const index = this.pickerIngredientIndex();
+    if (index === null) {
+      return;
+    }
+
+    this.ingredients.at(index).patchValue({ productId });
+    this.ingredients.at(index).get('productId')?.markAsTouched();
+    this.onProductChange(index);
+    this.closeIngredientPicker();
+  }
+
+  productDisplayName(productId: string): string {
+    const item = this.productsService.catalog().find((entry) => entry.product.id === productId);
+    return item?.product.name ?? 'Produit sélectionné';
   }
 
   onRatingChange(value: number | null): void {

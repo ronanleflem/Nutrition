@@ -44,30 +44,38 @@
 
       @if (eligibleProducts().length === 0) {
         <p class="recipe-variant-form__hint">
-          Aucun produit disponible. Créez un produit avec au moins une référence enseigne dans le catalogue.
-          <a routerLink="/products">Aller au catalogue</a>
+          Votre catalogue est vide pour l’instant. Recherchez un ingrédient (Ciqual, OpenNutrition) — il sera
+          importé automatiquement.
+          <a routerLink="/products/library">Bibliothèque offline</a>
         </p>
       }
 
       <div formArrayName="ingredients" class="recipe-variant-form__list">
         @for (ingredient of ingredients.controls; track $index) {
           <div class="recipe-variant-form__ingredient" [formGroupName]="$index">
-            <label class="recipe-variant-form__field recipe-variant-form__field--grow">
+            <div class="recipe-variant-form__field recipe-variant-form__field--grow">
               <span class="recipe-variant-form__label">Produit</span>
-              <select
-                class="recipe-variant-form__input"
-                formControlName="productId"
-                (change)="onProductChange($index)"
-              >
-                <option value="">Choisir un produit…</option>
-                @for (item of eligibleProducts(); track item.product.id) {
-                  <option [value]="item.product.id">{{ item.product.name }}</option>
-                }
-              </select>
+              @if (ingredient.get('productId')?.value; as productId) {
+                <button
+                  type="button"
+                  class="recipe-variant-form__product-button"
+                  (click)="openIngredientPicker($index)"
+                >
+                  {{ productDisplayName(productId) }}
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="recipe-variant-form__product-button recipe-variant-form__product-button--empty"
+                  (click)="openIngredientPicker($index)"
+                >
+                  Choisir un produit…
+                </button>
+              }
               @if (ingredient.get('productId')?.touched && ingredient.get('productId')?.invalid) {
                 <span class="recipe-variant-form__error">Choisissez un produit.</span>
               }
-            </label>
+            </div>
             <label class="recipe-variant-form__field">
               <span class="recipe-variant-form__label">Quantité (g)</span>
               <input class="recipe-variant-form__input" type="number" min="1" formControlName="quantityG" />
@@ -104,10 +112,18 @@
       <button
         class="recipe-variant-form__button recipe-variant-form__button--primary"
         type="submit"
-        [disabled]="saving() || eligibleProducts().length === 0"
+        [disabled]="saving()"
       >
         Ajouter la variante
       </button>
     </div>
   </form>
+
+  @if (pickerIngredientIndex() !== null) {
+    <app-ingredient-product-picker-sheet
+      [catalog]="productsService.catalog()"
+      (selected)="onIngredientProductSelected($event)"
+      (closed)="closeIngredientPicker()"
+    />
+  }
 }

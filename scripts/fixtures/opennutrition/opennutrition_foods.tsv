@@ -1,0 +1,7 @@
+id	name	alternate_names	description	type	source	serving	nutrition_100g	ean_13	labels	package_size	ingredients	ingredient_analysis
+fd_test1	Skyr Nature by Danone	["skyr nature danone"]	Yaourt skyr	grocery	[{"database":"Open Food Facts"}]	{"metric":{"unit":"g","quantity":100}}	{"calories":63,"protein":10.5,"total_fat":0.2,"carbohydrates":4.1,"dietary_fiber":0}	3560070467394	[]	{}	lait	{}
+fd_test2	Organic Peanut Butter by Jif	["peanut butter"]	US peanut butter	grocery	[{"database":"USDA"}]	{"metric":{"unit":"g","quantity":100}}	{"calories":590,"protein":25,"total_fat":50,"carbohydrates":20}	0013764027053	[]	{}	peanuts	{}
+fd_test3	Incomplete Macros Food	[]		missing-type	[]	{}	{"calories":100}			{}		{}
+fd_test4	Œufs bio	["oeufs bio"]	Œufs français	everyday	[{"database":"Frida"}]	{"metric":{"unit":"g","quantity":50}}	{"calories":143,"protein":12.6,"total_fat":9.5,"carbohydrates":1.1,"dietary_fiber":0}		[]	{}		{}
+fd_test5	Duplicate Barcode A by Brand X	[]		grocery	[]	{}	{"calories":200,"protein":5,"total_fat":8,"carbohydrates":25}	1234567890123	[]	{}		{}
+fd_test6	Duplicate Barcode B by Brand Y	[]		grocery	[{"database":"Frida"}]	{}	{"calories":210,"protein":6,"total_fat":9,"carbohydrates":24}	1234567890123	[]	{}		{}

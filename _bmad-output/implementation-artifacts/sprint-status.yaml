@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-30-2026 18:11
-last_updated: 09-01-2026 07:30
+last_updated: 09-02-2026 06:10
 project: Nutrition
 project_key: NOKEY
 tracking_system: file-system
@@ -83,3 +83,12 @@ development_status:
   8-2-import-avec-validation-et-modes-merge: review
   8-3-rappel-backup-30-jours: review
   epic-8-retrospective: optional
+
+  epic-10: in-progress
+  10-1-pipeline-ciqual-chunk-food-library-ciqual: review
+  10-2-pipeline-opennutrition-chunk-food-library-opennutrition: review
+  10-3-foodsearchservice-index-local-unifie: review
+  10-4-importer-vers-mon-catalogue: review
+  10-5-recherche-unifiee-lors-ajout-ingredient-recette: review
+  10-6-import-groupe-pack-demarrage: review
+  epic-10-retrospective: optional
