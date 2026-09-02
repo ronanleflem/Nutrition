@@ -7,6 +7,7 @@ export interface Recipe {
   tags?: string[];
   notes?: string;
   defaultVariantId: string;
+  photoBlobId?: string;
   createdAt: string;
   updatedAt: string;
 }

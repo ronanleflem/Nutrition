@@ -25,6 +25,7 @@ export interface ProductReference extends ProductReferenceMacros {
   verdictLabel?: string;
   notes?: string;
   deletedAt?: string | null;
+  thumbBlobId?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { normalizeBarcodeInput } from '../barcode/ean';
+import type { ImageBlob } from '../models/image-blob';
 
 import {
   APP_SETTINGS_SINGLETON_ID,
@@ -297,6 +298,32 @@ export class DatabaseService {
   async getUsdaFoodCacheEntry(fdcId: number): Promise<UsdaFoodCacheEntry | undefined> {
     await this.initialize();
     return (await this.db!.usdaFoodCache.get(fdcId)) ?? undefined;
+  }
+
+  async putImageBlob(entry: ImageBlob): Promise<void> {
+    await this.initialize();
+    await this.db!.imageBlobs.put(entry);
+  }
+
+  async getImageBlob(id: string): Promise<ImageBlob | undefined> {
+    await this.initialize();
+    return (await this.db!.imageBlobs.get(id)) ?? undefined;
+  }
+
+  async deleteImageBlob(id: string): Promise<void> {
+    await this.initialize();
+    await this.db!.imageBlobs.delete(id);
+  }
+
+  async isImageBlobReferenced(id: string): Promise<boolean> {
+    await this.initialize();
+
+    const [recipeMatch, referenceMatch] = await Promise.all([
+      this.db!.recipes.filter((recipe) => recipe.photoBlobId === id).first(),
+      this.db!.productReferences.filter((reference) => reference.thumbBlobId === id).first(),
+    ]);
+
+    return recipeMatch != null || referenceMatch != null;
   }
 
   async rememberSearchCacheHits(query: string, hits: OnlineSearchHit[]): Promise<void> {
