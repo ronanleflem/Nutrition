@@ -21,7 +21,7 @@ describe('resolveFoodCategory', () => {
     expect(resolveFoodCategory('abats')).toBe('viande');
   });
 
-  it('falls back to autres for unknown labels', () => {
-    expect(resolveFoodCategory('DIVERS')).toBe('autres');
+  it('returns null for unknown labels', () => {
+    expect(resolveFoodCategory('DIVERS')).toBeNull();
   });
 });

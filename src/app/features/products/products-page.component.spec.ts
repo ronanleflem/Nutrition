@@ -104,7 +104,7 @@ describe('ProductsPageComponent', () => {
     await waitForLoad();
 
     expect(fixture.nativeElement.textContent).toContain('Poulet blanc');
-    expect(fixture.nativeElement.textContent).toContain('VIANDE');
+    expect(fixture.nativeElement.textContent).toContain('Viande');
   });
 
   async function runSearch(query: string): Promise<void> {

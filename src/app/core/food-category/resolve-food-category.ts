@@ -56,5 +56,5 @@ export function resolveFoodCategory(category?: string | null): FoodCategoryKind 
     }
   }
 
-  return 'autres';
+  return null;
 }

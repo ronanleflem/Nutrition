@@ -1,6 +1,9 @@
 import { Component, computed, input } from '@angular/core';
 
-import type { FoodCategoryKind } from '../../food-category/food-category.types';
+import {
+  FOOD_CATEGORY_KIND_LABELS,
+  type FoodCategoryKind,
+} from '../../food-category/food-category.types';
 import { resolveFoodCategory } from '../../food-category/resolve-food-category';
 
 @Component({
@@ -162,5 +165,12 @@ export class FoodCategoryLabelComponent {
 
   readonly resolvedKind = computed(() => resolveFoodCategory(this.category()));
 
-  readonly displayLabel = computed(() => this.category()?.trim() ?? '');
+  readonly displayLabel = computed(() => {
+    const kind = this.resolvedKind();
+    if (kind) {
+      return FOOD_CATEGORY_KIND_LABELS[kind];
+    }
+
+    return this.category()?.trim() ?? '';
+  });
 }

@@ -45,13 +45,14 @@ function catalogItem(
 
 describe('ingredient-picker-search', () => {
   it('maps catalog items to search hits with macros', () => {
-    const hit = toCatalogSearchHit(catalogItem());
+    const hit = toCatalogSearchHit(catalogItem({ category: 'LAITIER' }));
 
     expect(hit).toMatchObject({
       source: 'catalog',
       sourceLabel: INGREDIENT_CATALOG_SOURCE_LABEL,
       productId: 'prod-1',
       displayName: 'Œuf',
+      category: 'LAITIER',
       kcal: 143,
     });
   });
