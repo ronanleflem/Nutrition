@@ -7,6 +7,26 @@
     </p>
   </header>
 
+  <section class="food-library-page__starter" aria-label="Pack démarrage">
+    <h2 class="food-library-page__starter-title">{{ starterPackLabel }}</h2>
+    <p class="food-library-page__starter-intro">
+      Importez environ 50 ingrédients de base (Ciqual) en un tap. Les produits déjà présents sont ignorés.
+    </p>
+    <button
+      class="food-library-page__starter-button"
+      type="button"
+      [disabled]="importingStarterPack()"
+      (click)="importStarterPack()"
+    >
+      {{ importingStarterPack() ? 'Import en cours…' : starterPackLabel }}
+    </button>
+    @if (starterPackSummary(); as summary) {
+      <p class="food-library-page__starter-summary" role="status">
+        {{ formatStarterPackSummary(summary) }}
+      </p>
+    }
+  </section>
+
   <label class="food-library-page__search">
     <span class="visually-hidden">Rechercher dans la bibliothèque</span>
     <input

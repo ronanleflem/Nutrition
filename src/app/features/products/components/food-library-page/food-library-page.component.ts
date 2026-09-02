@@ -3,10 +3,13 @@ import { Router, RouterLink } from '@angular/router';
 
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
 import { FoodLibraryImportService } from '../../../../core/food-library/food-library-import.service';
+import type { StarterPackImportSummary } from '../../../../core/food-library/food-library-import.service';
 import type { FoodLibraryImportDuplicate } from '../../../../core/food-library/food-library-import';
+import { FOOD_LIBRARY_STARTER_PACK_LABEL } from '../../../../core/food-library/food-library-starter-pack';
 import { FoodSearchService } from '../../../../core/food-library/food-search.service';
 import type { FoodSearchHit, FoodSearchSection } from '../../../../core/food-library/food-search.types';
 import { formatMacrosSummary } from '../../../../core/models/product-reference';
+import { ProductsService } from '../../services/products.service';
 
 @Component({
   selector: 'app-food-library-page',
@@ -17,11 +20,15 @@ import { formatMacrosSummary } from '../../../../core/models/product-reference';
 export class FoodLibraryPageComponent {
   private readonly foodSearch = inject(FoodSearchService);
   private readonly importService = inject(FoodLibraryImportService);
+  private readonly productsService = inject(ProductsService);
   private readonly router = inject(Router);
 
+  readonly starterPackLabel = FOOD_LIBRARY_STARTER_PACK_LABEL;
   readonly sections = signal<FoodSearchSection[]>([]);
   readonly searching = signal(false);
   readonly importingId = signal<string | null>(null);
+  readonly importingStarterPack = signal(false);
+  readonly starterPackSummary = signal<StarterPackImportSummary | null>(null);
   readonly searchError = signal<string | null>(null);
   readonly importError = signal<string | null>(null);
   readonly pendingDuplicate = signal<{
@@ -98,6 +105,33 @@ export class FoodLibraryPageComponent {
 
   cancelDuplicateDialog(): void {
     this.pendingDuplicate.set(null);
+  }
+
+  async importStarterPack(): Promise<void> {
+    this.importingStarterPack.set(true);
+    this.importError.set(null);
+    this.starterPackSummary.set(null);
+
+    try {
+      const summary = await this.importService.importStarterPack();
+      this.starterPackSummary.set(summary);
+      await this.productsService.loadCatalog();
+    } catch {
+      this.importError.set('Import du pack démarrage impossible. Réessayez.');
+    } finally {
+      this.importingStarterPack.set(false);
+    }
+  }
+
+  formatStarterPackSummary(summary: StarterPackImportSummary): string {
+    const parts = [`${summary.added} ajouté${summary.added > 1 ? 's' : ''}`];
+    if (summary.alreadyPresent > 0) {
+      parts.push(`${summary.alreadyPresent} déjà présent${summary.alreadyPresent > 1 ? 's' : ''}`);
+    }
+    if (summary.missing > 0) {
+      parts.push(`${summary.missing} introuvable${summary.missing > 1 ? 's' : ''}`);
+    }
+    return parts.join(', ');
   }
 
   private async runSearch(query: string): Promise<void> {

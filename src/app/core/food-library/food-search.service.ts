@@ -85,6 +85,10 @@ export class FoodSearchService {
     return buildIngredientPickerSearchResult(catalogHits, libraryResult, catalogDurationMs);
   }
 
+  getCiqualHitById(id: string): FoodSearchHit | null {
+    return this.index.getCiqualHitById(id);
+  }
+
   private async loadLibraries(): Promise<void> {
     const [ciqualResponse, openNutritionResponse] = await Promise.all([
       fetch(FOOD_LIBRARY_CHUNK_PATHS.ciqual),

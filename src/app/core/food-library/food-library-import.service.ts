@@ -8,11 +8,21 @@ import {
   findFoodLibraryDuplicate,
   type FoodLibraryImportResult,
 } from './food-library-import';
+import { FOOD_LIBRARY_STARTER_PACK_CIQUAL_IDS } from './food-library-starter-pack';
 import type { FoodSearchHit } from './food-search.types';
+import { FoodSearchService } from './food-search.service';
+
+export interface StarterPackImportSummary {
+  added: number;
+  alreadyPresent: number;
+  missing: number;
+  total: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class FoodLibraryImportService {
   private readonly database = inject(DatabaseService);
+  private readonly foodSearch = inject(FoodSearchService);
 
   async importFromLibrary(
     hit: FoodSearchHit,
@@ -64,6 +74,38 @@ export class FoodLibraryImportService {
       product: result.product,
       reference: result.reference,
       created: true,
+    };
+  }
+
+  async importStarterPack(
+    ciqualIds: readonly string[] = FOOD_LIBRARY_STARTER_PACK_CIQUAL_IDS,
+  ): Promise<StarterPackImportSummary> {
+    await this.foodSearch.ensureLibrariesLoaded();
+
+    let added = 0;
+    let alreadyPresent = 0;
+    let missing = 0;
+
+    for (const ciqualId of ciqualIds) {
+      const hit = this.foodSearch.getCiqualHitById(ciqualId);
+      if (!hit) {
+        missing += 1;
+        continue;
+      }
+
+      const result = await this.importFromLibrary(hit);
+      if (result.status === 'created') {
+        added += 1;
+      } else {
+        alreadyPresent += 1;
+      }
+    }
+
+    return {
+      added,
+      alreadyPresent,
+      missing,
+      total: ciqualIds.length,
     };
   }
 }

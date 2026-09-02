@@ -2,16 +2,18 @@ import 'fake-indexeddb/auto';
 
 import { TestBed } from '@angular/core/testing';
 import Dexie from 'dexie';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DatabaseService } from '../database/database.service';
 import { NUTRITION_DB_NAME } from '../database/nutrition-database';
 import { deleteNutritionDatabase } from '../database/nutrition-database.testing';
+import { FOOD_LIBRARY_CHUNK_PATHS } from './food-library-paths';
 import { toCiqualHit, toOpenNutritionHit } from './food-search-index';
 import {
   CIQUAL_FIXTURE_CHUNK,
   OPENNUTRITION_FIXTURE_CHUNK,
 } from './food-search.fixtures';
+import { FoodSearchService } from './food-search.service';
 import { FoodLibraryImportService } from './food-library-import.service';
 import { GENERIC_REFERENCE_LABEL } from './food-library-import';
 
@@ -86,5 +88,31 @@ describe('FoodLibraryImportService', () => {
 
     const forced = await importService.importFromLibrary(hit, { forceCreate: true });
     expect(forced.status).toBe('created');
+  });
+
+  it('imports starter pack and skips duplicates on second run', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.endsWith(FOOD_LIBRARY_CHUNK_PATHS.ciqual)) {
+        return { ok: true, json: async () => CIQUAL_FIXTURE_CHUNK } as Response;
+      }
+      if (url.endsWith(FOOD_LIBRARY_CHUNK_PATHS.opennutrition)) {
+        return { ok: true, json: async () => OPENNUTRITION_FIXTURE_CHUNK } as Response;
+      }
+      return { ok: false, status: 404 } as Response;
+    });
+
+    const foodSearch = TestBed.inject(FoodSearchService);
+    await foodSearch.ensureLibrariesLoaded();
+
+    const fixtureIds = CIQUAL_FIXTURE_CHUNK.entries.map((entry) => entry.id);
+
+    const first = await importService.importStarterPack(fixtureIds);
+    expect(first.added).toBe(fixtureIds.length);
+    expect(first.alreadyPresent).toBe(0);
+
+    const second = await importService.importStarterPack(fixtureIds);
+    expect(second.added).toBe(0);
+    expect(second.alreadyPresent).toBe(fixtureIds.length);
   });
 });

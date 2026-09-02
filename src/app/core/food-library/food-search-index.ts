@@ -67,6 +67,7 @@ export function toOpenNutritionHit(entry: OpenNutritionFoodEntry): FoodSearchHit
 export class FoodSearchIndex {
   private ciqualEntries: IndexedCiqualEntry[] = [];
   private openNutritionEntries: IndexedOpenNutritionEntry[] = [];
+  private readonly ciqualById = new Map<string, CiqualFoodEntry>();
   private readonly barcodeIndex = new Map<string, OpenNutritionFoodEntry>();
 
   get isReady(): boolean {
@@ -78,10 +79,14 @@ export class FoodSearchIndex {
   }
 
   load(ciqualChunk: CiqualFoodLibraryChunk, openNutritionChunk: OpenNutritionFoodLibraryChunk): void {
-    this.ciqualEntries = ciqualChunk.entries.map((entry) => ({
-      entry,
-      searchText: buildCiqualSearchText(entry),
-    }));
+    this.ciqualById.clear();
+    this.ciqualEntries = ciqualChunk.entries.map((entry) => {
+      this.ciqualById.set(entry.id, entry);
+      return {
+        entry,
+        searchText: buildCiqualSearchText(entry),
+      };
+    });
 
     this.openNutritionEntries = openNutritionChunk.entries.map((entry) => ({
       entry,
@@ -154,6 +159,11 @@ export class FoodSearchIndex {
   searchByBarcode(barcode: string): FoodSearchHit | null {
     const entry = this.lookupBarcodeEntry(normalizeBarcodeInput(barcode));
     return entry ? toOpenNutritionHit(entry) : null;
+  }
+
+  getCiqualHitById(id: string): FoodSearchHit | null {
+    const entry = this.ciqualById.get(id);
+    return entry ? toCiqualHit(entry) : null;
   }
 
   private lookupBarcodeEntry(barcode: string): OpenNutritionFoodEntry | undefined {
