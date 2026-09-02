@@ -11,7 +11,7 @@
         <h2 class="home-card__title">Repas du jour</h2>
         @if (dash.meals.length > 0) {
           <ul class="home-card__list">
-            @for (meal of dash.meals; track meal.slot) {
+            @for (meal of dash.meals; track meal.entryId) {
               <li>
                 <span class="home-card__label">{{ meal.slotLabel }}</span>
                 <span class="home-card__value">{{ meal.recipeTitle }}</span>

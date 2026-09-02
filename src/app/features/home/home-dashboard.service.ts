@@ -22,11 +22,19 @@ export class HomeDashboardService {
 
     const meals: HomeMealSlot[] = [];
     for (const entry of entries) {
-      const detail = await this.database.getRecipeDetail(entry.recipeId);
+      let recipeTitle = 'Recette introuvable';
+      try {
+        const detail = await this.database.getRecipeDetail(entry.recipeId);
+        recipeTitle = detail?.recipe.title ?? 'Recette introuvable';
+      } catch {
+        recipeTitle = 'Recette introuvable';
+      }
+
       meals.push({
+        entryId: entry.id,
         slot: entry.slot,
         slotLabel: MEAL_PLAN_SLOT_LABELS[entry.slot],
-        recipeTitle: detail?.recipe.title ?? 'Recette introuvable',
+        recipeTitle,
       });
     }
 

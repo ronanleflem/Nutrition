@@ -15,6 +15,7 @@ export class SettingsPageComponent implements OnInit {
   private readonly database = inject(DatabaseService);
 
   readonly hideHomeOnStartup = signal(false);
+  readonly homePreferenceReady = signal(false);
   readonly savingHomePreference = signal(false);
   readonly homePreferenceMessage = signal<string | null>(null);
   readonly homePreferenceError = signal<string | null>(null);
@@ -27,6 +28,11 @@ export class SettingsPageComponent implements OnInit {
   }
 
   async onHideHomeChange(event: Event): Promise<void> {
+    if (!this.homePreferenceReady()) {
+      (event.target as HTMLInputElement).checked = this.hideHomeOnStartup();
+      return;
+    }
+
     const checked = (event.target as HTMLInputElement).checked;
     this.hideHomeOnStartup.set(checked);
     this.savingHomePreference.set(true);
@@ -65,6 +71,8 @@ export class SettingsPageComponent implements OnInit {
       this.hideHomeOnStartup.set(settings.hideHomeOnStartup === true);
     } catch {
       this.homePreferenceError.set('Chargement impossible. Réessayez.');
+    } finally {
+      this.homePreferenceReady.set(true);
     }
   }
 }

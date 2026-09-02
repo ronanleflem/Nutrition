@@ -6,9 +6,13 @@ import { NotFoundPageComponent } from './core/layout/not-found/not-found-page.co
 import { ShellComponent } from './core/layout/shell/shell.component';
 
 export async function resolveStartupPath(): Promise<string> {
-  const database = inject(DatabaseService);
-  const settings = await database.getAppSettings();
-  return settings.hideHomeOnStartup === true ? 'pantry' : 'home';
+  try {
+    const database = inject(DatabaseService);
+    const settings = await database.getAppSettings();
+    return settings.hideHomeOnStartup === true ? 'pantry' : 'home';
+  } catch {
+    return 'home';
+  }
 }
 
 export const routes: Routes = [

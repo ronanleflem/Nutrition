@@ -135,11 +135,11 @@ describe('PantryPageComponent', () => {
 
     await db.addPantryItem({ productId: product.id, quantityG: 300, expiryDate });
 
+    fixture = TestBed.createComponent(PantryRoutedHostComponent);
+    await TestBed.inject(Router).navigateByUrl('/pantry?filter=expiring');
+    fixture.detectChanges();
     const pantry = TestBed.inject(PantryService);
     await pantry.refresh();
-    pantry.setFilterMode('expiring');
-
-    fixture = TestBed.createComponent(PantryHostComponent);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
@@ -184,6 +184,14 @@ describe('PantryPageComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Yaourt');
     expect(text).not.toContain('Riz');
+
+    await TestBed.inject(Router).navigateByUrl('/pantry');
+    fixture.detectChanges();
+    await pantry.refresh();
+    fixture.detectChanges();
+
+    expect(pantry.filterMode()).toBe('all');
+    expect(fixture.nativeElement.textContent).toContain('Riz');
   });
 });
 

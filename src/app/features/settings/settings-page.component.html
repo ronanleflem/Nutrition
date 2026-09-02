@@ -17,7 +17,7 @@
       <input
         type="checkbox"
         [checked]="hideHomeOnStartup()"
-        [disabled]="savingHomePreference()"
+        [disabled]="savingHomePreference() || !homePreferenceReady()"
         (change)="onHideHomeChange($event)"
       />
       <span class="settings-page__label">Masquer l'accueil au démarrage</span>

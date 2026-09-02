@@ -34,7 +34,7 @@ describe('SettingsPageComponent', () => {
     for (let attempt = 0; attempt < 50; attempt++) {
       fixture.detectChanges();
       await new Promise((resolve) => setTimeout(resolve, 10));
-      if (checkbox() && !fixture.componentInstance.homePreferenceError()) {
+      if (checkbox() && fixture.componentInstance.homePreferenceReady()) {
         return;
       }
     }
@@ -69,6 +69,26 @@ describe('SettingsPageComponent', () => {
     expect((await database.getAppSettings()).hideHomeOnStartup).toBe(true);
     expect(checkbox().checked).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('Préférence enregistrée.');
+  });
+
+  it('renders the hide-home toggle checked when the preference is already stored', async () => {
+    await database.updateHideHomeOnStartup(true);
+    await mount();
+
+    expect(checkbox().checked).toBe(true);
+
+    checkbox().checked = false;
+    checkbox().dispatchEvent(new Event('change'));
+    for (let attempt = 0; attempt < 50; attempt++) {
+      fixture.detectChanges();
+      if (fixture.componentInstance.homePreferenceMessage()) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+
+    expect((await database.getAppSettings()).hideHomeOnStartup).toBeUndefined();
+    expect(checkbox().checked).toBe(false);
   });
 
   it('shows a French error when saving the hide-home toggle fails', async () => {

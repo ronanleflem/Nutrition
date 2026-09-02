@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router, RouterOutlet } from '@angular/router';
+import { vi } from 'vitest';
 
 import { routes } from './app.routes';
 import { DatabaseService } from './core/database/database.service';
@@ -76,6 +77,12 @@ describe('app routes', () => {
     await database.updateHideHomeOnStartup(true);
     await navigateAndSettle('/', '+');
     expect(router.url).toBe('/pantry');
+  });
+
+  it('redirects / to /home when reading settings fails', async () => {
+    vi.spyOn(database, 'getAppSettings').mockRejectedValueOnce(new Error('fail'));
+    await navigateAndSettle('/', 'Repas du jour');
+    expect(router.url).toBe('/home');
   });
 
   it('shows not-found page for unknown paths instead of redirecting to pantry', async () => {

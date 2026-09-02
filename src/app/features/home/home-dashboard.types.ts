@@ -1,6 +1,7 @@
 import type { MealPlanSlot } from '../../core/models/meal-plan-entry';
 
 export interface HomeMealSlot {
+  entryId: string;
   slot: MealPlanSlot;
   slotLabel: string;
   recipeTitle: string;

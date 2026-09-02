@@ -88,10 +88,15 @@ describe('HomeDashboardService', () => {
 
     const snapshot = await service.loadDashboard(now);
 
-    expect(snapshot.meals).toEqual([
+    expect(snapshot.meals.map(({ slot, slotLabel, recipeTitle }) => ({
+      slot,
+      slotLabel,
+      recipeTitle,
+    }))).toEqual([
       { slot: 'lunch', slotLabel: 'Déjeuner', recipeTitle: 'Salade quinoa' },
       { slot: 'dinner', slotLabel: 'Dîner', recipeTitle: 'Soupe lentilles' },
     ]);
+    expect(snapshot.meals.every((meal) => meal.entryId.length > 0)).toBe(true);
   });
 
   it('uses « Recette introuvable » when the planned recipe is missing', async () => {
@@ -108,7 +113,12 @@ describe('HomeDashboardService', () => {
     const snapshot = await service.loadDashboard(now);
 
     expect(snapshot.meals).toEqual([
-      { slot: 'breakfast', slotLabel: 'Petit-déjeuner', recipeTitle: 'Recette introuvable' },
+      {
+        entryId: 'orphan-entry',
+        slot: 'breakfast',
+        slotLabel: 'Petit-déjeuner',
+        recipeTitle: 'Recette introuvable',
+      },
     ]);
   });
 
@@ -182,7 +192,7 @@ describe('HomeDashboardService', () => {
     expect(snapshot.showExportReminder).toBe(true);
   });
 
-  it('hides the export reminder when backup is recent or snoozed', async () => {
+  it('hides the export reminder when backup is recent', async () => {
     const db = new NutritionDatabase();
     await db.open();
     await db.appSettings.put({
@@ -193,6 +203,39 @@ describe('HomeDashboardService', () => {
     await db.close();
 
     expect((await service.loadDashboard(now)).showExportReminder).toBe(false);
+  });
+
+  it('hides the export reminder when backup is stale but snoozed', async () => {
+    const db = new NutritionDatabase();
+    await db.open();
+    await db.appSettings.put({
+      id: APP_SETTINGS_SINGLETON_ID,
+      theme: 'dark',
+      lastExportAt: '2026-01-01T00:00:00.000Z',
+      backupReminderDismissedAt: now.toISOString(),
+    });
+    await db.close();
+
+    expect((await service.loadDashboard(now)).showExportReminder).toBe(false);
+  });
+
+  it('keeps other meals when one recipe lookup fails', async () => {
+    const lunchId = await createSampleRecipe('Salade quinoa');
+    await database.createMealPlanEntry({
+      date: toLocalIsoDate(now),
+      slot: 'lunch',
+      recipeId: lunchId,
+    });
+    vi.spyOn(database, 'getRecipeDetail').mockRejectedValueOnce(new Error('fail'));
+
+    const snapshot = await service.loadDashboard(now);
+
+    expect(snapshot.meals).toEqual([
+      expect.objectContaining({
+        slot: 'lunch',
+        recipeTitle: 'Recette introuvable',
+      }),
+    ]);
   });
 
   it('reads shopping items without calling ShoppingListService.refresh()', async () => {

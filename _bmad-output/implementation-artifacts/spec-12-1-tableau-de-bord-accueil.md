@@ -2,7 +2,7 @@
 title: 'Story 12.1 — Home dashboard'
 type: 'feature'
 created: '2026-09-02'
-status: 'in-progress'
+status: 'done'
 review_loop_iteration: 0
 baseline_commit: '1ed8c0a315304366c9e4fbd3b1447d5f2a5c391e'
 story_key: '12-1-tableau-de-bord-accueil'
@@ -109,3 +109,45 @@ Header title is the "logo/accueil" affordance — there is no separate logo. On 
 - Open `/` → Accueil with four card slots (export only if backup stale).
 - Tap each card; confirm Plan / Courses / Garde-manger (filtre DLC) / Export.
 - Toggle hide-home, reload `/` → pantry. Title tap still reaches Accueil.
+
+## Suggested Review Order
+
+**Startup routing**
+
+- Cold start reads `hideHomeOnStartup` and falls back to Accueil on error.
+  [`app.routes.ts:8`](../../src/app/app.routes.ts#L8)
+
+- Lazy `/home` sits beside `/goals`, not in the five-tab bottom nav.
+  [`app.routes.ts:24`](../../src/app/app.routes.ts#L24)
+
+**Dashboard aggregation**
+
+- Read-only snapshot: today meals, remaining shopping, DLC, export helper.
+  [`home-dashboard.service.ts:14`](../../src/app/features/home/home-dashboard.service.ts#L14)
+
+- Four cards, one tap each; export card omitted when reminder is hidden.
+  [`home-page.component.html:10`](../../src/app/features/home/home-page.component.html#L10)
+
+**Shell and settings**
+
+- Header title is the Accueil affordance except on `/home`.
+  [`shell.component.html:4`](../../src/app/core/layout/shell/shell.component.html#L4)
+
+- Persist hide-home only after the stored preference has loaded.
+  [`settings-page.component.ts:30`](../../src/app/features/settings/settings-page.component.ts#L30)
+
+**Cross-surface deep-link**
+
+- Pantry filter follows `?filter=expiring` and resets when the query is gone.
+  [`pantry-page.component.ts:31`](../../src/app/features/pantry/pantry-page.component.ts#L31)
+
+**Flags**
+
+- Optional settings only — no Dexie schema bump.
+  [`app-settings.ts:18`](../../src/app/core/models/app-settings.ts#L18)
+
+**Tests**
+
+- Redirect both ways plus settings-failure fallback.
+  [`app.routes.spec.ts:70`](../../src/app/app.routes.spec.ts#L70)
+
