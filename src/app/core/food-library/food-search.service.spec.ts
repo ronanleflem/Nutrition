@@ -84,4 +84,45 @@ describe('FoodSearchService', () => {
     await expect(service.searchLocal('oeuf')).rejects.toThrow(/introuvable/i);
     expect(service.loadError()).toMatch(/introuvable/i);
   });
+
+  it('searchForIngredientPicker prepends catalogue before library sections', async () => {
+    mockLibraryFetch();
+
+    const result = await service.searchForIngredientPicker(
+      [
+        {
+          product: {
+            id: 'prod-oeuf',
+            name: 'Œuf',
+            preferredReferenceId: 'ref-1',
+            recommendedStores: [],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          preferredReference: {
+            id: 'ref-1',
+            productId: 'prod-oeuf',
+            store: 'other',
+            label: 'Générique',
+            nutritionalScore: 70,
+            kcalPer100g: 143,
+            proteinPer100g: 13,
+            fatPer100g: 10,
+            carbsPer100g: 0.7,
+            fiberPer100g: 0,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+        },
+      ],
+      'oeuf',
+    );
+
+    expect(result.sections.map((section) => section.source)).toEqual(['catalog', 'ciqual']);
+    expect(result.sections[0]?.hits[0]).toMatchObject({
+      source: 'catalog',
+      productId: 'prod-oeuf',
+      displayName: 'Œuf',
+    });
+  });
 });

@@ -1,9 +1,15 @@
 import { Injectable, signal } from '@angular/core';
 
+import type { ProductCatalogItem } from '../models/product-catalog';
 import type { CiqualFoodLibraryChunk } from './ciqual-library.types';
 import { FOOD_LIBRARY_CHUNK_PATHS } from './food-library-paths';
 import { FoodSearchIndex } from './food-search-index';
 import type { FoodSearchHit, FoodSearchLocalResult } from './food-search.types';
+import {
+  buildIngredientPickerSearchResult,
+  searchCatalogForIngredientPicker,
+} from './ingredient-picker-search';
+import type { IngredientPickerSearchResult } from './ingredient-picker-search.types';
 import type { OpenNutritionFoodLibraryChunk } from './opennutrition-library.types';
 
 @Injectable({ providedIn: 'root' })
@@ -62,6 +68,21 @@ export class FoodSearchService {
   async searchByBarcode(barcode: string): Promise<FoodSearchHit | null> {
     await this.ensureLibrariesLoaded();
     return this.index.searchByBarcode(barcode);
+  }
+
+  async searchForIngredientPicker(
+    catalog: ProductCatalogItem[],
+    query: string,
+    options?: { limitPerSection?: number },
+  ): Promise<IngredientPickerSearchResult> {
+    const limit = options?.limitPerSection ?? 25;
+    const catalogStartedAt = performance.now();
+    const catalogHits = searchCatalogForIngredientPicker(catalog, query, limit);
+    const catalogDurationMs = performance.now() - catalogStartedAt;
+
+    const libraryResult = await this.searchLocal(query, { limitPerSection: limit });
+
+    return buildIngredientPickerSearchResult(catalogHits, libraryResult, catalogDurationMs);
   }
 
   private async loadLibraries(): Promise<void> {

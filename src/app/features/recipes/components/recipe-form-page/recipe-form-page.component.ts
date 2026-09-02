@@ -5,10 +5,11 @@ import { Router, RouterLink } from '@angular/router';
 import type { Product } from '../../../../core/models/product';
 import { ProductsService } from '../../../products/services/products.service';
 import { RecipesService } from '../../services/recipes.service';
+import { IngredientProductPickerSheetComponent } from '../ingredient-product-picker-sheet/ingredient-product-picker-sheet.component';
 
 @Component({
   selector: 'app-recipe-form-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, IngredientProductPickerSheetComponent],
   templateUrl: './recipe-form-page.component.html',
   styleUrl: './recipe-form-page.component.scss',
 })
@@ -16,12 +17,13 @@ export class RecipeFormPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly recipesService = inject(RecipesService);
-  private readonly productsService = inject(ProductsService);
+  readonly productsService = inject(ProductsService);
 
   readonly saving = signal(false);
   readonly submitError = signal<string | null>(null);
   readonly ingredientError = signal<string | null>(null);
   readonly blockedProduct = signal<Product | null>(null);
+  readonly pickerIngredientIndex = signal<number | null>(null);
 
   readonly eligibleProducts = computed(() =>
     this.productsService.catalog().filter((item) => !!item.product.preferredReferenceId),
@@ -113,6 +115,31 @@ export class RecipeFormPageComponent implements OnInit {
 
     this.ingredientError.set(null);
     this.blockedProduct.set(null);
+  }
+
+  openIngredientPicker(index: number): void {
+    this.pickerIngredientIndex.set(index);
+  }
+
+  closeIngredientPicker(): void {
+    this.pickerIngredientIndex.set(null);
+  }
+
+  onIngredientProductSelected(productId: string): void {
+    const index = this.pickerIngredientIndex();
+    if (index === null) {
+      return;
+    }
+
+    this.ingredients.at(index).patchValue({ productId });
+    this.ingredients.at(index).get('productId')?.markAsTouched();
+    this.onProductChange(index);
+    this.closeIngredientPicker();
+  }
+
+  productDisplayName(productId: string): string {
+    const item = this.productsService.catalog().find((entry) => entry.product.id === productId);
+    return item?.product.name ?? 'Produit sélectionné';
   }
 
   async onSubmit(): Promise<void> {

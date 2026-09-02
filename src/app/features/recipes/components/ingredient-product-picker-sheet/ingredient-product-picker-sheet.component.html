@@ -1,0 +1,96 @@
+<div
+  class="sheet-backdrop"
+  data-backdrop="true"
+  (click)="onBackdropClick($event)"
+  role="presentation"
+>
+  <section
+    class="sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Choisir un ingrédient"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="sheet__header">
+      <h2 class="sheet__title">Choisir un ingrédient</h2>
+      <button type="button" class="sheet__close" aria-label="Fermer" (click)="closed.emit()">
+        ×
+      </button>
+    </header>
+
+    <label class="field">
+      <span class="field__label">Rechercher</span>
+      <input
+        class="field__control"
+        type="search"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchInput($event)"
+        placeholder="Catalogue, Ciqual, OpenNutrition…"
+        autocomplete="off"
+        autofocus
+      />
+    </label>
+
+    @if (searching()) {
+      <p class="sheet__status" role="status">Recherche…</p>
+    }
+
+    @if (searchError()) {
+      <p class="sheet__error" role="alert">{{ searchError() }}</p>
+    }
+
+    @if (importError()) {
+      <p class="sheet__error" role="alert">{{ importError() }}</p>
+    }
+
+    @if (searchQuery().trim() && !searching() && sections().length === 0) {
+      <p class="sheet__empty" role="status">Aucun résultat pour « {{ searchQuery().trim() }} ».</p>
+    } @else if (!searchQuery().trim()) {
+      <p class="sheet__empty" role="status">
+        Tapez un nom (ex. Œuf) pour chercher dans votre catalogue et la bibliothèque offline.
+      </p>
+    } @else {
+      @for (section of sections(); track section.source) {
+        <section class="ingredient-picker__section" [attr.aria-label]="section.sourceLabel">
+          <h3 class="ingredient-picker__section-title">{{ section.sourceLabel }}</h3>
+
+          <ul class="ingredient-picker__list">
+            @for (hit of section.hits; track hit.id) {
+              <li>
+                <button
+                  type="button"
+                  class="ingredient-picker__item"
+                  [disabled]="importingId() === hit.id"
+                  (click)="selectHit(hit)"
+                >
+                  <span class="ingredient-picker__header">
+                    <span class="ingredient-picker__badge">{{ hit.sourceLabel }}</span>
+                    <span class="ingredient-picker__name">{{ hit.displayName }}</span>
+                  </span>
+                  @if (hit.subtitle) {
+                    <span class="ingredient-picker__subtitle">{{ hit.subtitle }}</span>
+                  }
+                  <span class="ingredient-picker__macros">{{ formatMacros(hit) }}</span>
+                  @if (!isCatalogSearchHit(hit) && importingId() === hit.id) {
+                    <span class="ingredient-picker__importing">Import…</span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    }
+  </section>
+</div>
+
+@if (pendingDuplicate(); as duplicate) {
+  <app-confirm-dialog
+    title="Produit déjà présent"
+    [message]="duplicate.match.message + ' Utiliser l’existant ou créer quand même ?'"
+    confirmLabel="Créer quand même"
+    cancelLabel="Utiliser l’existant"
+    (confirmed)="createDespiteDuplicate()"
+    (cancelled)="useExistingProduct()"
+  />
+}
