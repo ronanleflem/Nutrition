@@ -61,6 +61,25 @@
       </p>
       <p class="data-sources-page__license">{{ sources.openFoodFacts.note }}</p>
     </article>
+
+    <article class="data-sources-page__card">
+      <h3 class="data-sources-page__card-title">
+        <a [href]="sources.foodRepo.url" rel="noopener noreferrer" target="_blank">
+          {{ sources.foodRepo.label }}
+        </a>
+      </h3>
+      <p class="data-sources-page__card-body">
+        Complément marques (surtout Suisse/EU) — nécessite une clé API gratuite.
+      </p>
+      <p class="data-sources-page__license">
+        Licence :
+        <a [href]="sources.foodRepo.licenseUrl" rel="noopener noreferrer" target="_blank">
+          {{ sources.foodRepo.license }}
+        </a>
+        ·
+        <a routerLink="/settings/api-keys">Configurer FoodRepo</a>
+      </p>
+    </article>
   </section>
 
   <p class="data-sources-page__privacy">

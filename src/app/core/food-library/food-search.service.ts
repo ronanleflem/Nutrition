@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 
 import { NetworkStatusService } from '../network/network-status.service';
+import { FoodRepoSearchProvider } from '../foodrepo-api/foodrepo-search.provider';
 import { OffSearchProvider } from '../off-api/off-search.provider';
 import type { ProductCatalogItem } from '../models/product-catalog';
 import type { FoodLibraryPageSearchResult, FoodLibrarySearchSection } from './food-library-search.types';
@@ -26,6 +27,7 @@ import type { IngredientPickerSearchResult } from './ingredient-picker-search.ty
 export class FoodSearchService {
   private readonly networkStatus = inject(NetworkStatusService);
   private readonly offSearch = inject(OffSearchProvider);
+  private readonly foodRepoSearch = inject(FoodRepoSearchProvider);
   private readonly index = new FoodSearchIndex();
   private loadPromise: Promise<void> | null = null;
 
@@ -82,9 +84,12 @@ export class FoodSearchService {
       };
     }
 
-    const offStartedAt = performance.now();
-    const offResult = await this.offSearch.search(query, { limit });
-    const offDurationMs = performance.now() - offStartedAt;
+    const onlineStartedAt = performance.now();
+    const [offResult, foodRepoResult] = await Promise.all([
+      this.offSearch.search(query, { limit }),
+      this.foodRepoSearch.search(query, { limit }),
+    ]);
+    const onlineDurationMs = performance.now() - onlineStartedAt;
 
     const sections: FoodLibrarySearchSection[] = localResult.sections.map((section) => ({
       source: section.source,
@@ -100,11 +105,20 @@ export class FoodSearchService {
       });
     }
 
+    if (foodRepoResult.hits.length > 0) {
+      sections.push({
+        source: 'foodrepo',
+        sourceLabel: foodRepoResult.hits[0]?.sourceLabel ?? 'FoodRepo',
+        hits: foodRepoResult.hits,
+      });
+    }
+
     return {
       sections,
-      durationMs: localDurationMs + offDurationMs,
+      durationMs: localDurationMs + onlineDurationMs,
       offStatus: offResult.status,
       offMsUntilRetry: offResult.msUntilRetry,
+      foodRepoStatus: foodRepoResult.status,
     };
   }
 

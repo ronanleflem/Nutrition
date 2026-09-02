@@ -59,6 +59,17 @@
     <p class="food-library-page__offline" role="status">{{ offSearchMessage() }}</p>
   }
 
+  @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoSearchMessage()) {
+    <p class="food-library-page__offline" role="status">{{ foodRepoSearchMessage() }}</p>
+  }
+
+  @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoStatus() === 'no_api_key') {
+    <p class="food-library-page__offline" role="status">
+      Élargissez la recherche marques avec FoodRepo —
+      <a routerLink="/settings/api-keys">Configurer FoodRepo</a>.
+    </p>
+  }
+
   @if (searchError()) {
     <p class="food-library-page__error" role="alert">{{ searchError() }}</p>
   }
@@ -104,7 +115,7 @@
               [disabled]="importingId() === hit.id"
               (click)="selectHit(hit)"
             >
-              @if (isOffSearchHit(hit)) {
+              @if (isOnlineSearchHit(hit)) {
                 Prévisualiser
               } @else if (importingId() === hit.id) {
                 Ajout…
@@ -131,6 +142,14 @@
             Open Food Facts
           </a>
           (ODbL)
+        </p>
+      }
+
+      @if (section.source === 'foodrepo') {
+        <p class="food-library-page__attribution">
+          Données
+          <a href="https://www.foodrepo.org/" rel="noopener noreferrer" target="_blank">FoodRepo</a>
+          (CC-BY 4.0)
         </p>
       }
     </section>

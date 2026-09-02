@@ -11,6 +11,7 @@ import {
   type ImportSummary,
 } from './backup-schema';
 import { triggerFileDownload } from './file-download';
+import { sanitizeAppSettingsForExport } from './backup-export-sanitize';
 import {
   BackupValidationError,
   isEncryptedEnvelope,
@@ -43,7 +44,10 @@ export class BackupService {
       schemaVersion: BACKUP_SCHEMA_VERSION,
       exportedAt: new Date().toISOString(),
       app: BACKUP_APP_ID,
-      data,
+      data: {
+        ...data,
+        appSettings: data.appSettings.map(sanitizeAppSettingsForExport),
+      },
     };
   }
 

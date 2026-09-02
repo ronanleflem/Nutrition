@@ -8,6 +8,8 @@ export interface AppSettings {
   lastExportAt?: string;
   backupReminderDismissedAt?: string;
   shoppingListPlanFingerprint?: string;
+  /** Clé API FoodRepo — stockage local uniquement (NFR-21). */
+  foodRepoApiKey?: string;
 }
 
 export function createDefaultAppSettings(): AppSettings {

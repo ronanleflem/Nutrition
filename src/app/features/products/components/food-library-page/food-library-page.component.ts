@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
 import { OPENNUTRITION_INLINE_CREDIT } from '../../../../core/food-library/food-library-attribution';
 import {
-  isOffSearchHit,
+  isOnlineSearchHit,
   type FoodLibraryPageSearchResult,
   type FoodLibrarySearchHit,
   type FoodLibrarySearchSection,
@@ -40,7 +40,7 @@ export class FoodLibraryPageComponent {
   private searchSequence = 0;
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  readonly isOffSearchHit = isOffSearchHit;
+  readonly isOnlineSearchHit = isOnlineSearchHit;
   readonly isOnline = this.networkStatus.isOnline;
 
   readonly starterPackLabel = FOOD_LIBRARY_STARTER_PACK_LABEL;
@@ -54,6 +54,8 @@ export class FoodLibraryPageComponent {
   readonly starterPackSummary = signal<StarterPackImportSummary | null>(null);
   readonly searchError = signal<string | null>(null);
   readonly offSearchMessage = signal<string | null>(null);
+  readonly foodRepoSearchMessage = signal<string | null>(null);
+  readonly foodRepoStatus = signal<FoodLibraryPageSearchResult['foodRepoStatus']>(undefined);
   readonly importError = signal<string | null>(null);
   readonly pendingDuplicate = signal<{
     hit: FoodSearchHit;
@@ -83,7 +85,7 @@ export class FoodLibraryPageComponent {
   }
 
   async selectHit(hit: FoodLibrarySearchHit): Promise<void> {
-    if (isOffSearchHit(hit)) {
+    if (isOnlineSearchHit(hit)) {
       await this.scanService.openFromOffSearchPrefill(hit.prefill);
       return;
     }
@@ -193,12 +195,16 @@ export class FoodLibraryPageComponent {
       this.sections.set([]);
       this.searchError.set(null);
       this.offSearchMessage.set(null);
+      this.foodRepoSearchMessage.set(null);
+      this.foodRepoStatus.set(undefined);
       return;
     }
 
     this.searching.set(true);
     this.searchError.set(null);
     this.offSearchMessage.set(null);
+    this.foodRepoSearchMessage.set(null);
+    this.foodRepoStatus.set(undefined);
 
     if (this.networkStatus.isOnline() && trimmed.length >= 3) {
       this.searchingOff.set(true);
@@ -212,6 +218,8 @@ export class FoodLibraryPageComponent {
 
       this.sections.set(result.sections);
       this.offSearchMessage.set(this.buildOffSearchMessage(result.offStatus, result.offMsUntilRetry));
+      this.foodRepoStatus.set(result.foodRepoStatus);
+      this.foodRepoSearchMessage.set(this.buildFoodRepoSearchMessage(result.foodRepoStatus));
     } catch {
       if (sequence !== this.searchSequence) {
         return;
@@ -240,6 +248,24 @@ export class FoodLibraryPageComponent {
 
     if (status === 'network_error') {
       return 'Recherche Open Food Facts indisponible pour le moment.';
+    }
+
+    return null;
+  }
+
+  private buildFoodRepoSearchMessage(
+    status: FoodLibraryPageSearchResult['foodRepoStatus'],
+  ): string | null {
+    if (status === 'no_api_key') {
+      return null;
+    }
+
+    if (status === 'unauthorized') {
+      return 'Clé FoodRepo invalide — vérifiez vos paramètres.';
+    }
+
+    if (status === 'network_error') {
+      return 'Recherche FoodRepo indisponible pour le moment.';
     }
 
     return null;

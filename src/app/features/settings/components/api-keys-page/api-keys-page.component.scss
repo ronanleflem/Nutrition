@@ -1,0 +1,80 @@
+.api-keys-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.api-keys-page__back {
+  color: var(--color-ink-secondary);
+  text-decoration: none;
+}
+
+.api-keys-page__title {
+  margin: 0;
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.api-keys-page__intro {
+  margin: 0 0 16px;
+  color: var(--color-ink-secondary);
+}
+
+.api-keys-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.api-keys-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.api-keys-page__label {
+  font-weight: var(--font-weight-semibold);
+}
+
+.api-keys-page__input {
+  min-height: var(--spacing-touch-min);
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+}
+
+.api-keys-page__hint {
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-meta);
+}
+
+.api-keys-page__hint a {
+  color: inherit;
+}
+
+.api-keys-page__submit {
+  min-height: var(--spacing-touch-min);
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-accent-primary);
+  color: var(--color-ink-on-accent, #fff);
+  font-weight: var(--font-weight-semibold);
+}
+
+.api-keys-page__submit:disabled {
+  opacity: 0.6;
+}
+
+.api-keys-page__status {
+  margin-top: 12px;
+  color: var(--color-ink-secondary);
+}
+
+.api-keys-page__error {
+  margin-top: 12px;
+  color: var(--color-accent-negative);
+}

@@ -85,6 +85,18 @@ describe('BackupService', () => {
     expect(downloads).toHaveLength(1);
     expect(downloads[0].filename).toMatch(/\.nutrition-backup\.enc$/);
   });
+
+  it('strips FoodRepo API key from export payload', async () => {
+    await database.updateFoodRepoApiKey('secret-foodrepo-key');
+
+    const payload = await backupService.buildExportPayload();
+    const settings = payload.data.appSettings[0];
+
+    expect(settings?.foodRepoApiKey).toBeUndefined();
+
+    const localSettings = await database.getAppSettings();
+    expect(localSettings.foodRepoApiKey).toBe('secret-foodrepo-key');
+  });
 });
 
 function stubFileDownload(downloads: Array<{ blob: Blob; filename: string }>): void {

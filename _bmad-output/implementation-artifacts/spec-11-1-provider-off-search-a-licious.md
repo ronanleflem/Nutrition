@@ -2,7 +2,7 @@
 title: 'Story 11.1 — Provider OFF Search-a-licious (Phase 2)'
 type: 'feature'
 created: '2026-09-02'
-status: 'in-progress'
+status: 'in-review'
 review_loop_iteration: 0
 baseline_commit: '64f34ab'
 story_key: '11-1-provider-off-search-a-licious'
@@ -58,19 +58,19 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `src/app/core/off-api/off-product-mapper.ts` — extract shared OFF nutriments/name mapping from `off-api.service.ts`.
-- [ ] `src/app/core/off-api/off-search-origin.ts` — Search-a-licious origin constant.
-- [ ] `src/app/core/off-api/off-search-rate-limiter.ts` — 10 req/min sliding window.
-- [ ] `src/app/core/off-api/off-search.types.ts` — provider result + hit types.
-- [ ] `src/app/core/off-api/off-search.provider.ts` — `OffSearchProvider.search()` with guards, timeout, mapping.
-- [ ] `src/app/core/off-api/off-search.provider.spec.ts` — matrix coverage + rate limit tests.
-- [ ] `src/app/core/off-api/off-api.service.ts` — use shared mapper.
-- [ ] `src/app/core/food-library/food-library-search.types.ts` — union types for offline + OFF sections.
-- [ ] `src/app/core/food-library/food-search.service.ts` — `searchLibraryPage()` merging local + OFF.
-- [ ] `src/app/features/products/services/scan.service.ts` — `openFromOffSearchPrefill()`.
-- [ ] `src/app/features/products/components/food-library-page/*` — 400 ms debounce, OFF UI, offline message, OFF tap → scan flow.
-- [ ] `ngsw-config.json` + `src/app/core/pwa/ngsw-config.spec.ts` — exclude search API from SW cache.
-- [ ] `_bmad-output/implementation-artifacts/sprint-status.yaml` — epic-11 + story 11-1 entries.
+- [x] `src/app/core/off-api/off-product-mapper.ts` — extract shared OFF nutriments/name mapping from `off-api.service.ts`.
+- [x] `src/app/core/off-api/off-search-origin.ts` — Search-a-licious origin constant.
+- [x] `src/app/core/off-api/off-search-rate-limiter.ts` — 10 req/min sliding window.
+- [x] `src/app/core/off-api/off-search.types.ts` — provider result + hit types.
+- [x] `src/app/core/off-api/off-search.provider.ts` — `OffSearchProvider.search()` with guards, timeout, mapping.
+- [x] `src/app/core/off-api/off-search.provider.spec.ts` — matrix coverage + rate limit tests.
+- [x] `src/app/core/off-api/off-api.service.ts` — use shared mapper.
+- [x] `src/app/core/food-library/food-library-search.types.ts` — union types for offline + OFF sections.
+- [x] `src/app/core/food-library/food-search.service.ts` — `searchLibraryPage()` merging local + OFF.
+- [x] `src/app/features/products/services/scan.service.ts` — `openFromOffSearchPrefill()`.
+- [x] `src/app/features/products/components/food-library-page/*` — 400 ms debounce, OFF UI, offline message, OFF tap → scan flow.
+- [x] `ngsw-config.json` + `src/app/core/pwa/ngsw-config.spec.ts` — exclude search API from SW cache.
+- [x] `_bmad-output/implementation-artifacts/sprint-status.yaml` — epic-11 + story 11-1 entries.
 
 **Acceptance Criteria:**
 - Given network available and query ≥ 3 chars after 400 ms debounce, when searching on food library page, then `OffSearchProvider` calls `search.openfoodfacts.org` with `langs=fr`.

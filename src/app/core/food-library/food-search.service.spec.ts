@@ -3,6 +3,7 @@ import { signal } from '@angular/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { NetworkStatusService } from '../network/network-status.service';
+import { DatabaseService } from '../database/database.service';
 import { FoodSearchService } from './food-search.service';
 import {
   CIQUAL_FIXTURE_CHUNK,
@@ -17,6 +18,7 @@ const MANIFEST = {
 
 describe('FoodSearchService', () => {
   let service: FoodSearchService;
+  let database: DatabaseService;
   let onlineSignal = signal(true);
 
   beforeEach(() => {
@@ -30,6 +32,7 @@ describe('FoodSearchService', () => {
       ],
     });
     service = TestBed.inject(FoodSearchService);
+    database = TestBed.inject(DatabaseService);
   });
 
   afterEach(() => {
@@ -59,6 +62,30 @@ describe('FoodSearchService', () => {
                 },
               ],
             },
+        } as Response;
+      }
+
+      if (url.includes('foodrepo.org/api/v3/products/_search')) {
+        return {
+          ok: true,
+          json: async () => ({
+            hits: {
+              hits: [
+                {
+                  _source: {
+                    barcode: '7613034623804',
+                    display_name_translations: { fr: 'Toblerone' },
+                    nutrients: {
+                      energy_kcal: { per_hundred: 530 },
+                      proteins: { per_hundred: 6 },
+                      fat: { per_hundred: 30 },
+                      carbohydrates: { per_hundred: 58 },
+                    },
+                  },
+                },
+              ],
+            },
+          }),
         } as Response;
       }
 
@@ -175,6 +202,7 @@ describe('FoodSearchService', () => {
   it('searchLibraryPage appends OFF section when online', async () => {
     mockLibraryFetch();
     onlineSignal.set(true);
+    await database.updateFoodRepoApiKey(undefined);
 
     const result = await service.searchLibraryPage('skyr danone');
 
@@ -186,18 +214,49 @@ describe('FoodSearchService', () => {
     });
   });
 
-  it('searchLibraryPage skips OFF when offline', async () => {
+  it('searchLibraryPage appends FoodRepo section after OFF when key is configured', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+    await database.updateFoodRepoApiKey('test-key');
+
+    const result = await service.searchLibraryPage('toblerone');
+
+    const sources = result.sections.map((section) => section.source);
+    expect(sources.indexOf('off')).toBeGreaterThan(-1);
+    expect(sources.indexOf('foodrepo')).toBeGreaterThan(sources.indexOf('off'));
+    expect(result.foodRepoStatus).toBe('ok');
+  });
+
+  it('searchLibraryPage skips online providers when offline', async () => {
     mockLibraryFetch();
     onlineSignal.set(false);
+    await database.updateFoodRepoApiKey('test-key');
 
     const result = await service.searchLibraryPage('skyr danone');
 
-    expect(result.sections.every((section) => section.source !== 'off')).toBe(true);
+    expect(result.sections.every((section) => section.source !== 'off' && section.source !== 'foodrepo')).toBe(true);
     expect(result.offStatus).toBeUndefined();
+    expect(result.foodRepoStatus).toBeUndefined();
     expect(
       vi
         .mocked(globalThis.fetch)
         .mock.calls.some((call) => String(call[0]).includes('search.openfoodfacts.org')),
     ).toBe(false);
+    expect(
+      vi
+        .mocked(globalThis.fetch)
+        .mock.calls.some((call) => String(call[0]).includes('foodrepo.org')),
+    ).toBe(false);
+  });
+
+  it('searchLibraryPage reports no_api_key for FoodRepo without configured key', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+    await database.updateFoodRepoApiKey(undefined);
+
+    const result = await service.searchLibraryPage('toblerone');
+
+    expect(result.sections.some((section) => section.source === 'foodrepo')).toBe(false);
+    expect(result.foodRepoStatus).toBe('no_api_key');
   });
 });

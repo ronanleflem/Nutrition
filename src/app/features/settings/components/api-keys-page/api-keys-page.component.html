@@ -1,0 +1,43 @@
+<section class="api-keys-page">
+  <header class="api-keys-page__header">
+    <a class="api-keys-page__back" routerLink="/settings">← Paramètres</a>
+    <h1 class="api-keys-page__title">Clés API</h1>
+  </header>
+
+  <p class="api-keys-page__intro">
+    Les clés sont stockées uniquement sur cet appareil et ne sont pas incluses dans les exports de
+    sauvegarde par défaut.
+  </p>
+
+  <form class="api-keys-page__form" [formGroup]="form" (ngSubmit)="save()">
+    <label class="api-keys-page__field">
+      <span class="api-keys-page__label">Clé FoodRepo (optionnelle)</span>
+      <input
+        class="api-keys-page__input"
+        type="password"
+        autocomplete="off"
+        formControlName="foodRepoApiKey"
+        placeholder="Token FoodRepo"
+      />
+      <span class="api-keys-page__hint">
+        Obtenez une clé gratuite sur
+        <a href="https://www.foodrepo.org/users/me/api_keys" rel="noopener noreferrer" target="_blank">
+          foodrepo.org
+        </a>
+        pour élargir la recherche marques (surtout CH/EU).
+      </span>
+    </label>
+
+    <button class="api-keys-page__submit" type="submit" [disabled]="saving()">
+      {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
+    </button>
+  </form>
+
+  @if (saveMessage()) {
+    <p class="api-keys-page__status" role="status">{{ saveMessage() }}</p>
+  }
+
+  @if (saveError()) {
+    <p class="api-keys-page__error" role="alert">{{ saveError() }}</p>
+  }
+</section>

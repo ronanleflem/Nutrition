@@ -221,6 +221,17 @@ export class DatabaseService {
     });
   }
 
+  async updateFoodRepoApiKey(apiKey: string | undefined): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    const trimmed = apiKey?.trim();
+    await this.db!.appSettings.put({
+      ...settings,
+      foodRepoApiKey: trimmed || undefined,
+    });
+  }
+
   async replaceAllFromBackup(data: BackupData): Promise<void> {
     await this.initialize();
 

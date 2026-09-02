@@ -4,6 +4,10 @@ import { describe, expect, it } from 'vitest';
 
 import { OFF_API_ORIGIN, OFF_API_URL_PATTERN } from './off-api-origin';
 import { OFF_SEARCH_ORIGIN, OFF_SEARCH_URL_PATTERN } from '../off-api/off-search-origin';
+import {
+  FOODREPO_API_ORIGIN,
+  FOODREPO_API_URL_PATTERN,
+} from '../foodrepo-api/foodrepo-search-origin';
 
 describe('ngsw-config.json', () => {
   const configPath = resolve(process.cwd(), 'ngsw-config.json');
@@ -63,6 +67,14 @@ describe('ngsw-config.json', () => {
     expect(searchGroup?.urls[0]).toContain(OFF_SEARCH_ORIGIN);
     expect(searchGroup?.cacheConfig.maxSize).toBe(0);
     expect(searchGroup?.cacheConfig.maxAge).toBe('0u');
+  });
+
+  it('does not persist FoodRepo API responses in the service worker', () => {
+    const foodRepoGroup = config.dataGroups.find((group) => group.name === 'foodrepo-api-no-cache');
+    expect(foodRepoGroup?.urls).toContain(FOODREPO_API_URL_PATTERN);
+    expect(foodRepoGroup?.urls[0]).toContain(FOODREPO_API_ORIGIN);
+    expect(foodRepoGroup?.cacheConfig.maxSize).toBe(0);
+    expect(foodRepoGroup?.cacheConfig.maxAge).toBe('0u');
   });
 });
 

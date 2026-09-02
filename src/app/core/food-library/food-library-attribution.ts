@@ -18,6 +18,12 @@ export const FOOD_LIBRARY_ATTRIBUTIONS = {
     url: 'https://world.openfoodfacts.org/',
     note: 'Les données issues d\'Open Food Facts sont © Open Food Facts contributors.',
   },
+  foodRepo: {
+    label: 'FoodRepo',
+    url: 'https://www.foodrepo.org/',
+    license: 'Creative Commons Attribution 4.0 (CC-BY 4.0)',
+    licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+  },
 } as const;
 
 export const OPENNUTRITION_INLINE_CREDIT =
