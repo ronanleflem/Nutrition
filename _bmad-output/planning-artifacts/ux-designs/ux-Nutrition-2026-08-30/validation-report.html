@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>UX Design Validation: Nutrition</title>
+<style>
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --border: #e7e5e4;
+    --text: #1c1917;
+    --muted: #78716c;
+
+    --verdict-strong: #16a34a;
+    --verdict-adequate: #65a30d;
+    --verdict-thin: #d97706;
+    --verdict-broken: #dc2626;
+
+    --sev-low: #64748b;
+    --sev-medium: #ca8a04;
+    --sev-high: #ea580c;
+    --sev-critical: #dc2626;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  header.report-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .title h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .title .subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+  .synthesis {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--muted);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    font-size: 15.5px;
+  }
+  .synthesis p { margin: 0 0 10px; }
+  .synthesis p:last-child { margin-bottom: 0; }
+
+  .dimension-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .dim-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .dim-card .dim-name { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .dim-card .dim-verdict { font-size: 14px; font-weight: 600; }
+
+  section.dimension, section.reviewer-section { margin-bottom: 14px; }
+  section.dimension details, section.reviewer-section details {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  section summary {
+    padding: 14px 20px;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  section summary::-webkit-details-marker { display: none; }
+  section summary::before {
+    content: "▸";
+    display: inline-block;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+  }
+  section details[open] summary::before { transform: rotate(90deg); }
+  section summary h2 {
+    display: inline;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    flex: 1;
+  }
+  .verdict-pill {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: white;
+  }
+  .verdict-strong { background: var(--verdict-strong); }
+  .verdict-adequate { background: var(--verdict-adequate); }
+  .verdict-thin { background: var(--verdict-thin); }
+  .verdict-broken { background: var(--verdict-broken); }
+
+  .dim-body { padding: 4px 20px 18px; }
+  .dim-judgment { color: var(--text); font-size: 14.5px; }
+  .dim-judgment p { margin: 0 0 10px; }
+
+  .findings-list { padding: 0 20px 4px; }
+  article.finding {
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+  }
+  article.finding:first-child { border-top: none; }
+  article.finding header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .badge {
+    font-size: 10.5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+  }
+  .badge-sev-low { background: rgba(100, 116, 139, 0.12); color: var(--sev-low); }
+  .badge-sev-medium { background: rgba(202, 138, 4, 0.14); color: var(--sev-medium); }
+  .badge-sev-high { background: rgba(234, 88, 12, 0.14); color: var(--sev-high); }
+  .badge-sev-critical { background: rgba(220, 38, 38, 0.14); color: var(--sev-critical); }
+  .finding-title { margin: 0; font-size: 15px; font-weight: 500; flex: 1; min-width: 200px; }
+  .finding-location { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; color: var(--muted); }
+  .finding-note, .finding-fix { margin-top: 6px; font-size: 14px; }
+  .finding-fix strong { color: var(--muted); font-weight: 500; }
+
+  .reviewer-source {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  .mechanical {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 24px;
+    font-size: 14px;
+  }
+  .mechanical h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .mechanical ul { margin: 0; padding-left: 20px; }
+  .mechanical li { margin-bottom: 4px; color: var(--text); }
+
+  footer.report-footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  footer .meta { display: flex; gap: 24px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+  <div class="container">
+
+    <header class="report-header">
+      <div class="title">
+        <h1>Nutrition — UX Design Validation Report</h1>
+        <div class="subtitle">_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/</div>
+      </div>
+    </header>
+
+    <div class="synthesis">
+      <p>Les spines sont un contrat extractible pour les cinq surfaces critiques d’origine (catalogue 2 niveaux, plan + variantes, synthèse, Mode Courses, shell 5 onglets) et pour la couche visuels persistants. Elles ne sont pas un contrat complet du produit actuel : UJ-3 (backup) n’a aucun Key Flow, et les surfaces livrées Accueil <code>/home</code> + onboarding <code>/onboarding</code> (Epic 12) sont absentes de l’IA, des états et des parcours.</p>
+      <p>Les lentilles accessibilité et edge-case durcissent le tableau. Le Floor « vérifie » un seul couple de contraste alors que <code>ink-disabled</code> échoue en texte AA, et les pastilles priorité restent couleur seule pour l’œil (WCAG 1.4.1). Côté chemins, Accueil / onboarding ne sont pas classés maison/magasin, le prompt photo n’est pas commis après la première recette, et la restauration / fusion des blobs n’a pas d’issue écrite. Un consommateur architecture / story-dev qui source-extrait uniquement cette paire inventera le cold start, les noms de composants, et pourra livrer une image cassée à l’import.</p>
+    </div>
+
+    <div class="dimension-summary">
+      <div class="dim-card">
+        <div class="dim-name">Flow coverage</div>
+        <div class="dim-verdict" style="color: var(--verdict-thin)">thin</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Token completeness</div>
+        <div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Component coverage</div>
+        <div class="dim-verdict" style="color: var(--verdict-thin)">thin</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">State coverage</div>
+        <div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Visual reference coverage</div>
+        <div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Bloat &amp; overspecification</div>
+        <div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Inheritance discipline</div>
+        <div class="dim-verdict" style="color: var(--verdict-thin)">thin</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-name">Shape fit</div>
+        <div class="dim-verdict" style="color: var(--verdict-strong)">strong</div>
+      </div>
+    </div>
+
+    <section class="dimension">
+      <details open>
+        <summary>
+          <h2>Flow coverage</h2>
+          <span class="verdict-pill verdict-thin">thin</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Sources : PRD §2.3 (UJ-1, UJ-2, UJ-3) et §4 (FR-1…FR-24) ; SPEC CAP-1…CAP-8. Couvert avec climax + échec : Flow 1 (UJ-1), Flow 2 (UJ-2), Flow 6 (photo). UJ-3 et Epic 12 n’ont aucun parcours.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-critical">critical</span>
+              <h3 class="finding-title">UJ-3 sans Key Flow</h3>
+              <span class="finding-location">EXPERIENCE.md Key Flows · PRD §2.3</span>
+            </header>
+            <div class="finding-note">Ni export chiffré, ni import mot de passe, ni climax restauration, ni échec mot de passe / schéma. CAP-8 / FR-22–FR-24 / AD-10 sans parcours UX.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Flow 7 Ronan — Paramètres → Exporter → nouvel appareil → Importer ; échecs mot de passe et schéma ; FR-24 dans le même flow ou un état dédié.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Accueil / onboarding absents des Key Flows</h3>
+              <span class="finding-location">EXPERIENCE.md IA · Key Flows</span>
+            </header>
+            <div class="finding-note">Epic 12 livré (<code>/home</code>, <code>/onboarding</code>) nulle part dans les spines. Pas de parcours « première recette ».</div>
+            <div class="finding-fix"><strong>Fix:</strong> commettre les surfaces et un parcours Ronan après capture UX — ne pas inventer le contenu des cartes Accueil.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Titre UJ-1 non verbatim</h3>
+              <span class="finding-location">Flow 1 · PRD §2.3</span>
+            </header>
+            <div class="finding-note">PRD « Ronan planifie sa semaine le dimanche soir » vs Flow 1 tronqué.</div>
+            <div class="finding-fix"><strong>Fix:</strong> recopier le libellé PRD mot pour mot.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Flow 5 sans climax ni échec</h3>
+              <span class="finding-location">EXPERIENCE.md Flow 5</span>
+            </header>
+            <div class="finding-note">Navigation shell n’est pas un parcours extractible au même standard que Flows 1–2–6.</div>
+            <div class="finding-fix"><strong>Fix:</strong> rétrograder en règle IA, ou ajouter climax « ≤ 2 taps » et un échec.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">Flow 4 sans échec</h3>
+              <span class="finding-location">EXPERIENCE.md Flow 4</span>
+            </header>
+            <div class="finding-note">Variante manquante / recette archivée non traités.</div>
+            <div class="finding-fix"><strong>Fix:</strong> un cas limite si la famille n’a plus qu’une variante.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary>
+          <h2>Token completeness</h2>
+          <span class="verdict-pill verdict-adequate">adequate</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>24 couleurs, 5 rôles typo, 4 rounded, 10 spacing, 13 clés components. Toutes les références <code>{path.to.token}</code> résolvent. Thème clair hors MVP. Une seule cible de contraste chiffrée.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Une seule cible de contraste chiffrée</h3>
+              <span class="finding-location">DESIGN.md Colors · Floor</span>
+            </header>
+            <div class="finding-note"><code>ink-secondary</code>, <code>ink-disabled</code>, <code>accent-positive</code> texte, FAB, pastilles, ligne Courses à 0.55 : sans ratio.</div>
+            <div class="finding-fix"><strong>Fix:</strong> table de contrastes pour ces paires dans DESIGN.md § Colors.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">scan-overlay en rgba, pas hex</h3>
+              <span class="finding-location">DESIGN.md frontmatter colors</span>
+            </header>
+            <div class="finding-note">Le spec DESIGN.md impose des hex.</div>
+            <div class="finding-fix"><strong>Fix:</strong> token hex + alpha séparé, ou note « overlay = exception alpha ».</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">Tokens jamais référencés</h3>
+              <span class="finding-location">DESIGN.md frontmatter</span>
+            </header>
+            <div class="finding-note"><code>surface-inset</code>, <code>accent-info</code>, <code>border-strong</code>.</div>
+            <div class="finding-fix"><strong>Fix:</strong> les lier à un usage ou les retirer.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details open>
+        <summary>
+          <h2>Component coverage</h2>
+          <span class="verdict-pill verdict-thin">thin</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Inventaire visuel DESIGN vs table comportementale EXPERIENCE : les noms ne joignent pas. <code>bottom-nav</code> / <code>fab-scan</code> n’ont pas de ligne comportementale. Accueil et wizard absents des deux spines.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Identifiants non identiques d’un fichier à l’autre</h3>
+              <span class="finding-location">DESIGN.md Components · EXPERIENCE.md Patterns</span>
+            </header>
+            <div class="finding-note">Scanner overlay / ScannerView ; recipe-placeholder / RecipePhotoPlaceholder ; Variant picker / VariantChipRow ; macro-bar / MacroBarGroup ; Food category icon / FoodCategoryLabel.</div>
+            <div class="finding-fix"><strong>Fix:</strong> une clé canonique par composant (kebab frontmatter = titre DESIGN = première colonne EXPERIENCE).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">bottom-nav et fab-scan sans ligne comportementale</h3>
+              <span class="finding-location">DESIGN.md tokens · EXPERIENCE.md table</span>
+            </header>
+            <div class="finding-note">Auto-start caméra, masquage Mode Courses, 5 destinations : éparpillés dans l’IA.</div>
+            <div class="finding-fix"><strong>Fix:</strong> deux lignes dans Component Patterns.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">EXPERIENCE seulement, sans rangée DESIGN</h3>
+              <span class="finding-location">WeekGrid · StoreModeHeader · RegenerateBanner · BottomSheet</span>
+            </header>
+            <div class="finding-note">Score chip et Priority badge : visuel seulement.</div>
+            <div class="finding-fix"><strong>Fix:</strong> dual spec ou héritage explicite « chrome shell, pas de delta visuel ».</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Composants livrés absents des deux spines</h3>
+              <span class="finding-location">home-card · onboarding chrome · lien titre → /home</span>
+            </header>
+            <div class="finding-note">Ne pas rétro-spécifier le code.</div>
+            <div class="finding-fix"><strong>Fix:</strong> les ajouter seulement après décision UX capturée.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary>
+          <h2>State coverage</h2>
+          <span class="verdict-pill verdict-adequate">adequate</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>14 lignes State Patterns, solides sur scan / photo / OFF / régénération / import. Trous : Accueil, onboarding, empty pantry/courses, Focus.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Aucun état Accueil ni onboarding</h3>
+              <span class="finding-location">State Patterns vs app livrée</span>
+            </header>
+            <div class="finding-note">Chargement, cartes vides, wizard 1–3, skip macros, abandon recette : tournent dans l’app, non commis.</div>
+            <div class="finding-fix"><strong>Fix:</strong> étendre IA + State Patterns après capture ; ne pas inventer les microcopies.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Liste vide omet Garde-manger et Courses</h3>
+              <span class="finding-location">State Patterns · IA /pantry /shopping /goals</span>
+            </header>
+            <div class="finding-note">Objectifs : pas d’état première visite.</div>
+            <div class="finding-fix"><strong>Fix:</strong> trois lignes empty + CTA.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Aucune ligne Focus</h3>
+              <span class="finding-location">State Patterns vs Accessibility Floor</span>
+            </header>
+            <div class="finding-note">Le Floor impose un focus visible ; la table d’états n’a pas de ligne.</div>
+            <div class="finding-fix"><strong>Fix:</strong> une ligne Focus globale (ring token ou native).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">Recherche vide et Produits archivés vides</h3>
+              <span class="finding-location">State Patterns</span>
+            </header>
+            <div class="finding-note">Non décrits.</div>
+            <div class="finding-fix"><strong>Fix:</strong> une ligne chacune si ces listes restent des surfaces.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary>
+          <h2>Visual reference coverage</h2>
+          <span class="verdict-pill verdict-adequate">adequate</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>7 mocks dans <code>mockups/</code>, 2 doublons <code>.working/</code>, pas de wireframes ni imports. « Spines gagnent » dit deux fois (une par spine). Trois mocks anciens encore en palette E1.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Mocks listés sans dire ce que chacun illustre</h3>
+              <span class="finding-location">EXPERIENCE.md IA · DESIGN.md</span>
+            </header>
+            <div class="finding-note">DESIGN ne lie pas shell-nav, shopping-mode, macro-synthesis.</div>
+            <div class="finding-fix"><strong>Fix:</strong> un lien inline + une phrase d’illustration par fichier.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Mocks anciens encore en #121212 / #7CB87C</h3>
+              <span class="finding-location">shell-nav · shopping-mode · macro-synthesis</span>
+            </header>
+            <div class="finding-note">Un consommateur qui copie le HTML dérive de la forêt.</div>
+            <div class="finding-fix"><strong>Fix:</strong> réaligner ces 3 mocks ou les marquer <code>obsolete-palette</code>.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">.working/key-*.html orphelins</h3>
+              <span class="finding-location">.working/ · memlog</span>
+            </header>
+            <div class="finding-note">Déjà promus vers mockups/.</div>
+            <div class="finding-fix"><strong>Fix:</strong> supprimer ou pointer « source de promotion, ne pas implémenter ».</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary>
+          <h2>Bloat &amp; overspecification</h2>
+          <span class="verdict-pill verdict-adequate">adequate</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>DESIGN porte une voix éditoriale légitime. EXPERIENCE reste tabulaire. Peu de restatement PRD. Le picker post-MVP est long mais décisionnel.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">Pixels déjà tokenisés répétés en prose</h3>
+              <span class="finding-location">DESIGN.md Components / Do's</span>
+            </header>
+            <div class="finding-note">Hero 180 px, vignette 72 px, barre 8px, bandeau ~100 px.</div>
+            <div class="finding-fix"><strong>Fix:</strong> ne citer que <code>{components.recipe-hero.height}</code> etc.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">Picker recherche unifiée dilue l’extract MVP</h3>
+              <span class="finding-location">EXPERIENCE.md post-MVP</span>
+            </header>
+            <div class="finding-note">6 sources, debounce, badges — utile si E10–E11 sont le next build.</div>
+            <div class="finding-fix"><strong>Fix:</strong> garder la cascade verrouillée, déplacer le détail vers un addendum post-MVP.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details open>
+        <summary>
+          <h2>Inheritance discipline</h2>
+          <span class="verdict-pill verdict-thin">thin</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Tous les chemins <code>sources</code> résolvent. Tokens EXPERIENCE matchent DESIGN. Cold start et engrenage divergent dans la paire et avec le code livré.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Cold start contradictoire avec le code livré</h3>
+              <span class="finding-location">EXPERIENCE.md Surface 5 · app.routes.ts</span>
+            </header>
+            <div class="finding-note">Spine : dernier onglet ou Garde-manger. App : onboarding si zéro recette, sinon <code>/home</code>.</div>
+            <div class="finding-fix"><strong>Fix:</strong> réécrire le cold start après décision UX explicite — ne pas copier le code en silence.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Accès Paramètres divergent dans la paire</h3>
+              <span class="finding-location">DESIGN.md Layout · EXPERIENCE.md Surface 5</span>
+            </header>
+            <div class="finding-note">Engrenage Garde-manger-only vs header droit tous écrans.</div>
+            <div class="finding-fix"><strong>Fix:</strong> une phrase identique.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">UJ / glossaire non repris verbatim</h3>
+              <span class="finding-location">Key Flows · PRD §3 vs SPEC AD-3</span>
+            </header>
+            <div class="finding-note">UJ-1 tronqué ; UJ-3 omis ; Produit (PRD) vs Product + ProductReference (spines).</div>
+            <div class="finding-fix"><strong>Fix:</strong> note d’héritage « glossaire = SPEC, pas PRD §3 » + UJ-3.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Frontmatter sources non jumelés</h3>
+              <span class="finding-location">DESIGN.md · EXPERIENCE.md sources</span>
+            </header>
+            <div class="finding-note">project-context (E12) d’un côté, SOLUTION-DESIGN de l’autre. E12 n’est source opérationnelle d’aucun des deux.</div>
+            <div class="finding-fix"><strong>Fix:</strong> aligner la liste ; si E12 est in-scope, l’ajouter et extraire.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">Memlog L6 couleurs E1 non superseded</h3>
+              <span class="finding-location">.memlog.md L6</span>
+            </header>
+            <div class="finding-note">#121212 / #7CB87C vs tokens forêt.</div>
+            <div class="finding-fix"><strong>Fix:</strong> memlog.py append override couleurs.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary>
+          <h2>Shape fit</h2>
+          <span class="verdict-pill verdict-strong">strong</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>DESIGN.md ordre canonique complet. EXPERIENCE.md defaults présents. Inspiration et Responsive déclenchés à bon escient. Sections inventées (Surfaces 1–5, visuels, régénération) portent des règles AD / memlog.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">Product-Specific Sections justifié</h3>
+              <span class="finding-location">EXPERIENCE.md fin de fichier</span>
+            </header>
+            <div class="finding-note">Veiller à ce qu’il ne redevienne pas un second IA.</div>
+            <div class="finding-fix"><strong>Fix:</strong> pas de fix bloquant.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="reviewer-section">
+      <details>
+        <summary>
+          <h2>Accessibility review</h2>
+          <span class="reviewer-source">review-accessibility.md</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Le plancher d’accessibilité est trop mince et trop sûr de lui : il « vérifie » un seul couple (<code>ink-primary</code> / <code>surface-base</code>) alors que plusieurs paires porteuses n’ont aucune cible WCAG, et que <code>ink-disabled</code> échoue en texte AA. Extraire uniquement ces spines livrerait un UI qui rate 1.4.1 (priorité), 1.1.1 (vignettes OFF) et plusieurs cibles tactiles / focus.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-critical">critical</span>
+              <h3 class="finding-title">Le Floor sur-déclare AA — ink-disabled échoue</h3>
+              <span class="finding-location">Floor · DESIGN.md Colors</span>
+            </header>
+            <div class="finding-note"><code>ink-disabled</code> #6B756B = 3.49:1 sur surface-base, 2.56:1 sur overlay. Empty states et créneaux vides des mocks utilisent cette encre.</div>
+            <div class="finding-fix"><strong>Fix:</strong> cibles WCAG par rôle ; interdire ink-disabled comme encre de CTA / placeholder / empty slot.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-critical">critical</span>
+              <h3 class="finding-title">Priorité = couleur seule pour l’œil</h3>
+              <span class="finding-location">Priority badge · Floor · products-catalog.html</span>
+            </header>
+            <div class="finding-note">aria-label aide le lecteur d’écran, pas le voyant daltonien. Luminance priority-green ≈ priority-gray. WCAG 1.4.1.</div>
+            <div class="finding-fix"><strong>Fix:</strong> label visible (mot ou initiale) collé à la pastille, pas seulement aria.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Vignettes OFF sans règle alt</h3>
+              <span class="finding-location">Floor l.230 · ProductThumb</span>
+            </header>
+            <div class="finding-note">Photos recettes alt=titre ; bandeaux aria-hidden. Aucune règle pour l’image OFF (liste, preview scan, import).</div>
+            <div class="finding-fix"><strong>Fix:</strong> trancher décoratif (alt="") ou alt = nom produit / marque OFF.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Permission galerie absente</h3>
+              <span class="finding-location">PhotoPrompt · State Caméra refusée · Flow 6</span>
+            </header>
+            <div class="finding-note">Caméra refusée spécifiée. Refus galerie / fichiers : aucun état, aucun message.</div>
+            <div class="finding-fix"><strong>Fix:</strong> ajouter l’état « galerie / fichiers refusés » sans inventer le copy.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Mode Courses coché : encodage et nom accessible</h3>
+              <span class="finding-location">shopping-row · Surface 4 · shopping-mode.html</span>
+            </header>
+            <div class="finding-note">Tap ligne entière vs zone 52 px. Mock sans aria-checked. Badge manuel ~2.7:1. Opacité 0.55 sur ink-secondary ~3.8:1.</div>
+            <div class="finding-fix"><strong>Fix:</strong> aria-checked + nom ; conserver le barré ; cible de contraste après fade.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Focus visible cantonné au debug desktop</h3>
+              <span class="finding-location">Accessibility Floor</span>
+            </header>
+            <div class="finding-note">WCAG 2.4.7 n’est pas un luxe Paramètres.</div>
+            <div class="finding-fix"><strong>Fix:</strong> focus ring visible sur tout contrôle, toutes surfaces.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Cibles tactiles : vignettes vs cartes</h3>
+              <span class="finding-location">Layout · recipe-thumb 72 · plan-slot-thumb 40</span>
+            </header>
+            <div class="finding-note">Rien n’écrit que la carte / le créneau est la hit zone. Risque : pastilles Plan 40 px cliquables.</div>
+            <div class="finding-fix"><strong>Fix:</strong> hit target = carte / créneau / ligne ≥ 44 ; chips et actions photo ≥ 44.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">ScannerView auto-start vs iOS sans scan</h3>
+              <span class="finding-location">ScannerView · Responsive · Flow 2</span>
+            </header>
+            <div class="finding-note">Risque de prompt caméra iOS inutile. Overlay + hint sans token / ratio.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Auto-start = Android ; iOS = saisie d’emblée ; token + ratio pour le hint hors cadre.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Macros : chiffres oui, état uniquement en couleur</h3>
+              <span class="finding-location">Macro progress bar · Surface 3 · Floor</span>
+            </header>
+            <div class="finding-note">Sous / atteint / dépassé n’est que la teinte (luminances proches).</div>
+            <div class="finding-fix"><strong>Fix:</strong> aria (et idéalement texte) de l’état.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">alt = titre : titre vide / doublon ; PlanSlotThumb hors Floor</h3>
+              <span class="finding-location">Floor · Recipe card · meal-plan.html</span>
+            </header>
+            <div class="finding-note">Titre "" → carte anonyme. Photo + titre visible = double annonce.</div>
+            <div class="finding-fix"><strong>Fix:</strong> fallback alt si titre blanc ; pastille Plan aria-hidden ou alt unique.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">PhotoPrompt ordre de focus incomplet</h3>
+              <span class="finding-location">Floor · PhotoPrompt · photo-prompt.html</span>
+            </header>
+            <div class="finding-note">Manque focus initial, restore picker, ordre quand Caméra disparaît.</div>
+            <div class="finding-fix"><strong>Fix:</strong> focus initial + restore ; Caméra retiré hors tab order.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">prefers-reduced-motion trop étroit</h3>
+              <span class="finding-location">Floor · Interaction</span>
+            </header>
+            <div class="finding-note">Seules les transitions &gt; 100 ms. Sheets, swipe, scan chrome hors règle.</div>
+            <div class="finding-fix"><strong>Fix:</strong> étendre reduced-motion aux sheets / swipe / scan chrome.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Toasts et long-press sans équivalent</h3>
+              <span class="finding-location">Voice · Interaction · BottomSheet</span>
+            </header>
+            <div class="finding-note">Pas de live region. Long-press sans clavier. Focus trap sheet seulement si formulaire.</div>
+            <div class="finding-fix"><strong>Fix:</strong> aria-live pour toasts ; menu clavier ; trap sur tout sheet interactif.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Score et étoiles sans nom</h3>
+              <span class="finding-location">score-chip · Variant picker</span>
+            </header>
+            <div class="finding-note">Chip « 82 » et ★★★★ sans équivalent texte.</div>
+            <div class="finding-fix"><strong>Fix:</strong> nom accessible (score, note /5).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">Paires sans cible alors qu’elles passent</h3>
+              <span class="finding-location">DESIGN.md Colors / recipe-placeholder</span>
+            </header>
+            <div class="finding-note">ink-secondary, ink-warm, accent-positive : AA OK, non documenté. accent-positive-muted picto ~3.01:1.</div>
+            <div class="finding-fix"><strong>Fix:</strong> cibles écrites ; interdire texte/badge overlay photo partout.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">Mocks magasin / shell encore sur l’ancienne palette</h3>
+              <span class="finding-location">shopping-mode · shell-nav · macro-synthesis</span>
+            </header>
+            <div class="finding-note">Les spines gagnent, mais un extracteur pixel-perfect réintroduit des contrastes non audités.</div>
+            <div class="finding-fix"><strong>Fix:</strong> les stories lisent les spines, pas ces trois mocks, pour la couleur.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="reviewer-section">
+      <details>
+        <summary>
+          <h2>Edge-case review</h2>
+          <span class="reviewer-source">review-edge-case.md</span>
+        </summary>
+        <div class="dim-body">
+          <div class="dim-judgment">
+            <p>Le contrat maison / magasin est serré sur les cinq onglets et le happy path photo recette / vignette OFF, mais il ne classe pas les surfaces d’entrée réelles après l’épic 12 et ne dit rien de la restauration ou de la fusion des blobs. Un extracteur inventera l’Accueil, sautera le prompt photo à la première recette, et pourra afficher une image cassée à l’import.</p>
+          </div>
+        </div>
+        <div class="findings-list">
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-critical">critical</span>
+              <h3 class="finding-title">Accueil / onboarding hors contrat maison / magasin</h3>
+              <span class="finding-location">IA · Visuels persistants · Cold start</span>
+            </header>
+            <div class="finding-note">L’app ouvre /onboarding puis /home. Rien ne dit si Accueil est maison (bandeau + pastilles) ou magasin nu, ni si le wizard a droit à une illustration.</div>
+            <div class="finding-fix"><strong>Fix:</strong> ajouter /home et /onboarding à l’IA ; classer chaque surface ; aligner le cold start — après décision produit.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Première recette onboarding sans PhotoPrompt</h3>
+              <span class="finding-location">PhotoPrompt · Flow 6 · from=onboarding</span>
+            </header>
+            <div class="finding-note">Omelette template et recette custom enchaînent vers /home sans Galerie / Caméra / Plus tard.</div>
+            <div class="finding-fix"><strong>Fix:</strong> prompt après omelette et custom, ou skip explicite + placeholder + ajout depuis le détail.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Restauration d’un blob manquant</h3>
+              <span class="finding-location">Backup · FR-23 · UJ-3</span>
+            </header>
+            <div class="finding-note">Export inclut toujours les blobs ; import silencieux si photoId pointe vers un blob absent. Risque : img cassée.</div>
+            <div class="finding-fix"><strong>Fix:</strong> blob manquant ≡ sans photo (placeholder / picto) ; résumé d’import compte restaurés vs manquants.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Fusion import des photos</h3>
+              <span class="finding-location">Backup · FR-23 §10.4 · AD-10</span>
+            </header>
+            <div class="finding-note">Local a une photo, import sans blob : perte ? Les deux ont une photo : laquelle gagne ? Blobs absents des tables de fusion.</div>
+            <div class="finding-fix"><strong>Fix:</strong> photo import gagne si présente, sinon conserver la locale ; OFF : blob suit la ref fusionnée.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Échec quota au changement de photo</h3>
+              <span class="finding-location">State Photo / quota · RecipeHero</span>
+            </header>
+            <div class="finding-note">« Placeholder » à l’échec efface la photo déjà affichée alors que le blob précédent est encore là.</div>
+            <div class="finding-fix"><strong>Fix:</strong> add échoué → placeholder ; replace échoué → garder l’ancienne photo + le même message.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-high">high</span>
+              <h3 class="finding-title">Sorties PhotoPrompt hors des trois actions</h3>
+              <span class="finding-location">PhotoPrompt · Flow 6</span>
+            </header>
+            <div class="finding-note">Retour système, annulation du picker, mise en arrière-plan : non couverts. Recette déjà sauvée.</div>
+            <div class="finding-fix"><strong>Fix:</strong> toute sortie sans fichier = Plus tard ; retour du picker vide = rester sur le prompt.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Titre vide à la création</h3>
+              <span class="finding-location">Floor alt · Flow 6 · PhotoPrompt</span>
+            </header>
+            <div class="finding-note">L’app bloque (pattern non-blanc) — ce n’est pas le contrat. Titre "" : copy et alt sans nom.</div>
+            <div class="finding-fix"><strong>Fix:</strong> titre non blanc requis avant enregistrement (donc avant prompt).</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Galerie / fichiers refusés</h3>
+              <span class="finding-location">State Caméra refusée · PhotoPrompt · iOS</span>
+            </header>
+            <div class="finding-note">Chevauche le finding a11y high. Caméra reste la seule issue si la galerie est morte.</div>
+            <div class="finding-fix"><strong>Fix:</strong> état « galerie indisponible » ; Plus tard toujours possible.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">FR-24 rappel vs bandeau de surface vs magasin nu</h3>
+              <span class="finding-location">Brand &amp; Style · Visuels persistants · PRD FR-24</span>
+            </header>
+            <div class="finding-note">Le rappel 30 jours s’empile avec le bandeau 100 px et apparaît sur Courses / Objectifs / Paramètres.</div>
+            <div class="finding-fix"><strong>Fix:</strong> FR-24 n’est pas un SurfaceBanner ; le classer et régler l’empilement.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Aucun bandeau liste Courses vs RegenerateBanner</h3>
+              <span class="finding-location">Surface 4 · State Plan modifié</span>
+            </header>
+            <div class="finding-note">« Aucun bandeau » peut faire supprimer le bandeau texte. Liste vide et Mode Courses à 0 item : pas d’état.</div>
+            <div class="finding-fix"><strong>Fix:</strong> RegenerateBanner = exception texte ; EmptyState Courses ; Mode Courses no-op si liste vide.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Vignettes hors listes maison</h3>
+              <span class="finding-location">Picker recette · Surface 3 · Accueil</span>
+            </header>
+            <div class="finding-note">Picker, synthèse, carte Accueil « Repas du jour » : aucune règle vignette vs texte.</div>
+            <div class="finding-fix"><strong>Fix:</strong> picker = mêmes thumbs que la liste (ou texte assumé) ; synthèse / Accueil : pastille ou texte seul.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-medium">medium</span>
+              <h3 class="finding-title">Export chiffré plus lourd sans parcours</h3>
+              <span class="finding-location">Backup · FR-22 · UJ-3</span>
+            </header>
+            <div class="finding-note">Pas de taille estimée, pas de progression AES-GCM, pas d’échec mémoire / share iOS.</div>
+            <div class="finding-fix"><strong>Fix:</strong> état d’échec + avertissement avant chiffrement si seuil dépassé.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">Retirer la photo sans confirmation</h3>
+              <span class="finding-location">RecipeHero · Dialog modal</span>
+            </header>
+            <div class="finding-note">Destructif listé : archiver produit, supprimer recette. Retrait photo : instantané ou dialog ?</div>
+            <div class="finding-fix"><strong>Fix:</strong> retrait immédiat + toast, ou dialog court ; après retrait = placeholder partout.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">Ref préférée archivée → quelle vignette</h3>
+              <span class="finding-location">Product card · ProductCard</span>
+            </header>
+            <div class="finding-note">Préférée archivée, d’autres refs ont une image : laquelle ?</div>
+            <div class="finding-fix"><strong>Fix:</strong> si la préférée n’a plus d’image exploitable → picto.</div>
+          </article>
+          <article class="finding">
+            <header>
+              <span class="badge badge-sev-low">low</span>
+              <h3 class="finding-title">Format image illisible</h3>
+              <span class="finding-location">import resize WebP · State quota</span>
+            </header>
+            <div class="finding-note">HEIC / vidéo / fichier que le resize ne décode pas : pas d’état distinct.</div>
+            <div class="finding-fix"><strong>Fix:</strong> même issue que quota — recette intacte, photo précédente conservée si replace.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <div class="mechanical">
+      <h3>Mechanical notes</h3>
+      <ul>
+        <li>Noms : kebab frontmatter ≠ titres prose ≠ Pascal EXPERIENCE. ScannerView / Scanner overlay et FoodCategoryLabel / Food category icon sont les pires pour un extract.</li>
+        <li>Cross-refs : tous les <code>{path.to.token}</code> résolvent. Aucun Mermaid.</li>
+        <li>Frontmatter DESIGN.md / EXPERIENCE.md : <code>status: final</code>, <code>updated: 2026-09-02</code>, sources relatives toutes résolubles.</li>
+        <li>IA routes spines : 7 routes addendum. Manquent <code>/home</code>, <code>/onboarding</code>.</li>
+        <li>Contradictions internes : (1) cold start pantry vs <code>/home</code> livré ; (2) engrenage Garde-manger-only vs tous écrans ; (3) palette mocks E1 vs tokens E9.</li>
+        <li>Décisions produit non commises (ne pas inventer) : contenu et états Accueil ; wizard onboarding ; <code>hideHomeOnStartup</code> ; emplacement FR-24 ; contrastes des paires secondaires.</li>
+      </ul>
+    </div>
+
+    <footer class="report-footer">
+      <div class="meta">
+        <span>Rubric: review-rubric.md</span>
+        <span>Lenses: review-accessibility.md · review-edge-case.md</span>
+        <span>Generated: 2026-09-02T22:45:00Z</span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
