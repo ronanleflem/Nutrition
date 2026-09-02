@@ -9,6 +9,7 @@ Détails techniques et décisions de transport pour `bmad-architecture` et `bmad
 | Thème par défaut | **Sombre** — fond `#121212` ou équivalent, accents verts/sauge pour actions positives |
 | Usage magasin | Contraste élevé, pas de animations distrayantes en Mode Courses |
 | Thème clair | Hors MVP (v1.1 via CSS variables si architecture le prévoit) |
+| Photos réalistes | **Levée pour recettes utilisateur + vignettes OFF** (Epic 13) ; pictos catégorie E9.2 conservés ; magasin nu sans image (FR-44) |
 | Typographie | System font stack (perf PWA) |
 | Langue | Français partout |
 
