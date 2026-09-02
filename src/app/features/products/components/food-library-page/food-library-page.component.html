@@ -70,6 +70,17 @@
     </p>
   }
 
+  @if (isOnline() && searchQuery().trim().length >= 3 && usdaSearchMessage()) {
+    <p class="food-library-page__offline" role="status">{{ usdaSearchMessage() }}</p>
+  }
+
+  @if (isOnline() && searchQuery().trim().length >= 3 && usdaStatus() === 'no_api_key') {
+    <p class="food-library-page__offline" role="status">
+      Complétez avec USDA FoodData Central (génériques et marques internationales) —
+      <a routerLink="/settings/api-keys">Ajoutez votre clé USDA gratuite</a>.
+    </p>
+  }
+
   @if (searchError()) {
     <p class="food-library-page__error" role="alert">{{ searchError() }}</p>
   }
@@ -150,6 +161,16 @@
           Données
           <a href="https://www.foodrepo.org/" rel="noopener noreferrer" target="_blank">FoodRepo</a>
           (CC-BY 4.0)
+        </p>
+      }
+
+      @if (section.source === 'usda') {
+        <p class="food-library-page__attribution">
+          Données
+          <a href="https://fdc.nal.usda.gov/" rel="noopener noreferrer" target="_blank">
+            USDA FoodData Central
+          </a>
+          (domaine public)
         </p>
       }
     </section>

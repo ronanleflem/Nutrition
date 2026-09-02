@@ -1,8 +1,9 @@
 import type { FoodRepoSearchHit } from '../foodrepo-api/foodrepo-search.types';
 import type { OffSearchHit } from '../off-api/off-search.types';
+import type { UsdaSearchHit } from '../usda-fdc/usda-search.types';
 import type { FoodSearchHit, FoodSearchSection } from './food-search.types';
 
-export type OnlineSearchHit = OffSearchHit | FoodRepoSearchHit;
+export type OnlineSearchHit = OffSearchHit | FoodRepoSearchHit | UsdaSearchHit;
 
 export type FoodLibrarySearchHit = FoodSearchHit | OnlineSearchHit;
 
@@ -18,6 +19,7 @@ export interface FoodLibraryPageSearchResult {
   offStatus?: 'ok' | 'skipped' | 'rate_limited' | 'network_error';
   offMsUntilRetry?: number;
   foodRepoStatus?: 'ok' | 'skipped' | 'no_api_key' | 'unauthorized' | 'network_error';
+  usdaStatus?: 'ok' | 'skipped' | 'no_api_key' | 'unauthorized' | 'network_error';
 }
 
 export function isOffSearchHit(hit: FoodLibrarySearchHit): hit is OffSearchHit {
@@ -28,6 +30,10 @@ export function isFoodRepoSearchHit(hit: FoodLibrarySearchHit): hit is FoodRepoS
   return hit.source === 'foodrepo';
 }
 
+export function isUsdaSearchHit(hit: FoodLibrarySearchHit): hit is UsdaSearchHit {
+  return hit.source === 'usda';
+}
+
 export function isOnlineSearchHit(hit: FoodLibrarySearchHit): hit is OnlineSearchHit {
-  return hit.source === 'off' || hit.source === 'foodrepo';
+  return hit.source === 'off' || hit.source === 'foodrepo' || hit.source === 'usda';
 }

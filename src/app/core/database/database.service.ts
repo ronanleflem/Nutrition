@@ -60,6 +60,7 @@ import {
   type ShoppingListItem,
   type ShoppingListItemWithProduct,
 } from '../models/shopping-list-item';
+import type { UsdaFoodCacheEntry } from '../models/usda-food-cache';
 import { NutritionalScoreService } from '../scoring/nutritional-score.service';
 import type { BackupData } from '../backup/backup-schema';
 import type { ImportSummary } from '../backup/backup-schema';
@@ -230,6 +231,27 @@ export class DatabaseService {
       ...settings,
       foodRepoApiKey: trimmed || undefined,
     });
+  }
+
+  async updateUsdaApiKey(apiKey: string | undefined): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    const trimmed = apiKey?.trim();
+    await this.db!.appSettings.put({
+      ...settings,
+      usdaApiKey: trimmed || undefined,
+    });
+  }
+
+  async putUsdaFoodCacheEntry(entry: UsdaFoodCacheEntry): Promise<void> {
+    await this.initialize();
+    await this.db!.usdaFoodCache.put(entry);
+  }
+
+  async getUsdaFoodCacheEntry(fdcId: number): Promise<UsdaFoodCacheEntry | undefined> {
+    await this.initialize();
+    return (await this.db!.usdaFoodCache.get(fdcId)) ?? undefined;
   }
 
   async replaceAllFromBackup(data: BackupData): Promise<void> {

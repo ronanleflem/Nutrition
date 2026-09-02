@@ -9,7 +9,35 @@
     sauvegarde par défaut.
   </p>
 
+  @if (missingUsdaKey()) {
+    <p class="api-keys-page__banner" role="status">
+      Ajoutez votre clé USDA gratuite pour rechercher des aliments génériques et des marques
+      internationales via
+      <a href="https://fdc.nal.usda.gov/api-key-signup.html" rel="noopener noreferrer" target="_blank">
+        api.data.gov
+      </a>.
+    </p>
+  }
+
   <form class="api-keys-page__form" [formGroup]="form" (ngSubmit)="save()">
+    <label class="api-keys-page__field">
+      <span class="api-keys-page__label">Clé USDA FoodData Central (Phase 3)</span>
+      <input
+        class="api-keys-page__input"
+        type="password"
+        autocomplete="off"
+        formControlName="usdaApiKey"
+        placeholder="Clé api.data.gov"
+      />
+      <span class="api-keys-page__hint">
+        Obtenez une clé gratuite sur
+        <a href="https://fdc.nal.usda.gov/api-key-signup.html" rel="noopener noreferrer" target="_blank">
+          fdc.nal.usda.gov
+        </a>
+        (1 000 requêtes/h) pour la section USDA en recherche en ligne.
+      </span>
+    </label>
+
     <label class="api-keys-page__field">
       <span class="api-keys-page__label">Clé FoodRepo (optionnelle)</span>
       <input

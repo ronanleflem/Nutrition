@@ -89,6 +89,34 @@ describe('FoodSearchService', () => {
         } as Response;
       }
 
+      if (url.includes('api.nal.usda.gov/fdc/v1/foods/search')) {
+        return {
+          ok: true,
+          json: async () => ({
+            foods: [
+              {
+                fdcId: 173944,
+                description: 'Egg, whole, raw, fresh',
+                dataType: 'SR Legacy',
+                foodNutrients: [
+                  { nutrientNumber: '208', value: 143 },
+                  { nutrientNumber: '203', value: 12.6 },
+                  { nutrientNumber: '204', value: 9.5 },
+                  { nutrientNumber: '205', value: 0.7 },
+                ],
+              },
+            ],
+          }),
+        } as Response;
+      }
+
+      if (url.includes('/assets/food-library/fr-en-food-aliases.json')) {
+        return {
+          ok: true,
+          json: async () => ({ œuf: 'egg' }),
+        } as Response;
+      }
+
       if (url.endsWith(FOOD_LIBRARY_MANIFEST_PATH) || url.endsWith('manifest.json')) {
         return {
           ok: true,
@@ -218,6 +246,7 @@ describe('FoodSearchService', () => {
     mockLibraryFetch();
     onlineSignal.set(true);
     await database.updateFoodRepoApiKey('test-key');
+    await database.updateUsdaApiKey(undefined);
 
     const result = await service.searchLibraryPage('toblerone');
 
@@ -227,16 +256,41 @@ describe('FoodSearchService', () => {
     expect(result.foodRepoStatus).toBe('ok');
   });
 
+  it('searchLibraryPage appends USDA section after FoodRepo when key is configured', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+    await database.updateFoodRepoApiKey('test-key');
+    await database.updateUsdaApiKey('usda-key');
+
+    const result = await service.searchLibraryPage('oeuf');
+
+    const sources = result.sections.map((section) => section.source);
+    expect(sources.indexOf('foodrepo')).toBeGreaterThan(sources.indexOf('off'));
+    expect(sources.indexOf('usda')).toBeGreaterThan(sources.indexOf('foodrepo'));
+    expect(result.usdaStatus).toBe('ok');
+    expect(result.sections.find((section) => section.source === 'usda')?.hits[0]).toMatchObject({
+      source: 'usda',
+      fdcId: 173944,
+    });
+  });
+
   it('searchLibraryPage skips online providers when offline', async () => {
     mockLibraryFetch();
     onlineSignal.set(false);
     await database.updateFoodRepoApiKey('test-key');
+    await database.updateUsdaApiKey('usda-key');
 
     const result = await service.searchLibraryPage('skyr danone');
 
-    expect(result.sections.every((section) => section.source !== 'off' && section.source !== 'foodrepo')).toBe(true);
+    expect(
+      result.sections.every(
+        (section) =>
+          section.source !== 'off' && section.source !== 'foodrepo' && section.source !== 'usda',
+      ),
+    ).toBe(true);
     expect(result.offStatus).toBeUndefined();
     expect(result.foodRepoStatus).toBeUndefined();
+    expect(result.usdaStatus).toBeUndefined();
     expect(
       vi
         .mocked(globalThis.fetch)
@@ -247,16 +301,34 @@ describe('FoodSearchService', () => {
         .mocked(globalThis.fetch)
         .mock.calls.some((call) => String(call[0]).includes('foodrepo.org')),
     ).toBe(false);
+    expect(
+      vi
+        .mocked(globalThis.fetch)
+        .mock.calls.some((call) => String(call[0]).includes('api.nal.usda.gov')),
+    ).toBe(false);
   });
 
   it('searchLibraryPage reports no_api_key for FoodRepo without configured key', async () => {
     mockLibraryFetch();
     onlineSignal.set(true);
     await database.updateFoodRepoApiKey(undefined);
+    await database.updateUsdaApiKey(undefined);
 
     const result = await service.searchLibraryPage('toblerone');
 
     expect(result.sections.some((section) => section.source === 'foodrepo')).toBe(false);
     expect(result.foodRepoStatus).toBe('no_api_key');
+  });
+
+  it('searchLibraryPage reports no_api_key for USDA without configured key', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+    await database.updateFoodRepoApiKey('test-key');
+    await database.updateUsdaApiKey(undefined);
+
+    const result = await service.searchLibraryPage('oeuf');
+
+    expect(result.sections.some((section) => section.source === 'usda')).toBe(false);
+    expect(result.usdaStatus).toBe('no_api_key');
   });
 });

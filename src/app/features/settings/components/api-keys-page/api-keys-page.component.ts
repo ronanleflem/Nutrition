@@ -17,9 +17,11 @@ export class ApiKeysPageComponent implements OnInit {
   readonly saving = signal(false);
   readonly saveMessage = signal<string | null>(null);
   readonly saveError = signal<string | null>(null);
+  readonly missingUsdaKey = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     foodRepoApiKey: [''],
+    usdaApiKey: [''],
   });
 
   ngOnInit(): void {
@@ -32,8 +34,11 @@ export class ApiKeysPageComponent implements OnInit {
     this.saveError.set(null);
 
     try {
-      const value = this.form.controls.foodRepoApiKey.value.trim();
-      await this.database.updateFoodRepoApiKey(value || undefined);
+      const foodRepoValue = this.form.controls.foodRepoApiKey.value.trim();
+      const usdaValue = this.form.controls.usdaApiKey.value.trim();
+      await this.database.updateFoodRepoApiKey(foodRepoValue || undefined);
+      await this.database.updateUsdaApiKey(usdaValue || undefined);
+      this.missingUsdaKey.set(!usdaValue);
       this.saveMessage.set('Clés enregistrées localement.');
     } catch {
       this.saveError.set('Enregistrement impossible. Réessayez.');
@@ -46,6 +51,8 @@ export class ApiKeysPageComponent implements OnInit {
     const settings = await this.database.getAppSettings();
     this.form.patchValue({
       foodRepoApiKey: settings.foodRepoApiKey ?? '',
+      usdaApiKey: settings.usdaApiKey ?? '',
     });
+    this.missingUsdaKey.set(!settings.usdaApiKey?.trim());
   }
 }

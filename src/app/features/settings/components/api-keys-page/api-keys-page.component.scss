@@ -21,6 +21,18 @@
   color: var(--color-ink-secondary);
 }
 
+.api-keys-page__banner {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-secondary);
+}
+
+.api-keys-page__banner a {
+  color: inherit;
+}
+
 .api-keys-page__form {
   display: flex;
   flex-direction: column;

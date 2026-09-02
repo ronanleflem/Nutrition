@@ -24,6 +24,11 @@ export const FOOD_LIBRARY_ATTRIBUTIONS = {
     license: 'Creative Commons Attribution 4.0 (CC-BY 4.0)',
     licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
   },
+  usda: {
+    label: 'USDA FoodData Central',
+    url: 'https://fdc.nal.usda.gov/',
+    license: 'Domaine public (États-Unis)',
+  },
 } as const;
 
 export const OPENNUTRITION_INLINE_CREDIT =

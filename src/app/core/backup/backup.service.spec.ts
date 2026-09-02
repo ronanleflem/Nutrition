@@ -97,6 +97,18 @@ describe('BackupService', () => {
     const localSettings = await database.getAppSettings();
     expect(localSettings.foodRepoApiKey).toBe('secret-foodrepo-key');
   });
+
+  it('strips USDA API key from export payload', async () => {
+    await database.updateUsdaApiKey('secret-usda-key');
+
+    const payload = await backupService.buildExportPayload();
+    const settings = payload.data.appSettings[0];
+
+    expect(settings?.usdaApiKey).toBeUndefined();
+
+    const localSettings = await database.getAppSettings();
+    expect(localSettings.usdaApiKey).toBe('secret-usda-key');
+  });
 });
 
 function stubFileDownload(downloads: Array<{ blob: Blob; filename: string }>): void {

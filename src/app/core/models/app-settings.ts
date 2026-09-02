@@ -10,6 +10,8 @@ export interface AppSettings {
   shoppingListPlanFingerprint?: string;
   /** Clé API FoodRepo — stockage local uniquement (NFR-21). */
   foodRepoApiKey?: string;
+  /** Clé API USDA FoodData Central (api.data.gov) — stockage local uniquement (NFR-21). */
+  usdaApiKey?: string;
 }
 
 export function createDefaultAppSettings(): AppSettings {

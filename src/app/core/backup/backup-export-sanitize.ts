@@ -5,5 +5,6 @@ export function sanitizeAppSettingsForExport(settings: AppSettings): AppSettings
   return {
     ...settings,
     foodRepoApiKey: undefined,
+    usdaApiKey: undefined,
   };
 }

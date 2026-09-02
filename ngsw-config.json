@@ -64,6 +64,16 @@
         "maxAge": "0u",
         "timeout": "10s"
       }
+    },
+    {
+      "name": "usda-fdc-api-no-cache",
+      "urls": ["https://api.nal.usda.gov/**"],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 0,
+        "maxAge": "0u",
+        "timeout": "10s"
+      }
     }
   ]
 }
