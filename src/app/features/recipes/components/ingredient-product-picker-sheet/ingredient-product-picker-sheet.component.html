@@ -141,7 +141,10 @@
                     <span class="ingredient-picker__badge">{{ hit.sourceLabel }}</span>
                     <span class="ingredient-picker__name">{{ hit.displayName }}</span>
                   </span>
-                  @if (hit.subtitle) {
+                  @if (categoryLabelFromHit(hit); as category) {
+                    <app-food-category-label [category]="category" class="ingredient-picker__category" />
+                  }
+                  @if (hit.subtitle && hit.source !== 'ciqual') {
                     <span class="ingredient-picker__subtitle">{{ hit.subtitle }}</span>
                   }
                   <span class="ingredient-picker__macros">{{ formatMacros(hit) }}</span>

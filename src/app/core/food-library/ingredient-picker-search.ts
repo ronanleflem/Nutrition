@@ -22,6 +22,7 @@ export function toCatalogSearchHit(item: ProductCatalogItem): CatalogSearchHit |
     id: `catalog:${item.product.id}`,
     productId: item.product.id,
     displayName: item.product.name,
+    category: item.product.category,
     subtitle: reference.brand ?? reference.label,
     kcal: reference.kcalPer100g,
     proteinG: reference.proteinPer100g,

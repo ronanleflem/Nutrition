@@ -1,0 +1,14 @@
+.food-category-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: var(--font-size-meta);
+  color: var(--color-ink-secondary);
+}
+
+.food-category-label__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -10,11 +10,12 @@ import type { ProductReference } from '../../../../core/models/product-reference
 import { STORE_LABELS } from '../../../../core/models/store';
 import { PriorityBadgeComponent } from '../priority-badge/priority-badge.component';
 import { ReferenceRowComponent } from '../reference-row/reference-row.component';
+import { FoodCategoryLabelComponent } from '../../../../core/ui/food-category-label/food-category-label.component';
 import { ProductsService } from '../../services/products.service';
 
 @Component({
   selector: 'app-product-detail-page',
-  imports: [RouterLink, PriorityBadgeComponent, ReferenceRowComponent, ConfirmDialogComponent],
+  imports: [RouterLink, PriorityBadgeComponent, ReferenceRowComponent, ConfirmDialogComponent, FoodCategoryLabelComponent],
   templateUrl: './product-detail-page.component.html',
   styleUrl: './product-detail-page.component.scss',
 })

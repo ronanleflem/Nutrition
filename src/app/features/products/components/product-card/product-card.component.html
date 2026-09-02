@@ -3,8 +3,11 @@
     <app-priority-badge [priority]="item().product.priority" />
     <div class="product-card__info">
       <div class="product-card__title">{{ item().product.name }}</div>
-      @if (storeLine()) {
-        <div class="product-card__meta">{{ storeLine() }}</div>
+      @if (item().product.category) {
+        <app-food-category-label [category]="item().product.category" class="product-card__category" />
+      }
+      @if (storeLine(); as store) {
+        <div class="product-card__meta">{{ store }}</div>
       }
     </div>
     @if (item().preferredReference; as preferred) {

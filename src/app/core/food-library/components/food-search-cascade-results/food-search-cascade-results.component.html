@@ -14,7 +14,10 @@
               <span class="cascade-results__badge">{{ hit.sourceLabel }}</span>
               <span class="cascade-results__name">{{ hit.displayName }}</span>
             </div>
-            @if (hit.subtitle) {
+            @if (categoryLabelFromHit(hit); as category) {
+              <app-food-category-label [category]="category" class="cascade-results__category" />
+            }
+            @if (hit.subtitle && hit.source !== 'ciqual') {
               <span class="cascade-results__subtitle">{{ hit.subtitle }}</span>
             }
             <span class="cascade-results__macros">{{ formatMacros(hit) }}</span>

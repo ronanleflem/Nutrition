@@ -2,6 +2,8 @@ import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
+import { foodCategoryLabelFromHit } from '../../../../core/food-category/food-category-from-hit';
+import { FoodCategoryLabelComponent } from '../../../../core/ui/food-category-label/food-category-label.component';
 import { DatabaseService } from '../../../../core/database/database.service';
 import { OPENNUTRITION_INLINE_CREDIT } from '../../../../core/food-library/food-library-attribution';
 import {
@@ -42,7 +44,7 @@ const MIN_OFFLINE_QUERY_LENGTH = 1;
 
 @Component({
   selector: 'app-food-library-page',
-  imports: [RouterLink, ConfirmDialogComponent],
+  imports: [RouterLink, ConfirmDialogComponent, FoodCategoryLabelComponent],
   templateUrl: './food-library-page.component.html',
   styleUrl: './food-library-page.component.scss',
 })
@@ -67,6 +69,7 @@ export class FoodLibraryPageComponent implements OnDestroy {
 
   readonly starterPackLabel = FOOD_LIBRARY_STARTER_PACK_LABEL;
   readonly openNutritionCredit = OPENNUTRITION_INLINE_CREDIT;
+  readonly categoryLabelFromHit = foodCategoryLabelFromHit;
   readonly searchQuery = signal('');
   readonly sections = signal<FoodLibrarySearchSection[]>([]);
   readonly searching = signal(false);

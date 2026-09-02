@@ -179,10 +179,15 @@
   font-weight: var(--font-weight-semibold);
 }
 
-.ingredient-picker__subtitle {
+.ingredient-picker__subtitle,
+.ingredient-picker__category {
   margin-top: 4px;
   color: var(--color-ink-secondary);
   font-size: var(--font-size-meta);
+}
+
+.ingredient-picker__category {
+  display: block;
 }
 
 .ingredient-picker__macros {

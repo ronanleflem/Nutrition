@@ -15,6 +15,7 @@ export interface CatalogSearchHit {
   id: string;
   productId: string;
   displayName: string;
+  category?: string;
   subtitle?: string;
   kcal: number;
   proteinG: number;

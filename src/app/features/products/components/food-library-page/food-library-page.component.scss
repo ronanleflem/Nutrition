@@ -167,10 +167,15 @@
 }
 
 .food-library-page__subtitle,
+.food-library-page__category,
 .food-library-page__macros {
   display: block;
   color: var(--color-ink-secondary);
   font-size: var(--font-size-caption);
+}
+
+.food-library-page__category {
+  margin-top: 2px;
 }
 
 .food-library-page__import {
