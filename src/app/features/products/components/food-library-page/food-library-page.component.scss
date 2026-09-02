@@ -156,6 +156,25 @@
   opacity: 0.7;
 }
 
+.food-library-page__empty {
+  margin: 12px 0;
+  color: var(--color-ink-secondary);
+}
+
+.food-library-page__attribution {
+  margin: 8px 0 0;
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-caption);
+}
+
+.food-library-page__attribution a {
+  color: var(--color-ink-secondary);
+}
+
+.food-library-page__attribution--footer {
+  margin-top: 20px;
+}
+
 @media (min-width: 640px) {
   .food-library-page__item {
     flex-direction: row;

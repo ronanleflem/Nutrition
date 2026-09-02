@@ -1,8 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 
 import { DatabaseService } from '../database/database.service';
-import type { Product } from '../models/product';
-import type { ProductReference } from '../models/product-reference';
 import {
   buildImportPlanFromHit,
   findFoodLibraryDuplicate,
@@ -52,31 +50,6 @@ export class FoodLibraryImportService {
     return { status: 'created', product: updatedProduct, reference };
   }
 
-  async importOrGetExisting(
-    hit: FoodSearchHit,
-    resolution: 'use_existing' | 'create_new',
-    duplicate?: FoodLibraryImportResult & { status: 'duplicate' },
-  ): Promise<{ product: Product; reference?: ProductReference; created: boolean }> {
-    if (resolution === 'use_existing' && duplicate?.status === 'duplicate') {
-      return {
-        product: duplicate.match.existingProduct,
-        reference: duplicate.match.existingReference,
-        created: false,
-      };
-    }
-
-    const result = await this.importFromLibrary(hit, { forceCreate: true });
-    if (result.status !== 'created') {
-      throw new Error('Import forcé impossible.');
-    }
-
-    return {
-      product: result.product,
-      reference: result.reference,
-      created: true,
-    };
-  }
-
   async importStarterPack(
     ciqualIds: readonly string[] = FOOD_LIBRARY_STARTER_PACK_CIQUAL_IDS,
   ): Promise<StarterPackImportSummary> {
@@ -87,7 +60,7 @@ export class FoodLibraryImportService {
     let missing = 0;
 
     for (const ciqualId of ciqualIds) {
-      const hit = this.foodSearch.getCiqualHitById(ciqualId);
+      const hit = await this.foodSearch.getCiqualHitById(ciqualId);
       if (!hit) {
         missing += 1;
         continue;

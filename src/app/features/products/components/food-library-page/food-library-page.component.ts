@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
+import { OPENNUTRITION_INLINE_CREDIT } from '../../../../core/food-library/food-library-attribution';
 import { FoodLibraryImportService } from '../../../../core/food-library/food-library-import.service';
 import type { StarterPackImportSummary } from '../../../../core/food-library/food-library-import.service';
 import type { FoodLibraryImportDuplicate } from '../../../../core/food-library/food-library-import';
@@ -10,6 +11,8 @@ import { FoodSearchService } from '../../../../core/food-library/food-search.ser
 import type { FoodSearchHit, FoodSearchSection } from '../../../../core/food-library/food-search.types';
 import { formatMacrosSummary } from '../../../../core/models/product-reference';
 import { ProductsService } from '../../services/products.service';
+
+const SEARCH_DEBOUNCE_MS = 200;
 
 @Component({
   selector: 'app-food-library-page',
@@ -23,7 +26,12 @@ export class FoodLibraryPageComponent {
   private readonly productsService = inject(ProductsService);
   private readonly router = inject(Router);
 
+  private searchSequence = 0;
+  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
   readonly starterPackLabel = FOOD_LIBRARY_STARTER_PACK_LABEL;
+  readonly openNutritionCredit = OPENNUTRITION_INLINE_CREDIT;
+  readonly searchQuery = signal('');
   readonly sections = signal<FoodSearchSection[]>([]);
   readonly searching = signal(false);
   readonly importingId = signal<string | null>(null);
@@ -36,6 +44,8 @@ export class FoodLibraryPageComponent {
     match: FoodLibraryImportDuplicate['match'];
   } | null>(null);
 
+  readonly loadError = this.foodSearch.loadError;
+
   formatMacros(hit: FoodSearchHit): string {
     return formatMacrosSummary({
       kcalPer100g: hit.kcal,
@@ -46,9 +56,14 @@ export class FoodLibraryPageComponent {
     });
   }
 
-  async onSearchInput(event: Event): Promise<void> {
+  hasOpenNutritionResults(): boolean {
+    return this.sections().some((section) => section.source === 'opennutrition');
+  }
+
+  onSearchInput(event: Event): void {
     const query = (event.target as HTMLInputElement).value;
-    await this.runSearch(query);
+    this.searchQuery.set(query);
+    this.scheduleSearch(query);
   }
 
   async importHit(hit: FoodSearchHit): Promise<void> {
@@ -134,8 +149,21 @@ export class FoodLibraryPageComponent {
     return parts.join(', ');
   }
 
+  private scheduleSearch(query: string): void {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    this.searchDebounceTimer = setTimeout(() => {
+      this.searchDebounceTimer = null;
+      void this.runSearch(query);
+    }, SEARCH_DEBOUNCE_MS);
+  }
+
   private async runSearch(query: string): Promise<void> {
+    const sequence = ++this.searchSequence;
     const trimmed = query.trim();
+
     if (!trimmed) {
       this.sections.set([]);
       this.searchError.set(null);
@@ -147,12 +175,24 @@ export class FoodLibraryPageComponent {
 
     try {
       const result = await this.foodSearch.searchLocal(trimmed);
+      if (sequence !== this.searchSequence) {
+        return;
+      }
+
       this.sections.set(result.sections);
     } catch {
-      this.searchError.set('Bibliothèque offline indisponible.');
+      if (sequence !== this.searchSequence) {
+        return;
+      }
+
+      this.searchError.set(
+        this.foodSearch.loadError() ?? 'Bibliothèque offline indisponible.',
+      );
       this.sections.set([]);
     } finally {
-      this.searching.set(false);
+      if (sequence === this.searchSequence) {
+        this.searching.set(false);
+      }
     }
   }
 }

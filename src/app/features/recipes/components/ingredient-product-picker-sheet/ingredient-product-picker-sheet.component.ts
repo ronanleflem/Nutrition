@@ -3,15 +3,16 @@ import { FormsModule } from '@angular/forms';
 
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
 import type { FoodLibraryImportDuplicate } from '../../../../core/food-library/food-library-import';
+import { OPENNUTRITION_INLINE_CREDIT } from '../../../../core/food-library/food-library-attribution';
 import { FoodLibraryImportService } from '../../../../core/food-library/food-library-import.service';
 import { FoodSearchService } from '../../../../core/food-library/food-search.service';
-import {
-  isCatalogSearchHit,
-} from '../../../../core/food-library/ingredient-picker-search';
+import { isCatalogSearchHit } from '../../../../core/food-library/ingredient-picker-search';
 import type { IngredientSearchHit, IngredientSearchSection } from '../../../../core/food-library/ingredient-picker-search.types';
 import { formatMacrosSummary } from '../../../../core/models/product-reference';
 import type { ProductCatalogItem } from '../../../../core/models/product-catalog';
 import { ProductsService } from '../../../products/services/products.service';
+
+const SEARCH_DEBOUNCE_MS = 200;
 
 @Component({
   selector: 'app-ingredient-product-picker-sheet',
@@ -24,12 +25,16 @@ export class IngredientProductPickerSheetComponent {
   private readonly importService = inject(FoodLibraryImportService);
   private readonly productsService = inject(ProductsService);
 
+  private searchSequence = 0;
+  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
   readonly isCatalogSearchHit = isCatalogSearchHit;
 
   readonly catalog = input.required<ProductCatalogItem[]>();
   readonly selected = output<string>();
   readonly closed = output<void>();
 
+  readonly openNutritionCredit = OPENNUTRITION_INLINE_CREDIT;
   readonly searchQuery = signal('');
   readonly sections = signal<IngredientSearchSection[]>([]);
   readonly searching = signal(false);
@@ -41,6 +46,8 @@ export class IngredientProductPickerSheetComponent {
     match: FoodLibraryImportDuplicate['match'];
   } | null>(null);
 
+  readonly loadError = this.foodSearch.loadError;
+
   formatMacros(hit: IngredientSearchHit): string {
     return formatMacrosSummary({
       kcalPer100g: hit.kcal,
@@ -51,6 +58,10 @@ export class IngredientProductPickerSheetComponent {
     });
   }
 
+  hasOpenNutritionResults(): boolean {
+    return this.sections().some((section) => section.source === 'opennutrition');
+  }
+
   onBackdropClick(event: MouseEvent): void {
     if ((event.target as HTMLElement).dataset['backdrop'] === 'true') {
       this.closed.emit();
@@ -59,7 +70,7 @@ export class IngredientProductPickerSheetComponent {
 
   onSearchInput(value: string): void {
     this.searchQuery.set(value);
-    void this.runSearch(value);
+    this.scheduleSearch(value);
   }
 
   async selectHit(hit: IngredientSearchHit): Promise<void> {
@@ -125,8 +136,21 @@ export class IngredientProductPickerSheetComponent {
     this.pendingDuplicate.set(null);
   }
 
+  private scheduleSearch(query: string): void {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    this.searchDebounceTimer = setTimeout(() => {
+      this.searchDebounceTimer = null;
+      void this.runSearch(query);
+    }, SEARCH_DEBOUNCE_MS);
+  }
+
   private async runSearch(query: string): Promise<void> {
+    const sequence = ++this.searchSequence;
     const trimmed = query.trim();
+
     if (!trimmed) {
       this.sections.set([]);
       this.searchError.set(null);
@@ -138,12 +162,22 @@ export class IngredientProductPickerSheetComponent {
 
     try {
       const result = await this.foodSearch.searchForIngredientPicker(this.catalog(), trimmed);
+      if (sequence !== this.searchSequence) {
+        return;
+      }
+
       this.sections.set(result.sections);
     } catch {
-      this.searchError.set('Recherche indisponible.');
+      if (sequence !== this.searchSequence) {
+        return;
+      }
+
+      this.searchError.set(this.foodSearch.loadError() ?? 'Recherche indisponible.');
       this.sections.set([]);
     } finally {
-      this.searching.set(false);
+      if (sequence === this.searchSequence) {
+        this.searching.set(false);
+      }
     }
   }
 }

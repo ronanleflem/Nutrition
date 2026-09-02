@@ -43,7 +43,14 @@
       <p class="sheet__error" role="alert">{{ importError() }}</p>
     }
 
-    @if (searchQuery().trim() && !searching() && sections().length === 0) {
+    @if (loadError()) {
+      <p class="sheet__error" role="alert">
+        {{ loadError() }} Rechargez la page ou vérifiez votre connexion pour mettre en cache la
+        bibliothèque.
+      </p>
+    }
+
+    @if (searchQuery().trim() && !searching() && !searchError() && sections().length === 0) {
       <p class="sheet__empty" role="status">Aucun résultat pour « {{ searchQuery().trim() }} ».</p>
     } @else if (!searchQuery().trim()) {
       <p class="sheet__empty" role="status">
@@ -78,6 +85,14 @@
               </li>
             }
           </ul>
+
+          @if (section.source === 'opennutrition') {
+            <p class="ingredient-picker__attribution">
+              <a href="https://www.opennutrition.app/" rel="noopener noreferrer" target="_blank">
+                {{ openNutritionCredit }}
+              </a>
+            </p>
+          }
         </section>
       }
     }
@@ -89,8 +104,10 @@
     title="Produit déjà présent"
     [message]="duplicate.match.message + ' Utiliser l’existant ou créer quand même ?'"
     confirmLabel="Créer quand même"
-    cancelLabel="Utiliser l’existant"
+    cancelLabel="Utiliser l'existant"
+    dismissLabel="Fermer"
     (confirmed)="createDespiteDuplicate()"
     (cancelled)="useExistingProduct()"
+    (dismissed)="cancelDuplicateDialog()"
   />
 }

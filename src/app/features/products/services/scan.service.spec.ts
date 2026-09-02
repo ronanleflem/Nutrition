@@ -10,7 +10,38 @@ import { NUTRITION_DB_NAME } from '../../../core/database/nutrition-database';
 import { deleteNutritionDatabase } from '../../../core/database/nutrition-database.testing';
 import { NetworkStatusService } from '../../../core/network/network-status.service';
 import { OffApiService } from '../../../core/off-api/off-api.service';
+import { FoodSearchService } from '../../../core/food-library/food-search.service';
+import { FOOD_LIBRARY_MANIFEST_PATH } from '../../../core/food-library/food-library-paths';
+import {
+  CIQUAL_FIXTURE_CHUNK,
+  OPENNUTRITION_FIXTURE_CHUNK,
+} from '../../../core/food-library/food-search.fixtures';
 import { ScanService } from './scan.service';
+
+const MANIFEST = {
+  ciqual: 'ciqual-v2025.json',
+  opennutrition: 'opennutrition-v2025.1.json',
+};
+
+function mockLibraryFetch(): void {
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+    const url = String(input);
+
+    if (url.endsWith(FOOD_LIBRARY_MANIFEST_PATH) || url.endsWith('manifest.json')) {
+      return { ok: true, json: async () => MANIFEST } as Response;
+    }
+
+    if (url.includes(MANIFEST.ciqual)) {
+      return { ok: true, json: async () => CIQUAL_FIXTURE_CHUNK } as Response;
+    }
+
+    if (url.includes(MANIFEST.opennutrition)) {
+      return { ok: true, json: async () => OPENNUTRITION_FIXTURE_CHUNK } as Response;
+    }
+
+    return { ok: false, status: 404 } as Response;
+  });
+}
 
 describe('ScanService', () => {
   let service: ScanService;
@@ -80,14 +111,28 @@ describe('ScanService', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/products', 'scan', 'reference']);
   });
 
-  it('opens manual form when offline', async () => {
+  it('opens manual form when offline without library match', async () => {
     const network = TestBed.inject(NetworkStatusService);
     vi.spyOn(network, 'isOnline').mockReturnValue(false);
+    mockLibraryFetch();
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     await service.resolveBarcode('3017620422003');
 
     expect(service.flowState()?.status).toBe('offline');
+    expect(navigateSpy).toHaveBeenCalledWith(['/products', 'scan', 'reference']);
+  });
+
+  it('prefills reference form from offline OpenNutrition when barcode matches library', async () => {
+    const network = TestBed.inject(NetworkStatusService);
+    vi.spyOn(network, 'isOnline').mockReturnValue(false);
+    mockLibraryFetch();
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    await service.resolveBarcode('0013764027053');
+
+    expect(service.flowState()?.status).toBe('offline-library-found');
+    expect(service.flowState()?.prefill?.brand).toBe('Jif');
     expect(navigateSpy).toHaveBeenCalledWith(['/products', 'scan', 'reference']);
   });
 

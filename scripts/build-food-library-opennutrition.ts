@@ -107,6 +107,19 @@ async function main(): Promise<void> {
   const json = JSON.stringify(chunk);
   writeFileSync(outputFile, json, 'utf8');
 
+  const manifestPath = join(outputDir, 'manifest.json');
+  let manifest: Record<string, string> = {};
+  try {
+    manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as Record<string, string>;
+  } catch {
+    // manifest absent — créé ci-dessous
+  }
+  manifest.opennutrition = `opennutrition-v${libraryVersion}.json`;
+  if (!manifest.ciqual) {
+    manifest.ciqual = 'ciqual-v2025.json';
+  }
+  writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+
   const gzipBytes = gzipSync(json).byteLength;
   const gzipLimitBytes = 2 * 1024 * 1024;
 

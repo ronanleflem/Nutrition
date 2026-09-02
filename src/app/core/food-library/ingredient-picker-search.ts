@@ -31,6 +31,25 @@ export function toCatalogSearchHit(item: ProductCatalogItem): CatalogSearchHit |
   };
 }
 
+export function buildCatalogSearchText(item: ProductCatalogItem): string {
+  const reference = item.preferredReference;
+  const parts = [item.product.name];
+
+  if (reference?.brand) {
+    parts.push(reference.brand);
+  }
+
+  if (reference?.label) {
+    parts.push(reference.label);
+  }
+
+  if (reference?.barcode) {
+    parts.push(reference.barcode);
+  }
+
+  return normalizeFoodSearchText(parts.join(' '));
+}
+
 export function searchCatalogForIngredientPicker(
   catalog: ProductCatalogItem[],
   query: string,
@@ -43,7 +62,7 @@ export function searchCatalogForIngredientPicker(
 
   const eligible = catalog.filter((item) => !!item.product.preferredReferenceId);
   const filtered = eligible.filter((item) =>
-    matchesFoodSearchQuery(normalizeFoodSearchText(item.product.name), trimmed),
+    matchesFoodSearchQuery(buildCatalogSearchText(item), trimmed),
   );
 
   return filtered

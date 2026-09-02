@@ -72,6 +72,19 @@ function main(): void {
   const json = JSON.stringify(chunk);
   writeFileSync(outputFile, json, 'utf8');
 
+  const manifestPath = join(outputDir, 'manifest.json');
+  let manifest: Record<string, string> = {};
+  try {
+    manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as Record<string, string>;
+  } catch {
+    // manifest absent — créé ci-dessous
+  }
+  manifest.ciqual = `ciqual-v${libraryVersion}.json`;
+  if (!manifest.opennutrition) {
+    manifest.opennutrition = 'opennutrition-v2025.1.json';
+  }
+  writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+
   const gzipBytes = gzipSync(json).byteLength;
   const gzipLimitBytes = 1.5 * 1024 * 1024;
 

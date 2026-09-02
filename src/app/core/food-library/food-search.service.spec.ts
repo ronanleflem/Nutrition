@@ -6,7 +6,12 @@ import {
   CIQUAL_FIXTURE_CHUNK,
   OPENNUTRITION_FIXTURE_CHUNK,
 } from './food-search.fixtures';
-import { FOOD_LIBRARY_CHUNK_PATHS } from './food-library-paths';
+import { FOOD_LIBRARY_MANIFEST_PATH } from './food-library-paths';
+
+const MANIFEST = {
+  ciqual: 'ciqual-v2025.json',
+  opennutrition: 'opennutrition-v2025.1.json',
+};
 
 describe('FoodSearchService', () => {
   let service: FoodSearchService;
@@ -23,14 +28,22 @@ describe('FoodSearchService', () => {
   function mockLibraryFetch(): void {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       const url = String(input);
-      if (url.endsWith(FOOD_LIBRARY_CHUNK_PATHS.ciqual)) {
+
+      if (url.endsWith(FOOD_LIBRARY_MANIFEST_PATH) || url.endsWith('manifest.json')) {
+        return {
+          ok: true,
+          json: async () => MANIFEST,
+        } as Response;
+      }
+
+      if (url.includes(MANIFEST.ciqual)) {
         return {
           ok: true,
           json: async () => CIQUAL_FIXTURE_CHUNK,
         } as Response;
       }
 
-      if (url.endsWith(FOOD_LIBRARY_CHUNK_PATHS.opennutrition)) {
+      if (url.includes(MANIFEST.opennutrition)) {
         return {
           ok: true,
           json: async () => OPENNUTRITION_FIXTURE_CHUNK,
@@ -47,7 +60,7 @@ describe('FoodSearchService', () => {
     expect(service.loaded()).toBe(false);
     await service.searchLocal('oeuf');
     expect(service.loaded()).toBe(true);
-    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(3);
   });
 
   it('returns grouped local results without network calls after load', async () => {

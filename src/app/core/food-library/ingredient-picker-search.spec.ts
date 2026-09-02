@@ -63,6 +63,16 @@ describe('ingredient-picker-search', () => {
     expect(hits[0]?.displayName).toBe('Œuf');
   });
 
+  it('searches catalog by reference brand', () => {
+    const hits = searchCatalogForIngredientPicker(
+      [catalogItem({ name: 'Yaourt nature' }, { brand: 'Danone' })],
+      'danone',
+    );
+
+    expect(hits).toHaveLength(1);
+    expect(hits[0]?.displayName).toBe('Yaourt nature');
+  });
+
   it('merges sections in cascade order: catalogue, ciqual, opennutrition', () => {
     const catalogHits = searchCatalogForIngredientPicker([catalogItem()], 'oeuf');
     const libraryResult = {

@@ -1,8 +1,16 @@
 import { Injectable, signal } from '@angular/core';
 
 import type { ProductCatalogItem } from '../models/product-catalog';
-import type { CiqualFoodLibraryChunk } from './ciqual-library.types';
-import { FOOD_LIBRARY_CHUNK_PATHS } from './food-library-paths';
+import {
+  parseCiqualChunk,
+  parseOpenNutritionChunk,
+} from './food-library-chunk-validation';
+import {
+  FOOD_LIBRARY_BASE_PATH,
+  FOOD_LIBRARY_MANIFEST_PATH,
+  type FoodLibraryManifest,
+  foodLibraryChunkPath,
+} from './food-library-paths';
 import { FoodSearchIndex } from './food-search-index';
 import type { FoodSearchHit, FoodSearchLocalResult } from './food-search.types';
 import {
@@ -10,7 +18,6 @@ import {
   searchCatalogForIngredientPicker,
 } from './ingredient-picker-search';
 import type { IngredientPickerSearchResult } from './ingredient-picker-search.types';
-import type { OpenNutritionFoodLibraryChunk } from './opennutrition-library.types';
 
 @Injectable({ providedIn: 'root' })
 export class FoodSearchService {
@@ -85,14 +92,28 @@ export class FoodSearchService {
     return buildIngredientPickerSearchResult(catalogHits, libraryResult, catalogDurationMs);
   }
 
-  getCiqualHitById(id: string): FoodSearchHit | null {
+  async getCiqualHitById(id: string): Promise<FoodSearchHit | null> {
+    await this.ensureLibrariesLoaded();
     return this.index.getCiqualHitById(id);
   }
 
   private async loadLibraries(): Promise<void> {
+    const manifestResponse = await fetch(FOOD_LIBRARY_MANIFEST_PATH);
+    if (!manifestResponse.ok) {
+      throw new Error(`Manifeste bibliothèque introuvable (${manifestResponse.status}).`);
+    }
+
+    const manifest = (await manifestResponse.json()) as FoodLibraryManifest;
+    if (!manifest.ciqual?.trim() || !manifest.opennutrition?.trim()) {
+      throw new Error('Manifeste bibliothèque invalide.');
+    }
+
+    const ciqualUrl = foodLibraryChunkPath(manifest.ciqual);
+    const openNutritionUrl = foodLibraryChunkPath(manifest.opennutrition);
+
     const [ciqualResponse, openNutritionResponse] = await Promise.all([
-      fetch(FOOD_LIBRARY_CHUNK_PATHS.ciqual),
-      fetch(FOOD_LIBRARY_CHUNK_PATHS.opennutrition),
+      fetch(ciqualUrl),
+      fetch(openNutritionUrl),
     ]);
 
     if (!ciqualResponse.ok) {
@@ -103,10 +124,13 @@ export class FoodSearchService {
       throw new Error(`Chunk OpenNutrition introuvable (${openNutritionResponse.status}).`);
     }
 
-    const [ciqualChunk, openNutritionChunk] = await Promise.all([
-      ciqualResponse.json() as Promise<CiqualFoodLibraryChunk>,
-      openNutritionResponse.json() as Promise<OpenNutritionFoodLibraryChunk>,
+    const [ciqualRaw, openNutritionRaw] = await Promise.all([
+      ciqualResponse.json(),
+      openNutritionResponse.json(),
     ]);
+
+    const ciqualChunk = parseCiqualChunk(ciqualRaw);
+    const openNutritionChunk = parseOpenNutritionChunk(openNutritionRaw);
 
     this.index.load(ciqualChunk, openNutritionChunk);
     this.loaded.set(true);

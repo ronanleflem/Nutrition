@@ -50,6 +50,19 @@
     <p class="food-library-page__error" role="alert">{{ importError() }}</p>
   }
 
+  @if (loadError()) {
+    <p class="food-library-page__error" role="alert">
+      {{ loadError() }} Rechargez la page ou vérifiez votre connexion pour mettre en cache la
+      bibliothèque.
+    </p>
+  }
+
+  @if (searchQuery().trim() && !searching() && !searchError() && sections().length === 0) {
+    <p class="food-library-page__empty" role="status">
+      Aucun résultat pour « {{ searchQuery().trim() }} ».
+    </p>
+  }
+
   @for (section of sections(); track section.source) {
     <section class="food-library-page__section" [attr.aria-label]="section.sourceLabel">
       <h2 class="food-library-page__section-title">{{ section.sourceLabel }}</h2>
@@ -79,7 +92,23 @@
           </li>
         }
       </ul>
+
+      @if (section.source === 'opennutrition') {
+        <p class="food-library-page__attribution">
+          <a href="https://www.opennutrition.app/" rel="noopener noreferrer" target="_blank">
+            {{ openNutritionCredit }}
+          </a>
+        </p>
+      }
     </section>
+  }
+
+  @if (hasOpenNutritionResults()) {
+    <p class="food-library-page__attribution food-library-page__attribution--footer">
+      Voir aussi
+      <a routerLink="/settings/data-sources">Sources de données</a>
+      pour les licences complètes.
+    </p>
   }
 </section>
 
@@ -88,8 +117,10 @@
     title="Produit déjà présent"
     [message]="duplicate.match.message + ' Utiliser l’existant ou créer quand même ?'"
     confirmLabel="Créer quand même"
-    cancelLabel="Utiliser l’existant"
+    cancelLabel="Utiliser l'existant"
+    dismissLabel="Fermer"
     (confirmed)="createDespiteDuplicate()"
     (cancelled)="useExistingProduct()"
+    (dismissed)="cancelDuplicateDialog()"
   />
 }

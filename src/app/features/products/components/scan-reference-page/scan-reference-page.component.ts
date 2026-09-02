@@ -73,6 +73,10 @@ export class ScanReferencePageComponent implements OnInit, OnDestroy {
       return 'Pas de connexion — saisissez le produit manuellement.';
     }
 
+    if (state.status === 'offline-library-found') {
+      return 'Produit trouvé dans la bibliothèque offline — vérifiez et enregistrez.';
+    }
+
     if (state.status === 'network-error') {
       return 'Open Food Facts indisponible — saisissez le produit manuellement.';
     }

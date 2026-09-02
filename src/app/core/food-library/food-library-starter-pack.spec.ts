@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -22,5 +24,20 @@ describe('food-library-starter-pack', () => {
 
   it('labels the starter pack for the UI', () => {
     expect(FOOD_LIBRARY_STARTER_PACK_LABEL).toContain('50');
+  });
+
+  it('references ids that exist in the committed Ciqual chunk', () => {
+    const chunkPath = resolve(
+      process.cwd(),
+      'src/assets/food-library/ciqual-v2025.json',
+    );
+    const chunk = JSON.parse(readFileSync(chunkPath, 'utf8')) as {
+      entries: Array<{ id: string }>;
+    };
+    const ids = new Set(chunk.entries.map((entry) => entry.id));
+
+    for (const id of FOOD_LIBRARY_STARTER_PACK_CIQUAL_IDS) {
+      expect(ids.has(id), `missing starter-pack id ${id}`).toBe(true);
+    }
   });
 });

@@ -160,3 +160,13 @@
   color: var(--color-ink-secondary);
   font-size: var(--font-size-caption);
 }
+
+.ingredient-picker__attribution {
+  margin: 8px 0 0;
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-caption);
+}
+
+.ingredient-picker__attribution a {
+  color: var(--color-ink-secondary);
+}
