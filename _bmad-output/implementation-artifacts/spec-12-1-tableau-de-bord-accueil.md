@@ -92,6 +92,15 @@ context:
 - Given Settings, when the user enables « Masquer l'accueil au démarrage », then the next cold start opens Garde-manger.
 - Given the bottom nav, when the dashboard is open, then no extra tab is added and no tab is forced active.
 
+### Review Findings
+
+- [ ] [Review][Patch] Le filtre garde-manger n’écrit pas l’URL — « Tous » / « Afficher tout le stock » laisse `?filter=expiring` ; un rechargement ramène le filtre DLC [pantry-page.component.ts:61]
+- [ ] [Review][Patch] `/home` affiche deux `h1` « Accueil » (chrome + page) [home-page.component.html:2]
+- [ ] [Review][Patch] L’erreur d’accueil dit « Réessayez » sans bouton qui relance `load()` [home-page.component.html:6]
+- [ ] [Review][Patch] Le titre shell hors `/home` a `aria-label="Accueil"` alors que le texte visible est le nom de la page [shell.component.html:7]
+- [x] [Review][Defer] `loadDashboard` appelle `getRecipeDetail` par repas au lieu d’un titre déjà disponible via `listRecipes` [home-dashboard.service.ts:27] — deferred, pre-existing
+- [x] [Review][Defer] `updateHideHomeOnStartup` / `updateOnboardingCompleted` font un get+put hors transaction, comme les autres settings [database.service.ts:266] — deferred, pre-existing
+
 ## Spec Change Log
 
 ## Design Notes

@@ -83,6 +83,20 @@ context:
 - Given a recipe card or fiche, when the user opens the same menu, then pantry (one ingredient) and manual-list (all default-variant ingredients) run without changing route.
 - Given a successful shortcut, when the sheet closes, then the matching IndexedDB row exists and a factual French confirmation is shown.
 
+### Review Findings
+
+- [ ] [Review][Decision] La fiche recette a le ⋮ mais pas de long-press, alors que le Always exige les deux sur catalogue, cartes et fiche
+- [ ] [Review][Patch] Le relâchement après long-press clique le backdrop et referme le menu (fenêtre de suppress sur la carte seulement, 400 ms dès l’emit) [long-press.directive.ts:32]
+- [ ] [Review][Patch] « Ajouter à la liste manuelle » depuis une recette écrit les ingrédients un par un sans rollback [context-shortcuts.service.ts:176]
+- [ ] [Review][Patch] Le menu utilise `role="menu"` sans clavier / `aria-expanded` ; les feuilles existantes sont des `dialog` [context-action-menu.component.html:9]
+- [ ] [Review][Patch] `onRecipeSelected` n’ignore pas un second tap pendant `submitting` [use-in-recipe-sheet.component.ts:85]
+- [ ] [Review][Patch] `loadRecipes()` sans catch — rejet non géré, picker vide sans message [use-in-recipe-sheet.component.ts:37]
+- [ ] [Review][Patch] `contextmenu` est bloqué sans ouvrir le menu (pas d’équivalent desktop au long-press) [long-press.directive.ts:69]
+- [ ] [Review][Patch] Pendant `handleMenuAction` recette, le menu reste cliquable sans état occupé [context-shortcuts.service.ts:84]
+- [ ] [Review][Patch] Couleur d’erreur `#e57373` en dur et pas de `:focus-visible` sur close / boutons de feuille [context-shortcuts-sheet.scss:90]
+- [ ] [Review][Patch] `ContextShortcutsOutletComponent.ngOnDestroy` → `reset()` n’est jamais asserté (service `providedIn: 'root'`) [context-shortcuts-outlet.component.ts:25]
+- [x] [Review][Defer] `appendIngredientToDefaultVariant` relit la recette hors transaction puis `put` le snapshot [database.service.ts:1371] — deferred, pre-existing
+
 ## Spec Change Log
 
 ## Design Notes

@@ -88,6 +88,13 @@ context:
 - Given step 3 succeeds with the Omelette template (or a saved custom recipe), when the wizard finishes, then `onboardingCompleted` is true and Accueil opens.
 - Given Settings, when the user taps « Relancer le guidage recette », then the wizard opens again.
 
+### Review Findings
+
+- [ ] [Review][Decision] Auto-complétion du guidage dès qu’une recette existe — `resolveStartupPath` pose `onboardingCompleted` et saute le wizard, alors que le Always figé exige `/onboarding` tant que le flag n’est pas vrai après l’étape 3
+- [ ] [Review][Patch] `completeAndGoHome` ne remet pas `resumeAfterCustom` / `resumeAfterLibrary` à false — une visite ultérieure de `/onboarding` peut sauter à l’étape 3 [onboarding.service.ts:123]
+- [ ] [Review][Patch] Si `createRecipeWithFirstVariant` réussit puis `completeAfterCustomRecipe` échoue, un nouvel envoi recrée une recette [recipe-form-page.component.ts:180]
+- [ ] [Review][Patch] Aucun test n’observe le lien « ← Retour au guidage » de `/products/library?from=onboarding` [food-library-page.component.ts:62]
+
 ## Spec Change Log
 
 ## Design Notes
