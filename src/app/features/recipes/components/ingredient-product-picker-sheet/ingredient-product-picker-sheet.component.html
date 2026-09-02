@@ -68,7 +68,7 @@
     @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoStatus() === 'no_api_key') {
       <p class="sheet__offline" role="status">
         Élargissez avec FoodRepo —
-        <a routerLink="/settings/api-keys">Configurer FoodRepo</a>.
+        <a routerLink="/settings/data-sources" fragment="cles-api">Configurer FoodRepo</a>.
       </p>
     }
 
@@ -79,7 +79,7 @@
     @if (isOnline() && searchQuery().trim().length >= 3 && usdaStatus() === 'no_api_key') {
       <p class="sheet__offline" role="status">
         Complétez avec USDA —
-        <a routerLink="/settings/api-keys">Ajoutez votre clé USDA gratuite</a>.
+        <a routerLink="/settings/data-sources" fragment="cles-api">Ajoutez votre clé USDA gratuite</a>.
       </p>
     }
 

@@ -16,6 +16,8 @@ export const FOOD_LIBRARY_ATTRIBUTIONS = {
   openFoodFacts: {
     label: 'Open Food Facts',
     url: 'https://world.openfoodfacts.org/',
+    license: 'Open Database License (ODbL) 1.0',
+    licenseUrl: 'https://opendatacommons.org/licenses/odbl/',
     note: 'Les données issues d\'Open Food Facts sont © Open Food Facts contributors.',
   },
   foodRepo: {

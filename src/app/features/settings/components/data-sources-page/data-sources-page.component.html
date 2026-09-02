@@ -9,8 +9,93 @@
     APIs en lecture seule lorsque vous êtes connecté.
   </p>
 
-  <section class="data-sources-page__section" aria-labelledby="offline-sources-title">
-    <h2 id="offline-sources-title" class="data-sources-page__section-title">Bibliothèque offline</h2>
+  <section
+    id="cles-api"
+    class="data-sources-page__section"
+    aria-labelledby="api-keys-title"
+  >
+    <h2 id="api-keys-title" class="data-sources-page__section-title">Clés API</h2>
+    <p class="data-sources-page__keys-intro">
+      Les clés sont stockées uniquement sur cet appareil (IndexedDB) et ne sont pas incluses dans les
+      exports de sauvegarde par défaut.
+    </p>
+
+    @if (missingUsdaKey()) {
+      <p class="data-sources-page__banner" role="status">
+        Ajoutez votre clé USDA gratuite pour rechercher des aliments génériques et des marques
+        internationales via
+        <a href="https://fdc.nal.usda.gov/api-key-signup.html" rel="noopener noreferrer" target="_blank">
+          api.data.gov
+        </a>.
+      </p>
+    }
+
+    <form class="data-sources-page__form" [formGroup]="form" (ngSubmit)="save()">
+      <label class="data-sources-page__field">
+        <span class="data-sources-page__label">Clé USDA FoodData Central (Phase 3)</span>
+        <input
+          class="data-sources-page__input"
+          type="password"
+          autocomplete="off"
+          formControlName="usdaApiKey"
+          placeholder="Clé api.data.gov"
+        />
+        <span class="data-sources-page__hint">
+          Obtenez une clé gratuite sur
+          <a href="https://fdc.nal.usda.gov/api-key-signup.html" rel="noopener noreferrer" target="_blank">
+            api.data.gov
+          </a>
+          (1 000 requêtes/h) pour la section USDA en recherche en ligne.
+        </span>
+      </label>
+
+      <label class="data-sources-page__field">
+        <span class="data-sources-page__label">Clé FoodRepo (optionnelle)</span>
+        <input
+          class="data-sources-page__input"
+          type="password"
+          autocomplete="off"
+          formControlName="foodRepoApiKey"
+          placeholder="Token FoodRepo"
+        />
+        <span class="data-sources-page__hint">
+          Obtenez une clé gratuite sur
+          <a href="https://www.foodrepo.org/users/me/api_keys" rel="noopener noreferrer" target="_blank">
+            foodrepo.org
+          </a>
+          pour élargir la recherche marques (surtout CH/EU).
+        </span>
+      </label>
+
+      <label class="data-sources-page__field data-sources-page__field--checkbox">
+        <input type="checkbox" formControlName="preferManualOnlineSearch" />
+        <span class="data-sources-page__label">Recherche en ligne manuelle (NFR-19)</span>
+        <span class="data-sources-page__hint">
+          Si activé, les sources OFF, FoodRepo et USDA ne se lancent qu'après le bouton
+          « Rechercher en ligne » dans les pickers produit.
+        </span>
+      </label>
+
+      <button class="data-sources-page__submit" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
+      </button>
+    </form>
+
+    @if (saveMessage()) {
+      <p class="data-sources-page__status" role="status">{{ saveMessage() }}</p>
+    }
+
+    @if (saveError()) {
+      <p class="data-sources-page__error" role="alert">{{ saveError() }}</p>
+    }
+  </section>
+
+  <section
+    id="attributions"
+    class="data-sources-page__section"
+    aria-labelledby="attributions-title"
+  >
+    <h2 id="attributions-title" class="data-sources-page__section-title">Attributions</h2>
 
     <article class="data-sources-page__card">
       <h3 class="data-sources-page__card-title">
@@ -45,10 +130,6 @@
         </a>
       </p>
     </article>
-  </section>
-
-  <section class="data-sources-page__section" aria-labelledby="online-sources-title">
-    <h2 id="online-sources-title" class="data-sources-page__section-title">Enrichissement en ligne</h2>
 
     <article class="data-sources-page__card">
       <h3 class="data-sources-page__card-title">
@@ -59,7 +140,13 @@
       <p class="data-sources-page__card-body">
         Scan et recherche de produits de marque lorsque vous êtes connecté.
       </p>
-      <p class="data-sources-page__license">{{ sources.openFoodFacts.note }}</p>
+      <p class="data-sources-page__license">
+        Licence :
+        <a [href]="sources.openFoodFacts.licenseUrl" rel="noopener noreferrer" target="_blank">
+          {{ sources.openFoodFacts.license }}
+        </a>
+        · {{ sources.openFoodFacts.note }}
+      </p>
     </article>
 
     <article class="data-sources-page__card">
@@ -76,8 +163,6 @@
         <a [href]="sources.foodRepo.licenseUrl" rel="noopener noreferrer" target="_blank">
           {{ sources.foodRepo.license }}
         </a>
-        ·
-        <a routerLink="/settings/api-keys">Configurer FoodRepo</a>
       </p>
     </article>
 
@@ -90,11 +175,7 @@
       <p class="data-sources-page__card-body">
         Génériques et marques internationales — nécessite une clé api.data.gov gratuite.
       </p>
-      <p class="data-sources-page__license">
-        {{ sources.usda.license }}
-        ·
-        <a routerLink="/settings/api-keys">Configurer USDA</a>
-      </p>
+      <p class="data-sources-page__license">{{ sources.usda.license }}</p>
     </article>
   </section>
 
