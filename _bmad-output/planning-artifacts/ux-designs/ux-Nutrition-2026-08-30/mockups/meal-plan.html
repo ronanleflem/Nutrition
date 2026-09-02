@@ -7,25 +7,28 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, sans-serif; background: #0a0a0a; display: flex; justify-content: center; min-height: 100vh; }
-    .phone { width: 390px; min-height: 844px; background: #121212; color: #F5F5F5; display: flex; flex-direction: column; }
-    .header { padding: 16px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 18px; font-weight: 600; }
-    .week-label { font-size: 13px; color: #B0B0B0; }
-    .days { display: flex; gap: 4px; padding: 12px 16px; overflow-x: auto; border-bottom: 1px solid #333; }
-    .day { flex-shrink: 0; width: 44px; text-align: center; padding: 8px 4px; border-radius: 8px; font-size: 12px; color: #B0B0B0; }
-    .day.active { background: #2A2A2A; color: #7CB87C; font-weight: 600; }
+    .phone { width: 390px; min-height: 844px; background: #1A1F1A; color: #F5F5F5; display: flex; flex-direction: column; }
+    .header { padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 18px; font-weight: 600; color: #E8E0D4; }
+    .week-label { font-size: 13px; color: #B8C4B8; }
+    .banner { height: 100px; margin: 0 16px 8px; border-radius: 10px; background: #242B24; border: 1px solid #3A443A; display: flex; align-items: center; justify-content: center; color: #E8E0D4; }
+    .days { display: flex; gap: 4px; padding: 12px 16px; overflow-x: auto; border-bottom: 1px solid #3A443A; }
+    .day { flex-shrink: 0; width: 44px; text-align: center; padding: 8px 4px; border-radius: 8px; font-size: 12px; color: #B8C4B8; }
+    .day.active { background: #2F372F; color: #8FBC8F; font-weight: 600; }
     .day-name { font-size: 11px; }
     .day-num { font-size: 16px; font-weight: 600; margin-top: 2px; }
     .content { flex: 1; padding: 16px; }
-    .slot { background: #1E1E1E; border: 1px solid #333; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
-    .slot-label { font-size: 12px; color: #B0B0B0; text-transform: uppercase; letter-spacing: 0.05em; }
-    .slot-recipe { font-size: 16px; font-weight: 600; margin-top: 6px; }
-    .variant-chip { display: inline-block; margin-top: 8px; padding: 4px 10px; border: 1px solid #7CB87C; border-radius: 9999px; font-size: 13px; color: #7CB87C; }
-    .slot-empty { color: #6B6B6B; font-size: 15px; margin-top: 6px; }
-    .synth-link { display: block; text-align: center; margin-top: 16px; color: #7CB87C; font-size: 14px; text-decoration: none; }
-    .bottom-nav { height: 56px; background: #1E1E1E; border-top: 1px solid #333; display: flex; }
-    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: #B0B0B0; }
-    .nav-item.active { color: #7CB87C; font-weight: 600; }
+    .slot { background: #242B24; border: 1px solid #3A443A; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+    .slot-label { font-size: 12px; color: #B8C4B8; text-transform: uppercase; letter-spacing: 0.05em; }
+    .slot-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .slot-thumb { width: 40px; height: 40px; border-radius: 6px; flex-shrink: 0; background: linear-gradient(160deg, #5A7A58, #3d2a1c); }
+    .slot-recipe { font-size: 16px; font-weight: 600; }
+    .variant-chip { display: inline-block; margin-top: 8px; padding: 4px 10px; border: 1px solid #8FBC8F; border-radius: 9999px; font-size: 13px; color: #8FBC8F; }
+    .slot-empty { color: #6B756B; font-size: 15px; margin-top: 6px; }
+    .synth-link { display: block; text-align: center; margin-top: 16px; color: #8FBC8F; font-size: 14px; text-decoration: none; }
+    .bottom-nav { height: 56px; background: #242B24; border-top: 1px solid #3A443A; display: flex; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: #B8C4B8; }
+    .nav-item.active { color: #8FBC8F; font-weight: 600; }
     .nav-icon { font-size: 20px; }
   </style>
 </head>
@@ -35,6 +38,14 @@
       <h1>Plan de repas</h1>
       <span class="week-label">Sem. 35</span>
     </header>
+    <div class="banner" aria-hidden="true">
+      <svg width="180" height="64" viewBox="0 0 180 64" fill="none" stroke="#E8E0D4" stroke-width="1.6">
+        <rect x="18" y="16" width="144" height="36" rx="4"/>
+        <path d="M18 28h144M48 16v-8M90 16v-8M132 16v-8"/>
+        <circle cx="58" cy="40" r="3" fill="#E8E0D4" stroke="none"/>
+        <circle cx="100" cy="40" r="3" fill="#E8E0D4" stroke="none"/>
+      </svg>
+    </div>
     <div class="days">
       <div class="day"><div class="day-name">Lun</div><div class="day-num">25</div></div>
       <div class="day active"><div class="day-name">Mar</div><div class="day-num">26</div></div>
@@ -51,12 +62,18 @@
       </div>
       <div class="slot">
         <div class="slot-label">Déjeuner</div>
-        <div class="slot-recipe">Wrap poulet</div>
+        <div class="slot-row">
+          <div class="slot-thumb" role="img" aria-label="Wrap poulet"></div>
+          <div class="slot-recipe">Wrap poulet</div>
+        </div>
         <span class="variant-chip">Lavash ★★★★</span>
       </div>
       <div class="slot">
         <div class="slot-label">Dîner</div>
-        <div class="slot-recipe">Bowl riz poulet</div>
+        <div class="slot-row">
+          <div class="slot-thumb" style="background: linear-gradient(145deg, #6B756B, #3A2E24);" role="img" aria-label="Bowl riz poulet"></div>
+          <div class="slot-recipe">Bowl riz poulet</div>
+        </div>
         <span class="variant-chip">Par défaut</span>
       </div>
       <a class="synth-link" href="#">Voir la synthèse macros du mardi →</a>

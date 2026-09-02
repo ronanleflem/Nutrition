@@ -1,9 +1,9 @@
 ---
 name: Nutrition
-description: PWA nutrition personnelle mobile-first. Thème sombre par défaut, optimisée magasin — lisibilité OLED, accents sauge pour actions positives, densité fonctionnelle sans bruit visuel.
+description: PWA nutrition personnelle mobile-first. Thème sombre forêt, maison visuelle (photos + bandeaux), magasin nu — lisibilité OLED, accents mousse, densité sans bruit en Mode Courses.
 status: final
 created: 2026-08-30
-updated: 2026-08-30
+updated: 2026-09-02
 sources:
   - ../../prds/prd-Nutrition-2026-08-30/prd.md
   - ../../prds/prd-Nutrition-2026-08-30/addendum.md
@@ -112,15 +112,41 @@ components:
     fontSize: '{typography.meta.fontSize}'
     padding: '2px 8px'
     borderRadius: '{rounded.full}'
+  recipe-thumb:
+    size: 72px
+    radius: '{rounded.md}'
+    objectFit: cover
+  product-thumb:
+    size: 72px
+    radius: '{rounded.sm}'
+    objectFit: cover
+  plan-slot-thumb:
+    size: 40px
+    radius: '{rounded.sm}'
+    objectFit: cover
+  recipe-hero:
+    height: 180px
+    objectFit: cover
+  surface-banner:
+    height: 100px
+  recipe-placeholder:
+    fill: '{colors.surface-overlay}'
+    stroke: '{colors.ink-warm}'
 ---
 
 ## Brand & Style
 
-Nutrition est un **assistant courses-cuisine-planification** pour un usage solo en France — pas un journal calorique gamifié. L'esthétique suit cette posture : **fonctionnel, calme, sombre par défaut**, pensée pour le magasin (OLED, contraste élevé) et le dimanche soir (planification rapide).
+Nutrition est un **assistant courses-cuisine-planification** pour un usage solo en France — pas un journal calorique gamifié, pas une app lifestyle food. L'esthétique suit cette posture : **fonctionnel, calme, sombre par défaut**, pensée pour le magasin (OLED, contraste élevé) et le dimanche soir (planification rapide).
 
 Le thème sombre adopte une palette **forêt** : fond teinté vert profond, accents mousse (`{colors.accent-positive}`) pour les actions constructives, terre cuite (`{colors.accent-warning}`) pour les alertes douces, crème (`{colors.ink-warm}`) pour titres et empty states. Les indicateurs nutritionnels (priorité 🟢🟡, macros atteint/dépassé) utilisent une palette sémantique distincte des actions UI.
 
-Pas de streaks, pas de badges de gamification, pas d'animations distrayantes en Mode Courses.
+**Visuels persistants (maison / magasin).** À la maison, le thème a une présence réelle même listes remplies : bandeau illustré `{components.surface-banner}` sur Garde-manger, Recettes et Plan ; photos utilisateur sur les recettes ; vignettes OFF contraintes sur le catalogue. En magasin (Mode Courses, Objectifs, Paramètres, liste Courses normale) : **aucune photo, aucun bandeau**. Les empty states E9 (pictos ligne) restent pour les listes vides ; ils ne remplacent pas les bandeaux.
+
+Les illustrations (bandeaux, placeholder recette) partagent **une seule main** : trait simple, teintes forêt, pas de réalisme, pas trois styles. Une scène par surface (étagères / plat-planche / semaine-table), pas un motif unique répété.
+
+Pas de streaks, pas de badges de gamification, pas d'animations distrayantes en Mode Courses. Les bandeaux sont **statiques**.
+
+→ Référence : `mockups/recipes-list.html`, `mockups/photo-prompt.html`. Les spines gagnent en cas de conflit avec un mock.
 
 ## Colors
 
@@ -156,8 +182,9 @@ Pas de tailles display > 24px. Pas de tout-caps sauf labels FAB courts (« SCAN 
 
 - **Bottom nav** — Hauteur fixe `{spacing.bottom-nav-height}`, 5 onglets principaux + accès Paramètres via icône engrenage sur Garde-manger ou menu overflow.
 - **Touch minimum** — `{spacing.touch-min}` (44px) sur tout contrôle interactif ; Mode Courses : 52px minimum sur les lignes cochables.
-- **Listes denses** — Padding vertical `{spacing.3}` entre lignes catalogue ; `{spacing.4}` entre cartes.
-- **Modales** — Bottom sheet sur mobile (slide-up) ; max 90vh ; poignée de drag optionnelle.
+- **Listes denses** — Padding vertical `{spacing.3}` entre lignes catalogue ; `{spacing.4}` entre cartes. Vignettes `{components.recipe-thumb}` / `{components.product-thumb}` à gauche, texte à droite — pas de photo pleine largeur en liste.
+- **Bandeau de surface** — `{components.surface-banner.height}` sous le header, au-dessus de la liste, uniquement sur Garde-manger / Recettes / Plan. Les sous-écrans (formulaires, détail produit, Objectifs, Paramètres, Mode Courses) n'en ont pas.
+- **Modales** — Bottom sheet sur mobile (slide-up) ; max 90vh ; poignée de drag optionnelle. Prompt photo post-création = écran court plein cadre, pas une modale centrée.
 
 ## Elevation & Depth
 
@@ -166,9 +193,10 @@ Hiérarchie par **tonalité**, pas par ombre. Ombres réservées au FAB scan (`{
 ## Shapes
 
 - `{rounded.sm}` — Chips, badges score, inputs.
-- `{rounded.md}` — Cartes produit, panneaux, boutons.
+- `{rounded.md}` — Cartes produit, panneaux, boutons, vignette recette.
 - `{rounded.lg}` — Bottom sheets, modales.
 - `{rounded.full}` — FAB, pastilles priorité, barres macro.
+- Images : coins = ceux du conteneur ; `object-fit: cover` centré ; jamais de titre en overlay sur une photo de liste.
 
 ## Components
 
@@ -182,7 +210,39 @@ Flottant bas-droite sur l'écran Produits. Icône code-barres blanche. Ouvre le 
 
 ### Product card (`{components.product-card}`)
 
-Structure : pastille priorité (gauche) · nom générique (`{typography.title}`) · score chip · enseigne principale (`{typography.meta}`) · macros résumé 1 ligne (`{typography.numeric}`). Tap → détail produit avec liste des références.
+Structure : pastille priorité · **vignette** `{components.product-thumb}` (photo OFF de la ref préférée, sinon picto catégorie) · nom générique (`{typography.title}`) · score chip · enseigne principale (`{typography.meta}`) · macros résumé 1 ligne (`{typography.numeric}`). Tap → détail produit avec liste des références.
+
+→ `mockups/products-catalog.html`
+
+### Recipe card
+
+Liste Recettes : vignette `{components.recipe-thumb}` à gauche · titre (`{typography.title}`) + variante défaut (`{typography.meta}`) à droite. Photo utilisateur si présente ; sinon `{components.recipe-placeholder}` (illustration plat partagée, trait `{colors.ink-warm}` sur `{colors.surface-overlay}` — un dessin pour toutes les recettes sans photo, clairement non photo). Pas de titre en overlay.
+
+→ `mockups/recipes-list.html`
+
+### Recipe hero
+
+Détail recette : image `{components.recipe-hero.height}`, `cover` centré, sous le header. Sans photo : la même illustration plat, agrandie. Pas de bandeau de surface sur le détail.
+
+### Surface banner (`{components.surface-banner}`)
+
+Bandeau `{components.surface-banner.height}` en tête de Garde-manger, Recettes et Plan (listes remplies **et** vides). Scènes distinctes, une main : bocaux/étagères · plat/planche · semaine/table. `aria-hidden`. Ne remplace pas le titre d'écran.
+
+### Plan slot thumb (`{components.plan-slot-thumb}`)
+
+Créneau rempli : pastille `{components.plan-slot-thumb}` à gauche du nom de recette (photo ou placeholder plat). Créneau vide : pas d'image, placeholder « + ».
+
+→ `mockups/meal-plan.html`
+
+### Photo prompt
+
+Écran court après enregistrement d'une recette. Titre `{typography.title}` crème : « Ajouter une photo ? ». Trois actions pleine largeur ≥ `{spacing.touch-min}` : Galerie (primaire mousse), Caméra, Plus tard (`{colors.ink-secondary}`). Pas d'aperçu obligatoire avant choix.
+
+→ `mockups/photo-prompt.html`
+
+### Food category icon
+
+Picto ligne monochrome teinté `{colors.accent-positive-muted}`, accompagné du label texte catégorie. Jamais seul comme substitut d'une photo recette (le placeholder plat joue ce rôle).
 
 ### Reference row
 
@@ -228,3 +288,8 @@ Fond `{colors.scan-overlay}`, cadre de visée blanc, hint « Placez le code-barr
 | Animations ≤ 200ms hors Mode Courses | Animations, confettis, transitions longues en magasin |
 | Grammes affichés avec unité « g » explicite | Unités implicites ou pièces |
 | Français partout | Anglais dans l'UI |
+| Photos recettes + vignettes OFF à la maison | Photos / bandeaux en Mode Courses, Objectifs, Paramètres, liste Courses |
+| Vignette 72 px à gauche en liste | Cartes magazine, hero en liste, titre overlay sur photo |
+| Bandeau ~100 px, une scène par surface, une main | Motif unique invisible, hero lifestyle, 3 styles d'illustration |
+| Placeholder plat partagé si pas de photo | Carré vide, picto E9 seul, illustration unique par recette |
+| `cover` centré, resize à l'import | JPEG appareil 4 Mo affiché tel quel, écran de crop |
