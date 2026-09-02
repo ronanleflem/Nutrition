@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<TABLE>
+   <ALIM_GRP>
+      <alim_grp_code> 02 </alim_grp_code>
+      <alim_grp_nom_fr> fruits, légumes, légumineuses et oléagineux </alim_grp_nom_fr>
+      <alim_ssgrp_code> 0201 </alim_ssgrp_code>
+      <alim_ssgrp_nom_fr> œufs </alim_ssgrp_nom_fr>
+      <alim_ssssgrp_code> 020101 </alim_ssssgrp_code>
+      <alim_ssssgrp_nom_fr> œufs de poule </alim_ssssgrp_nom_fr>
+   </ALIM_GRP>
+   <ALIM_GRP>
+      <alim_grp_code> 02 </alim_grp_code>
+      <alim_grp_nom_fr> fruits, légumes, légumineuses et oléagineux </alim_grp_nom_fr>
+      <alim_ssgrp_code> 0202 </alim_ssgrp_code>
+      <alim_ssgrp_nom_fr> fruits </alim_ssgrp_nom_fr>
+      <alim_ssssgrp_code> 000000 </alim_ssssgrp_code>
+      <alim_ssssgrp_nom_fr> - </alim_ssssgrp_nom_fr>
+   </ALIM_GRP>
+</TABLE>

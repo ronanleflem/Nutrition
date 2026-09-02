@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<TABLE>
+   <COMPO>
+      <alim_code> 9001 </alim_code>
+      <const_code> 328 </const_code>
+      <teneur> 143 </teneur>
+   </COMPO>
+   <COMPO>
+      <alim_code> 9001 </alim_code>
+      <const_code> 25000 </const_code>
+      <teneur> 12,8 </teneur>
+   </COMPO>
+   <COMPO>
+      <alim_code> 9001 </alim_code>
+      <const_code> 40000 </const_code>
+      <teneur> 9,9 </teneur>
+   </COMPO>
+   <COMPO>
+      <alim_code> 9002 </alim_code>
+      <const_code> 328 </const_code>
+      <teneur> 52 </teneur>
+   </COMPO>
+   <COMPO>
+      <alim_code> 9002 </alim_code>
+      <const_code> 31000 </const_code>
+      <teneur> 11,3 </teneur>
+   </COMPO>
+   <COMPO>
+      <alim_code> 9002 </alim_code>
+      <const_code> 34100 </const_code>
+      <teneur missing=" " />
+   </COMPO>
+   <COMPO>
+      <alim_code> 9003 </alim_code>
+      <const_code> 25000 </const_code>
+      <teneur> 1 </teneur>
+   </COMPO>
+</TABLE>

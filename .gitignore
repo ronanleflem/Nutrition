@@ -26,3 +26,6 @@ exports/
 # Environment
 .env
 .env.local
+
+# Ciqual source XML (large; download via Zenodo doi:10.5281/zenodo.17550133)
+data/ciqual/
