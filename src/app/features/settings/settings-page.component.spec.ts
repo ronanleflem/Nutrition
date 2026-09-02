@@ -1,10 +1,15 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DatabaseService } from '../../core/database/database.service';
 import { deleteNutritionDatabase } from '../../core/database/nutrition-database.testing';
+import { OnboardingService } from '../onboarding/onboarding.service';
 import { SettingsPageComponent } from './settings-page.component';
+
+@Component({ template: 'Bienvenue', standalone: true })
+class DummyOnboardingComponent {}
 
 describe('SettingsPageComponent', () => {
   let fixture: ComponentFixture<SettingsPageComponent>;
@@ -15,7 +20,7 @@ describe('SettingsPageComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [SettingsPageComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([{ path: 'onboarding', component: DummyOnboardingComponent }])],
     }).compileComponents();
 
     database = TestBed.inject(DatabaseService);
@@ -107,5 +112,27 @@ describe('SettingsPageComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Enregistrement impossible. Réessayez.');
     expect(checkbox().checked).toBe(false);
+  });
+
+  it('opens the onboarding wizard from Relancer le guidage recette without clearing the flag', async () => {
+    await database.updateOnboardingCompleted(true);
+    await mount();
+
+    const onboarding = TestBed.inject(OnboardingService);
+    const resetSpy = vi.spyOn(onboarding, 'resetForRelaunch');
+    const link = fixture.nativeElement.querySelector(
+      '[data-action="relaunch-onboarding"]',
+    ) as HTMLAnchorElement;
+
+    expect(fixture.nativeElement.textContent).toContain('Relancer le guidage recette');
+    expect(link.getAttribute('href')).toBe('/onboarding');
+
+    link.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(resetSpy).toHaveBeenCalled();
+    expect((await database.getAppSettings()).onboardingCompleted).toBe(true);
+    expect(TestBed.inject(Router).url).toBe('/onboarding');
   });
 });

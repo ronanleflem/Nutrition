@@ -9,6 +9,9 @@ export async function resolveStartupPath(): Promise<string> {
   try {
     const database = inject(DatabaseService);
     const settings = await database.getAppSettings();
+    if (settings.onboardingCompleted !== true) {
+      return 'onboarding';
+    }
     return settings.hideHomeOnStartup === true ? 'pantry' : 'home';
   } catch {
     return 'home';
@@ -25,6 +28,12 @@ export const routes: Routes = [
         path: 'home',
         data: { title: 'Accueil' },
         loadChildren: () => import('./features/home/home.routes').then((m) => m.HOME_ROUTES),
+      },
+      {
+        path: 'onboarding',
+        data: { title: 'Bienvenue' },
+        loadChildren: () =>
+          import('./features/onboarding/onboarding.routes').then((m) => m.ONBOARDING_ROUTES),
       },
       {
         path: 'pantry',

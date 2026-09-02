@@ -1,8 +1,9 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import type { Product } from '../../../../core/models/product';
+import { OnboardingService } from '../../../onboarding/onboarding.service';
 import { ProductsService } from '../../../products/services/products.service';
 import { RecipesService } from '../../services/recipes.service';
 import { IngredientProductPickerSheetComponent } from '../ingredient-product-picker-sheet/ingredient-product-picker-sheet.component';
@@ -16,7 +17,9 @@ import { IngredientProductPickerSheetComponent } from '../ingredient-product-pic
 export class RecipeFormPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly recipesService = inject(RecipesService);
+  private readonly onboarding = inject(OnboardingService);
   readonly productsService = inject(ProductsService);
 
   readonly saving = signal(false);
@@ -186,6 +189,11 @@ export class RecipeFormPageComponent implements OnInit {
           slotLabel: ingredient.slotLabel || undefined,
         })),
       });
+
+      if (this.route.snapshot.queryParamMap.get('from') === 'onboarding') {
+        await this.onboarding.completeAfterCustomRecipe();
+        return;
+      }
 
       await this.router.navigate(['/recipes']);
     } catch (error) {

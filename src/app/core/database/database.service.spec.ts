@@ -80,6 +80,14 @@ describe('DatabaseService', () => {
     expect((await service.getAppSettings()).hideHomeOnStartup).toBeUndefined();
   });
 
+  it('persists onboardingCompleted without a schema bump', async () => {
+    await service.updateOnboardingCompleted(true);
+    expect((await service.getAppSettings()).onboardingCompleted).toBe(true);
+
+    await service.updateOnboardingCompleted(false);
+    expect((await service.getAppSettings()).onboardingCompleted).toBeUndefined();
+  });
+
   it('creates a product and returns it from listActiveProducts', async () => {
     const created = await service.createProduct({
       name: 'Skyr nature',

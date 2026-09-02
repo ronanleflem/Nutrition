@@ -1,0 +1,186 @@
+<section class="onboarding-page" [attr.data-step]="onboarding.currentStep()">
+  <p class="onboarding-page__progress">Étape {{ onboarding.currentStep() }} sur 3</p>
+
+  @if (stepError()) {
+    <p class="onboarding-page__error" role="alert">{{ stepError() }}</p>
+  }
+
+  @if (onboarding.currentStep() === 1) {
+    <h1 class="onboarding-page__title">Bienvenue</h1>
+    <p class="onboarding-page__intro">
+      Définissez vos objectifs macros journaliers. Vous pourrez les modifier plus tard dans
+      Paramètres.
+    </p>
+
+    <form class="onboarding-form" [formGroup]="form" (ngSubmit)="saveMacros()">
+      <fieldset class="onboarding-form__fieldset">
+        <legend class="onboarding-form__legend">Cibles journalières (optionnel)</legend>
+
+        <label class="onboarding-form__field">
+          <span class="onboarding-form__label">Énergie (kcal)</span>
+          <input
+            class="onboarding-form__input"
+            type="number"
+            min="0"
+            step="1"
+            inputmode="numeric"
+            formControlName="kcal"
+          />
+          @if (form.controls.kcal.touched && form.controls.kcal.hasError('min')) {
+            <span class="onboarding-form__field-error">La valeur doit être positive ou nulle.</span>
+          }
+        </label>
+
+        <label class="onboarding-form__field">
+          <span class="onboarding-form__label">Protéines (g)</span>
+          <input
+            class="onboarding-form__input"
+            type="number"
+            min="0"
+            step="0.1"
+            inputmode="decimal"
+            formControlName="proteinG"
+          />
+          @if (form.controls.proteinG.touched && form.controls.proteinG.hasError('min')) {
+            <span class="onboarding-form__field-error">La valeur doit être positive ou nulle.</span>
+          }
+        </label>
+
+        <label class="onboarding-form__field">
+          <span class="onboarding-form__label">Lipides (g)</span>
+          <input
+            class="onboarding-form__input"
+            type="number"
+            min="0"
+            step="0.1"
+            inputmode="decimal"
+            formControlName="fatG"
+          />
+          @if (form.controls.fatG.touched && form.controls.fatG.hasError('min')) {
+            <span class="onboarding-form__field-error">La valeur doit être positive ou nulle.</span>
+          }
+        </label>
+
+        <label class="onboarding-form__field">
+          <span class="onboarding-form__label">Glucides (g)</span>
+          <input
+            class="onboarding-form__input"
+            type="number"
+            min="0"
+            step="0.1"
+            inputmode="decimal"
+            formControlName="carbsG"
+          />
+          @if (form.controls.carbsG.touched && form.controls.carbsG.hasError('min')) {
+            <span class="onboarding-form__field-error">La valeur doit être positive ou nulle.</span>
+          }
+        </label>
+
+        <label class="onboarding-form__field">
+          <span class="onboarding-form__label">Fibres (g)</span>
+          <input
+            class="onboarding-form__input"
+            type="number"
+            min="0"
+            step="0.1"
+            inputmode="decimal"
+            formControlName="fiberG"
+          />
+          @if (form.controls.fiberG.touched && form.controls.fiberG.hasError('min')) {
+            <span class="onboarding-form__field-error">La valeur doit être positive ou nulle.</span>
+          }
+        </label>
+      </fieldset>
+
+      <div class="onboarding-page__actions">
+        <button
+          class="onboarding-page__button onboarding-page__button--primary"
+          type="submit"
+          [disabled]="savingMacros()"
+        >
+          {{ savingMacros() ? 'Enregistrement…' : 'Enregistrer et continuer' }}
+        </button>
+        <button
+          class="onboarding-page__button onboarding-page__button--secondary"
+          type="button"
+          data-action="skip-macros"
+          [disabled]="savingMacros()"
+          (click)="skipMacros()"
+        >
+          Passer
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (onboarding.currentStep() === 2) {
+    <h1 class="onboarding-page__title">Ingrédients de base</h1>
+    <p class="onboarding-page__intro">
+      Importez le pack Ciqual ou parcourez la bibliothèque. Ensuite seulement, vous pourrez
+      continuer.
+    </p>
+
+    <div class="onboarding-page__stack">
+      <button
+        class="onboarding-page__button onboarding-page__button--primary"
+        type="button"
+        data-action="import-pack"
+        [disabled]="importingPack()"
+        (click)="importStarterPack()"
+      >
+        {{ importingPack() ? 'Import en cours…' : starterPackLabel }}
+      </button>
+
+      @if (onboarding.packSummary(); as summary) {
+        <p class="onboarding-page__status" role="status">{{ formatPackSummary(summary) }}</p>
+      }
+
+      <a
+        class="onboarding-page__button onboarding-page__button--secondary"
+        routerLink="/products/library"
+        data-action="browse-library"
+        (click)="onBrowseLibrary()"
+      >
+        Parcourir la bibliothèque
+      </a>
+
+      <button
+        class="onboarding-page__button onboarding-page__button--primary"
+        type="button"
+        data-action="continue-step-2"
+        [disabled]="!onboarding.step2Ready()"
+        (click)="goToStep3()"
+      >
+        Continuer
+      </button>
+    </div>
+  }
+
+  @if (onboarding.currentStep() === 3) {
+    <h1 class="onboarding-page__title">Première recette</h1>
+    <p class="onboarding-page__intro">
+      Créez une omelette avec œuf, beurre et sel issus de la bibliothèque, ou une autre recette.
+    </p>
+
+    <div class="onboarding-page__stack">
+      <button
+        class="onboarding-page__button onboarding-page__button--primary"
+        type="button"
+        data-action="create-omelette"
+        [disabled]="creatingRecipe()"
+        (click)="createOmelette()"
+      >
+        {{ creatingRecipe() ? 'Création…' : 'Créer l’omelette' }}
+      </button>
+      <button
+        class="onboarding-page__button onboarding-page__button--secondary"
+        type="button"
+        data-action="create-custom"
+        [disabled]="creatingRecipe()"
+        (click)="startCustomRecipe()"
+      >
+        Créer une autre recette
+      </button>
+    </div>
+  }
+</section>

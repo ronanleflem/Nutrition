@@ -273,6 +273,16 @@ export class DatabaseService {
     });
   }
 
+  async updateOnboardingCompleted(completed: boolean): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    await this.db!.appSettings.put({
+      ...settings,
+      onboardingCompleted: completed || undefined,
+    });
+  }
+
   async putUsdaFoodCacheEntry(entry: UsdaFoodCacheEntry): Promise<void> {
     await this.initialize();
     await this.db!.usdaFoodCache.put(entry);

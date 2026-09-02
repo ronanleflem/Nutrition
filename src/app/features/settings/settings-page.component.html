@@ -22,6 +22,14 @@
       />
       <span class="settings-page__label">Masquer l'accueil au démarrage</span>
     </label>
+    <a
+      class="settings-page__link"
+      routerLink="/onboarding"
+      data-action="relaunch-onboarding"
+      (click)="onRelaunchOnboarding()"
+    >
+      Relancer le guidage recette
+    </a>
     @if (homePreferenceMessage()) {
       <p class="settings-page__status" role="status">{{ homePreferenceMessage() }}</p>
     }

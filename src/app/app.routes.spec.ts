@@ -58,6 +58,7 @@ describe('app routes', () => {
     { path: '/shopping', text: 'Liste de courses' },
     { path: '/goals', text: 'Objectifs macros' },
     { path: '/settings', text: 'Objectifs macros' },
+    { path: '/onboarding', text: 'Bienvenue' },
   ];
 
   for (const route of lazyRoutes) {
@@ -67,13 +68,26 @@ describe('app routes', () => {
     });
   }
 
-  it('redirects / to /home when hideHomeOnStartup is unset', async () => {
+  it('redirects / to /onboarding when onboardingCompleted is unset', async () => {
+    await navigateAndSettle('/', 'Bienvenue');
+    expect(router.url).toBe('/onboarding');
+  });
+
+  it('redirects / to /onboarding when hideHomeOnStartup is true and onboarding is incomplete', async () => {
+    await database.updateHideHomeOnStartup(true);
+    await navigateAndSettle('/', 'Bienvenue');
+    expect(router.url).toBe('/onboarding');
+  });
+
+  it('redirects / to /home when onboarding is completed and hideHomeOnStartup is unset', async () => {
+    await database.updateOnboardingCompleted(true);
     await database.updateHideHomeOnStartup(false);
     await navigateAndSettle('/', 'Repas du jour');
     expect(router.url).toBe('/home');
   });
 
-  it('redirects / to /pantry when hideHomeOnStartup is true', async () => {
+  it('redirects / to /pantry when onboarding is completed and hideHomeOnStartup is true', async () => {
+    await database.updateOnboardingCompleted(true);
     await database.updateHideHomeOnStartup(true);
     await navigateAndSettle('/', '+');
     expect(router.url).toBe('/pantry');

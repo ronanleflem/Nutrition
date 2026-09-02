@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 
 import { DatabaseService } from '../../core/database/database.service';
 import { SearchCacheService } from '../../core/food-library/search-cache.service';
+import { OnboardingService } from '../onboarding/onboarding.service';
 
 @Component({
   selector: 'app-settings-page',
@@ -13,6 +14,7 @@ import { SearchCacheService } from '../../core/food-library/search-cache.service
 export class SettingsPageComponent implements OnInit {
   private readonly searchCache = inject(SearchCacheService);
   private readonly database = inject(DatabaseService);
+  private readonly onboarding = inject(OnboardingService);
 
   readonly hideHomeOnStartup = signal(false);
   readonly homePreferenceReady = signal(false);
@@ -48,6 +50,10 @@ export class SettingsPageComponent implements OnInit {
     } finally {
       this.savingHomePreference.set(false);
     }
+  }
+
+  onRelaunchOnboarding(): void {
+    this.onboarding.resetForRelaunch();
   }
 
   async clearSearchHistory(): Promise<void> {
