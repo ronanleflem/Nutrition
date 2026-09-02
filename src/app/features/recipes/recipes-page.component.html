@@ -2,11 +2,7 @@
   @if (loading()) {
     <p class="recipes-page__status" role="status">Chargement…</p>
   } @else if (!hasRecipes()) {
-    <app-empty-state
-      message="Aucune recette pour le moment."
-      ctaLabel="Créer une recette"
-      ctaLink="/recipes/new"
-    />
+    <app-empty-state variant="recipes" />
   } @else {
     <ul class="recipes-page__list" aria-label="Recettes">
       @for (item of recipes(); track item.recipe.id) {

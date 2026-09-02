@@ -1,14 +1,7 @@
 @if (pantry.loading() && pantry.items().length === 0) {
   <p class="pantry__loading">Chargement du garde-manger…</p>
 } @else if (pantry.items().length === 0) {
-  <div class="pantry__empty" role="status">
-    <p class="pantry__empty-icon" aria-hidden="true">📦</p>
-    <p class="pantry__empty-title">Votre garde-manger est vide</p>
-    <p class="pantry__empty-text">Ajoutez ce que vous avez chez vous pour préparer vos courses.</p>
-    <button type="button" class="pantry__empty-cta" (click)="openAddSheet()">
-      Ajouter un produit
-    </button>
-  </div>
+  <app-empty-state variant="pantry" [ctaAsButton]="true" (ctaClicked)="openAddSheet()" />
 } @else {
   <div class="pantry__controls" aria-label="Tri et filtres garde-manger">
     <label class="pantry__control">
@@ -36,14 +29,16 @@
   </div>
 
   @if (pantry.displayItems().length === 0) {
-    <div class="pantry__empty" role="status">
-      <p class="pantry__empty-icon" aria-hidden="true">🔍</p>
-      <p class="pantry__empty-title">Aucun produit avec DLC proche</p>
-      <p class="pantry__empty-text">Aucune ligne correspond à ce filtre pour le moment.</p>
-      <button type="button" class="pantry__empty-cta pantry__empty-cta--secondary" (click)="showAllItems()">
-        Afficher tout le stock
-      </button>
-    </div>
+    <app-empty-state
+      variant="pantry"
+      title="Aucune alerte DLC proche"
+      message="Aucun produit ne correspond à ce filtre — tout va bien pour le moment."
+      [showIllustration]="false"
+      ctaLabel="Afficher tout le stock"
+      [ctaAsButton]="true"
+      [secondaryCta]="false"
+      (ctaClicked)="showAllItems()"
+    />
   } @else {
     <ul class="pantry__list" aria-label="Stock garde-manger">
       @for (item of pantry.displayItems(); track item.id) {

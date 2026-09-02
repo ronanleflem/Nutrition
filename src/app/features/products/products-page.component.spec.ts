@@ -94,7 +94,7 @@ describe('ProductsPageComponent', () => {
     fixture.detectChanges();
     await waitForLoad();
 
-    expect(fixture.nativeElement.textContent).toContain('Aucun produit dans votre catalogue.');
+    expect(fixture.nativeElement.textContent).toContain('Votre catalogue est prêt');
   });
 
   it('lists created products after load', async () => {

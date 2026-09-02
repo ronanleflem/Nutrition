@@ -50,7 +50,7 @@ describe('PantryPageComponent', () => {
     expect(pantry.items()).toHaveLength(0);
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Votre garde-manger est vide');
+    expect(text).toContain('Votre garde-manger vous attend');
     expect(text).toContain('Ajouter un produit');
   });
 
@@ -130,7 +130,7 @@ describe('PantryPageComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Aucun produit avec DLC proche');
+    expect(text).toContain('Aucune alerte DLC proche');
     expect(text).toContain('Afficher tout le stock');
   });
 });
