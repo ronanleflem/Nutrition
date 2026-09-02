@@ -25,14 +25,76 @@
         type="search"
         [ngModel]="searchQuery()"
         (ngModelChange)="onSearchInput($event)"
-        placeholder="Catalogue, Ciqual, OpenNutrition…"
+        placeholder="Catalogue, Ciqual, OpenNutrition, OFF…"
         autocomplete="off"
         autofocus
       />
     </label>
 
     @if (searching()) {
-      <p class="sheet__status" role="status">Recherche…</p>
+      <p class="sheet__status" role="status">
+        Recherche…
+        @if (searchingOnline()) {
+          <span class="sheet__status-online">Sources en ligne…</span>
+        }
+      </p>
+    }
+
+    @if (onlinePending() && isOnline() && searchQuery().trim().length >= 3) {
+      <button
+        class="sheet__online-button"
+        type="button"
+        [disabled]="searching()"
+        (click)="searchOnlineManually()"
+      >
+        Rechercher en ligne
+      </button>
+    }
+
+    @if (!isOnline() && searchQuery().trim().length >= 3) {
+      <p class="sheet__offline" role="status">
+        {{ offlineSearchBanner() }}
+      </p>
+    }
+
+    @if (offSearchMessage() && isOnline()) {
+      <p class="sheet__offline" role="status">{{ offSearchMessage() }}</p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoStatus() === 'unauthorized') {
+      <p class="sheet__offline" role="status">
+        Clé FoodRepo invalide —
+        <a routerLink="/settings/data-sources" fragment="cles-api">vérifiez vos paramètres</a>.
+      </p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoSearchMessage()) {
+      <p class="sheet__offline" role="status">{{ foodRepoSearchMessage() }}</p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoStatus() === 'no_api_key') {
+      <p class="sheet__offline" role="status">
+        Élargissez avec FoodRepo —
+        <a routerLink="/settings/data-sources" fragment="cles-api">Configurer FoodRepo</a>.
+      </p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && usdaStatus() === 'unauthorized') {
+      <p class="sheet__offline" role="status">
+        Clé USDA invalide —
+        <a routerLink="/settings/data-sources" fragment="cles-api">vérifiez vos paramètres</a>.
+      </p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && usdaSearchMessage()) {
+      <p class="sheet__offline" role="status">{{ usdaSearchMessage() }}</p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && usdaStatus() === 'no_api_key') {
+      <p class="sheet__offline" role="status">
+        Complétez avec USDA —
+        <a routerLink="/settings/data-sources" fragment="cles-api">Ajoutez votre clé USDA gratuite</a>.
+      </p>
     }
 
     @if (searchError()) {
@@ -54,12 +116,17 @@
       <p class="sheet__empty" role="status">Aucun résultat pour « {{ searchQuery().trim() }} ».</p>
     } @else if (!searchQuery().trim()) {
       <p class="sheet__empty" role="status">
-        Tapez un nom (ex. Œuf) pour chercher dans votre catalogue et la bibliothèque offline.
+        Tapez un nom (ex. Œuf) pour parcourir la cascade : catalogue, bibliothèque offline, puis
+        sources en ligne.
       </p>
     } @else {
       @for (section of sections(); track section.source) {
         <section class="ingredient-picker__section" [attr.aria-label]="section.sourceLabel">
           <h3 class="ingredient-picker__section-title">{{ section.sourceLabel }}</h3>
+
+          @if (isOnlineSectionLoading(section.source)) {
+            <p class="sheet__status" role="status">{{ section.sourceLabel }}…</p>
+          }
 
           <ul class="ingredient-picker__list">
             @for (hit of section.hits; track hit.id) {
@@ -78,7 +145,7 @@
                     <span class="ingredient-picker__subtitle">{{ hit.subtitle }}</span>
                   }
                   <span class="ingredient-picker__macros">{{ formatMacros(hit) }}</span>
-                  @if (!isCatalogSearchHit(hit) && importingId() === hit.id) {
+                  @if (!isCatalogSearchHit(hit) && !isOnlineSearchHit(hit) && importingId() === hit.id) {
                     <span class="ingredient-picker__importing">Import…</span>
                   }
                 </button>
@@ -91,6 +158,36 @@
               <a href="https://www.opennutrition.app/" rel="noopener noreferrer" target="_blank">
                 {{ openNutritionCredit }}
               </a>
+            </p>
+          }
+
+          @if (section.source === 'off') {
+            <p class="ingredient-picker__attribution">
+              Données
+              <a href="https://world.openfoodfacts.org/" rel="noopener noreferrer" target="_blank">
+                Open Food Facts
+              </a>
+              (ODbL)
+            </p>
+          }
+
+          @if (section.source === 'foodrepo') {
+            <p class="ingredient-picker__attribution">
+              Données
+              <a href="https://www.foodrepo.org/" rel="noopener noreferrer" target="_blank">FoodRepo</a>
+              (CC-BY 4.0) ·
+              <a routerLink="/settings/data-sources" fragment="cles-api">Configurer</a>
+            </p>
+          }
+
+          @if (section.source === 'usda') {
+            <p class="ingredient-picker__attribution">
+              Données
+              <a href="https://fdc.nal.usda.gov/" rel="noopener noreferrer" target="_blank">
+                USDA FoodData Central
+              </a>
+              (domaine public) ·
+              <a routerLink="/settings/data-sources" fragment="cles-api">Configurer USDA</a>
             </p>
           }
         </section>

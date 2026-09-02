@@ -81,6 +81,14 @@ export class ScanReferencePageComponent implements OnInit, OnDestroy {
       return 'Open Food Facts indisponible — saisissez le produit manuellement.';
     }
 
+    if (state.status === 'foodrepo-found') {
+      return 'Produit FoodRepo — vérifiez et enregistrez.';
+    }
+
+    if (state.status === 'usda-found') {
+      return 'Produit USDA — vérifiez et enregistrez.';
+    }
+
     return null;
   }
 

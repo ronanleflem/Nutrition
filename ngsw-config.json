@@ -44,6 +44,36 @@
         "maxAge": "0u",
         "timeout": "10s"
       }
+    },
+    {
+      "name": "open-food-facts-search-no-cache",
+      "urls": ["https://search.openfoodfacts.org/**"],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 0,
+        "maxAge": "0u",
+        "timeout": "10s"
+      }
+    },
+    {
+      "name": "foodrepo-api-no-cache",
+      "urls": ["https://www.foodrepo.org/**"],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 0,
+        "maxAge": "0u",
+        "timeout": "10s"
+      }
+    },
+    {
+      "name": "usda-fdc-api-no-cache",
+      "urls": ["https://api.nal.usda.gov/**"],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 0,
+        "maxAge": "0u",
+        "timeout": "10s"
+      }
     }
   ]
 }

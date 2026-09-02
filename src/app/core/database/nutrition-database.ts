@@ -10,9 +10,11 @@ import type { Recipe } from '../models/recipe';
 import type { RecipeIngredient } from '../models/recipe-ingredient';
 import type { RecipeVariant } from '../models/recipe-variant';
 import type { ShoppingListItem } from '../models/shopping-list-item';
+import type { UsdaFoodCacheEntry } from '../models/usda-food-cache';
+import type { SearchCacheEntry } from '../models/search-cache-entry';
 
 export const NUTRITION_DB_NAME = 'NutritionDb';
-export const NUTRITION_DB_VERSION = 8;
+export const NUTRITION_DB_VERSION = 10;
 
 export class NutritionDatabase extends Dexie {
   appSettings!: EntityTable<AppSettings, 'id'>;
@@ -25,6 +27,8 @@ export class NutritionDatabase extends Dexie {
   recipeIngredients!: EntityTable<RecipeIngredient, 'id'>;
   mealPlanEntries!: EntityTable<MealPlanEntry, 'id'>;
   shoppingListItems!: EntityTable<ShoppingListItem, 'id'>;
+  usdaFoodCache!: EntityTable<UsdaFoodCacheEntry, 'fdcId'>;
+  searchCache!: EntityTable<SearchCacheEntry, 'id'>;
 
   constructor(name = NUTRITION_DB_NAME) {
     super(name);
@@ -84,6 +88,33 @@ export class NutritionDatabase extends Dexie {
       mealPlanEntries: 'id, date, slot, recipeId',
     });
 
+    this.version(8).stores({
+      appSettings: 'id',
+      macroGoals: 'id',
+      products: 'id',
+      productReferences: 'id, productId, barcode, nutritionalScore, store',
+      pantryItems: 'id, productId, quantityG, updatedAt',
+      recipes: 'id, title, defaultVariantId, createdAt',
+      recipeVariants: 'id, recipeId',
+      recipeIngredients: 'id, variantId, productId',
+      mealPlanEntries: 'id, date, slot, recipeId',
+      shoppingListItems: 'id, productId, source, checked, createdAt',
+    });
+
+    this.version(9).stores({
+      appSettings: 'id',
+      macroGoals: 'id',
+      products: 'id',
+      productReferences: 'id, productId, barcode, nutritionalScore, store',
+      pantryItems: 'id, productId, quantityG, updatedAt',
+      recipes: 'id, title, defaultVariantId, createdAt',
+      recipeVariants: 'id, recipeId',
+      recipeIngredients: 'id, variantId, productId',
+      mealPlanEntries: 'id, date, slot, recipeId',
+      shoppingListItems: 'id, productId, source, checked, createdAt',
+      usdaFoodCache: 'fdcId, cachedAt',
+    });
+
     this.version(NUTRITION_DB_VERSION).stores({
       appSettings: 'id',
       macroGoals: 'id',
@@ -95,6 +126,8 @@ export class NutritionDatabase extends Dexie {
       recipeIngredients: 'id, variantId, productId',
       mealPlanEntries: 'id, date, slot, recipeId',
       shoppingListItems: 'id, productId, source, checked, createdAt',
+      usdaFoodCache: 'fdcId, cachedAt',
+      searchCache: 'id, source, queryNormalized, cachedAt',
     });
   }
 }

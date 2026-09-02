@@ -16,7 +16,20 @@ export const FOOD_LIBRARY_ATTRIBUTIONS = {
   openFoodFacts: {
     label: 'Open Food Facts',
     url: 'https://world.openfoodfacts.org/',
+    license: 'Open Database License (ODbL) 1.0',
+    licenseUrl: 'https://opendatacommons.org/licenses/odbl/',
     note: 'Les données issues d\'Open Food Facts sont © Open Food Facts contributors.',
+  },
+  foodRepo: {
+    label: 'FoodRepo',
+    url: 'https://www.foodrepo.org/',
+    license: 'Creative Commons Attribution 4.0 (CC-BY 4.0)',
+    licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+  },
+  usda: {
+    label: 'USDA FoodData Central',
+    url: 'https://fdc.nal.usda.gov/',
+    license: 'Domaine public (États-Unis)',
   },
 } as const;
 

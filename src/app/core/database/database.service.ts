@@ -60,6 +60,15 @@ import {
   type ShoppingListItem,
   type ShoppingListItemWithProduct,
 } from '../models/shopping-list-item';
+import type { UsdaFoodCacheEntry } from '../models/usda-food-cache';
+import { USDA_FOOD_CACHE_MAX_ENTRIES } from '../usda-fdc/usda-food-cache.constants';
+import type { SearchCacheEntry } from '../models/search-cache-entry';
+import type { OnlineSearchHit } from '../food-library/food-search-cascade.types';
+import {
+  matchesSearchCacheQuery,
+  toSearchCacheEntry,
+} from '../food-library/search-cache.utils';
+import { SEARCH_CACHE_MAX_ENTRIES, SEARCH_CACHE_TTL_MS } from '../food-library/search-cache.constants';
 import { NutritionalScoreService } from '../scoring/nutritional-score.service';
 import type { BackupData } from '../backup/backup-schema';
 import type { ImportSummary } from '../backup/backup-schema';
@@ -67,6 +76,7 @@ import {
   buildActiveBarcodeIndex,
   buildNameBrandIndex,
   collectImportedProductKeys,
+  mergeAppSettingsPreservingApiKeys,
   mergeLastExportAt,
   mergeMacroGoals,
   pickImportedAppSettings,
@@ -221,6 +231,110 @@ export class DatabaseService {
     });
   }
 
+  async updateFoodRepoApiKey(apiKey: string | undefined): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    const trimmed = apiKey?.trim();
+    await this.db!.appSettings.put({
+      ...settings,
+      foodRepoApiKey: trimmed || undefined,
+    });
+  }
+
+  async updateUsdaApiKey(apiKey: string | undefined): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    const trimmed = apiKey?.trim();
+    await this.db!.appSettings.put({
+      ...settings,
+      usdaApiKey: trimmed || undefined,
+    });
+  }
+
+  async updatePreferManualOnlineSearch(preferManual: boolean): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    await this.db!.appSettings.put({
+      ...settings,
+      preferManualOnlineSearch: preferManual || undefined,
+    });
+  }
+
+  async putUsdaFoodCacheEntry(entry: UsdaFoodCacheEntry): Promise<void> {
+    await this.initialize();
+    await this.db!.usdaFoodCache.put(entry);
+
+    const all = await this.db!.usdaFoodCache.orderBy('cachedAt').reverse().toArray();
+    if (all.length > USDA_FOOD_CACHE_MAX_ENTRIES) {
+      const stale = all.slice(USDA_FOOD_CACHE_MAX_ENTRIES);
+      await this.db!.usdaFoodCache.bulkDelete(stale.map((row) => row.fdcId));
+    }
+  }
+
+  async getUsdaFoodCacheEntry(fdcId: number): Promise<UsdaFoodCacheEntry | undefined> {
+    await this.initialize();
+    return (await this.db!.usdaFoodCache.get(fdcId)) ?? undefined;
+  }
+
+  async rememberSearchCacheHits(query: string, hits: OnlineSearchHit[]): Promise<void> {
+    await this.initialize();
+
+    await this.purgeExpiredSearchCacheEntries();
+
+    const db = this.db!;
+    const now = new Date().toISOString();
+
+    for (const hit of hits) {
+      await db.searchCache.put({
+        ...toSearchCacheEntry(query, hit),
+        cachedAt: now,
+      });
+    }
+
+    const all = await db.searchCache.orderBy('cachedAt').reverse().toArray();
+    if (all.length > SEARCH_CACHE_MAX_ENTRIES) {
+      const stale = all.slice(SEARCH_CACHE_MAX_ENTRIES);
+      await db.searchCache.bulkDelete(stale.map((entry) => entry.id));
+    }
+  }
+
+  async findSearchCacheEntries(query: string): Promise<SearchCacheEntry[]> {
+    await this.initialize();
+    await this.purgeExpiredSearchCacheEntries();
+
+    const trimmed = query.trim();
+    if (!trimmed) {
+      return [];
+    }
+
+    const all = await this.db!.searchCache.orderBy('cachedAt').reverse().toArray();
+    return all.filter((entry) => matchesSearchCacheQuery(entry, trimmed));
+  }
+
+  async countSearchCacheEntries(): Promise<number> {
+    await this.initialize();
+    await this.purgeExpiredSearchCacheEntries();
+    return this.db!.searchCache.count();
+  }
+
+  async clearSearchCache(): Promise<void> {
+    await this.initialize();
+    await this.db!.searchCache.clear();
+  }
+
+  private async purgeExpiredSearchCacheEntries(): Promise<void> {
+    await this.initialize();
+
+    const cutoff = new Date(Date.now() - SEARCH_CACHE_TTL_MS).toISOString();
+    const expired = await this.db!.searchCache.where('cachedAt').below(cutoff).primaryKeys();
+    if (expired.length > 0) {
+      await this.db!.searchCache.bulkDelete(expired);
+    }
+  }
+
   async replaceAllFromBackup(data: BackupData): Promise<void> {
     await this.initialize();
 
@@ -239,6 +353,9 @@ export class DatabaseService {
     ];
 
     await db.transaction('rw', tables, async () => {
+        const localSettings =
+          (await db.appSettings.get(APP_SETTINGS_SINGLETON_ID)) ?? createDefaultAppSettings();
+
         await db.shoppingListItems.clear();
         await db.mealPlanEntries.clear();
         await db.recipeIngredients.clear();
@@ -279,10 +396,9 @@ export class DatabaseService {
         await db.macroGoals.put(importedGoals ?? createDefaultMacroGoals());
 
         const importedSettings = pickImportedAppSettings(data.appSettings);
-        await db.appSettings.put({
-          ...(importedSettings ?? createDefaultAppSettings()),
-          id: APP_SETTINGS_SINGLETON_ID,
-        });
+        await db.appSettings.put(
+          mergeAppSettingsPreservingApiKeys(localSettings, importedSettings ?? createDefaultAppSettings()),
+        );
     });
   }
 

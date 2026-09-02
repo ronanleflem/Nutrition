@@ -1,6 +1,11 @@
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { NetworkStatusService } from '../network/network-status.service';
+import { DatabaseService } from '../database/database.service';
+import { deleteNutritionDatabase } from '../database/nutrition-database.testing';
+import { SearchCacheService } from './search-cache.service';
 import { FoodSearchService } from './food-search.service';
 import {
   CIQUAL_FIXTURE_CHUNK,
@@ -15,19 +20,107 @@ const MANIFEST = {
 
 describe('FoodSearchService', () => {
   let service: FoodSearchService;
+  let database: DatabaseService;
+  let onlineSignal = signal(true);
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
+  beforeEach(async () => {
+    await deleteNutritionDatabase();
+    onlineSignal = signal(true);
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: NetworkStatusService,
+          useValue: { isOnline: onlineSignal.asReadonly() },
+        },
+      ],
+    });
     service = TestBed.inject(FoodSearchService);
+    database = TestBed.inject(DatabaseService);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.restoreAllMocks();
+    await database.closeForTests();
+    await deleteNutritionDatabase();
   });
 
-  function mockLibraryFetch(): void {
+  function mockLibraryFetch(offSearchResponse?: unknown): void {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       const url = String(input);
+
+      if (url.includes('search.openfoodfacts.org/search')) {
+        return {
+          ok: true,
+          json: async () =>
+            offSearchResponse ?? {
+              hits: [
+                {
+                  code: '3033490004743',
+                  product_name_fr: 'Skyr',
+                  brands: ['Danone'],
+                  nutriments: {
+                    'energy-kcal_100g': 48,
+                    proteins_100g: 7,
+                    fat_100g: 0.1,
+                    carbohydrates_100g: 2.8,
+                  },
+                },
+              ],
+            },
+        } as Response;
+      }
+
+      if (url.includes('foodrepo.org/api/v3/products/_search')) {
+        return {
+          ok: true,
+          json: async () => ({
+            hits: {
+              hits: [
+                {
+                  _source: {
+                    barcode: '7613034623804',
+                    display_name_translations: { fr: 'Toblerone' },
+                    nutrients: {
+                      energy_kcal: { per_hundred: 530 },
+                      proteins: { per_hundred: 6 },
+                      fat: { per_hundred: 30 },
+                      carbohydrates: { per_hundred: 58 },
+                    },
+                  },
+                },
+              ],
+            },
+          }),
+        } as Response;
+      }
+
+      if (url.includes('api.nal.usda.gov/fdc/v1/foods/search')) {
+        return {
+          ok: true,
+          json: async () => ({
+            foods: [
+              {
+                fdcId: 173944,
+                description: 'Egg, whole, raw, fresh',
+                dataType: 'SR Legacy',
+                foodNutrients: [
+                  { nutrientNumber: '208', value: 143 },
+                  { nutrientNumber: '203', value: 12.6 },
+                  { nutrientNumber: '204', value: 9.5 },
+                  { nutrientNumber: '205', value: 0.7 },
+                ],
+              },
+            ],
+          }),
+        } as Response;
+      }
+
+      if (url.includes('/assets/food-library/fr-en-food-aliases.json')) {
+        return {
+          ok: true,
+          json: async () => ({ œuf: 'egg' }),
+        } as Response;
+      }
 
       if (url.endsWith(FOOD_LIBRARY_MANIFEST_PATH) || url.endsWith('manifest.json')) {
         return {
@@ -129,6 +222,7 @@ describe('FoodSearchService', () => {
         },
       ],
       'oeuf',
+      { includeOnline: false },
     );
 
     expect(result.sections.map((section) => section.source)).toEqual(['catalog', 'ciqual']);
@@ -137,5 +231,188 @@ describe('FoodSearchService', () => {
       productId: 'prod-oeuf',
       displayName: 'Œuf',
     });
+  });
+
+  it('searchForIngredientPicker appends OFF after library when online', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+    await database.updateFoodRepoApiKey(undefined);
+    await database.updateUsdaApiKey(undefined);
+
+    const result = await service.searchForIngredientPicker([], 'skyr danone', {
+      includeOnline: true,
+    });
+
+    expect(result.sections.map((section) => section.source)).toContain('off');
+    expect(result.onlineSearched).toBe(true);
+  });
+
+  it('searchLibraryPage appends OFF section when online', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+    await database.updateFoodRepoApiKey(undefined);
+
+    const result = await service.searchLibraryPage('skyr danone', { includeOnline: true });
+
+    expect(result.sections.map((section) => section.source)).toContain('off');
+    expect(result.offStatus).toBe('ok');
+    expect(result.sections.find((section) => section.source === 'off')?.hits[0]).toMatchObject({
+      source: 'off',
+      barcode: '3033490004743',
+    });
+  });
+
+  it('searchLibraryPage appends FoodRepo section after OFF when key is configured', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+    await database.updateFoodRepoApiKey('test-key');
+    await database.updateUsdaApiKey(undefined);
+
+    const result = await service.searchLibraryPage('toblerone');
+
+    const sources = result.sections.map((section) => section.source);
+    expect(sources.indexOf('off')).toBeGreaterThan(-1);
+    expect(sources.indexOf('foodrepo')).toBeGreaterThan(sources.indexOf('off'));
+    expect(result.foodRepoStatus).toBe('ok');
+  });
+
+  it('searchLibraryPage appends USDA section after FoodRepo when key is configured', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+    await database.updateFoodRepoApiKey('test-key');
+    await database.updateUsdaApiKey('usda-key');
+
+    const result = await service.searchLibraryPage('oeuf');
+
+    const sources = result.sections.map((section) => section.source);
+    expect(sources.indexOf('foodrepo')).toBeGreaterThan(sources.indexOf('off'));
+    expect(sources.indexOf('usda')).toBeGreaterThan(sources.indexOf('foodrepo'));
+    expect(result.usdaStatus).toBe('ok');
+    expect(result.sections.find((section) => section.source === 'usda')?.hits[0]).toMatchObject({
+      source: 'usda',
+      fdcId: 173944,
+    });
+  });
+
+  it('searchLibraryPage skips online providers when offline', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(false);
+    await database.updateFoodRepoApiKey('test-key');
+    await database.updateUsdaApiKey('usda-key');
+
+    const result = await service.searchLibraryPage('skyr danone', { includeOnline: true });
+
+    expect(
+      result.sections.every(
+        (section) =>
+          section.source !== 'off' && section.source !== 'foodrepo' && section.source !== 'usda',
+      ),
+    ).toBe(true);
+    expect(result.offStatus).toBeUndefined();
+    expect(result.foodRepoStatus).toBeUndefined();
+    expect(result.usdaStatus).toBeUndefined();
+    expect(
+      vi
+        .mocked(globalThis.fetch)
+        .mock.calls.some((call) => String(call[0]).includes('search.openfoodfacts.org')),
+    ).toBe(false);
+    expect(
+      vi
+        .mocked(globalThis.fetch)
+        .mock.calls.some((call) => String(call[0]).includes('foodrepo.org')),
+    ).toBe(false);
+    expect(
+      vi
+        .mocked(globalThis.fetch)
+        .mock.calls.some((call) => String(call[0]).includes('api.nal.usda.gov')),
+    ).toBe(false);
+  });
+
+  it('searchLibraryPage reports no_api_key for FoodRepo without configured key', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+    await database.updateFoodRepoApiKey(undefined);
+    await database.updateUsdaApiKey(undefined);
+
+    const result = await service.searchLibraryPage('toblerone');
+
+    expect(result.sections.some((section) => section.source === 'foodrepo')).toBe(false);
+    expect(result.foodRepoStatus).toBe('no_api_key');
+  });
+
+  it('searchLibraryPage serves cached OFF hits when offline without provider calls', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(false);
+
+    const searchCache = TestBed.inject(SearchCacheService);
+    await searchCache.rememberSuccessfulHits('skyr danone', [
+      {
+        source: 'off',
+        sourceLabel: 'Open Food Facts',
+        id: 'off:3033490004743',
+        barcode: '3033490004743',
+        displayName: 'Skyr',
+        kcal: 48,
+        proteinG: 7,
+        fatG: 0.1,
+        carbsG: 2.8,
+        fiberG: 0,
+        prefill: {
+          barcode: '3033490004743',
+          label: 'Skyr',
+          kcalPer100g: 48,
+          proteinPer100g: 7,
+          fatPer100g: 0.1,
+          carbsPer100g: 2.8,
+        },
+      },
+    ]);
+
+    const result = await service.searchLibraryPage('skyr', { includeOnline: true });
+
+    expect(result.sections.map((section) => section.source)).toContain('off');
+    expect(result.onlineSearched).toBe(false);
+    expect(
+      vi
+        .mocked(globalThis.fetch)
+        .mock.calls.some((call) => String(call[0]).includes('search.openfoodfacts.org')),
+    ).toBe(false);
+  });
+
+  it('searchLibraryPage persists successful online hits for offline reuse', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+    await database.updateFoodRepoApiKey(undefined);
+    await database.updateUsdaApiKey(undefined);
+
+    await service.searchLibraryPage('skyr danone', { includeOnline: true });
+    expect(await TestBed.inject(SearchCacheService).countEntries()).toBeGreaterThan(0);
+
+    onlineSignal.set(false);
+    vi.mocked(globalThis.fetch).mockClear();
+
+    const offlineResult = await service.searchLibraryPage('skyr', { includeOnline: true });
+
+    expect(offlineResult.sections.find((section) => section.source === 'off')?.hits[0]).toMatchObject({
+      source: 'off',
+      barcode: '3033490004743',
+    });
+    expect(
+      vi
+        .mocked(globalThis.fetch)
+        .mock.calls.some((call) => String(call[0]).includes('search.openfoodfacts.org')),
+    ).toBe(false);
+  });
+
+  it('searchLibraryPage reports no_api_key for USDA without configured key', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+    await database.updateFoodRepoApiKey('test-key');
+    await database.updateUsdaApiKey(undefined);
+
+    const result = await service.searchLibraryPage('oeuf');
+
+    expect(result.sections.some((section) => section.source === 'usda')).toBe(false);
+    expect(result.usdaStatus).toBe('no_api_key');
   });
 });

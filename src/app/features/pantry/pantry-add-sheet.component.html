@@ -20,83 +20,80 @@
       </button>
     </header>
 
-  @if (isEditMode()) {
-    <p class="sheet__product-name">{{ item()?.productName }}</p>
-  }
-
-  <form class="sheet__form" [formGroup]="form" (ngSubmit)="submit()">
-    @if (!isEditMode() && hasProducts()) {
-      <label class="field">
-        <span class="field__label">Produit</span>
-        <select class="field__control" formControlName="productId">
-          @for (product of pantry.products(); track product.id) {
-            <option [value]="product.id">{{ product.name }}</option>
-          }
-        </select>
-      </label>
+    @if (isEditMode()) {
+      <p class="sheet__product-name">{{ item()?.productName }}</p>
     }
 
-    @if (!isEditMode() && !hasProducts()) {
+    <form class="sheet__form" [formGroup]="form" (ngSubmit)="submit()">
+      @if (!isEditMode()) {
+        <div class="field">
+          <span class="field__label">Produit</span>
+          @if (selectedProductName()) {
+            <p class="sheet__selected-product">{{ selectedProductName() }}</p>
+          } @else {
+            <p class="sheet__hint">Recherchez dans votre catalogue, la bibliothèque offline ou en ligne.</p>
+          }
+          <button class="btn btn--secondary" type="button" (click)="openProductPicker()">
+            {{ selectedProductName() ? 'Changer de produit' : 'Choisir un produit' }}
+          </button>
+        </div>
+      }
+
       <label class="field">
-        <span class="field__label">Nom du produit</span>
+        <span class="field__label">Quantité (g)</span>
+        <input
+          class="field__control"
+          type="number"
+          min="1"
+          step="1"
+          formControlName="quantityG"
+          inputmode="numeric"
+        />
+      </label>
+
+      <label class="field">
+        <span class="field__label">Date limite (optionnel)</span>
+        <input class="field__control" type="date" formControlName="expiryDate" />
+      </label>
+
+      <label class="field">
+        <span class="field__label">Emplacement (optionnel)</span>
         <input
           class="field__control"
           type="text"
-          formControlName="newProductName"
-          placeholder="Ex. Yaourt nature"
+          formControlName="location"
+          placeholder="Ex. Frigo, Cellier"
           autocomplete="off"
         />
       </label>
-      <p class="sheet__hint">Créez un produit générique pour l’ajouter au garde-manger.</p>
-    }
 
-    <label class="field">
-      <span class="field__label">Quantité (g)</span>
-      <input
-        class="field__control"
-        type="number"
-        min="1"
-        step="1"
-        formControlName="quantityG"
-        inputmode="numeric"
-      />
-    </label>
-
-    <label class="field">
-      <span class="field__label">Date limite (optionnel)</span>
-      <input class="field__control" type="date" formControlName="expiryDate" />
-    </label>
-
-    <label class="field">
-      <span class="field__label">Emplacement (optionnel)</span>
-      <input
-        class="field__control"
-        type="text"
-        formControlName="location"
-        placeholder="Ex. Frigo, Cellier"
-        autocomplete="off"
-      />
-    </label>
-
-    @if (errorMessage()) {
-      <p class="sheet__error" role="alert">{{ errorMessage() }}</p>
-    }
-
-    <div class="sheet__actions">
-      @if (isEditMode()) {
-        <button
-          type="button"
-          class="btn btn--danger"
-          [disabled]="submitting()"
-          (click)="deleteItem()"
-        >
-          Supprimer
-        </button>
+      @if (errorMessage()) {
+        <p class="sheet__error" role="alert">{{ errorMessage() }}</p>
       }
-      <button type="submit" class="btn btn--primary" [disabled]="submitting()">
-        {{ submitting() ? 'Enregistrement…' : 'Enregistrer' }}
-      </button>
-    </div>
-  </form>
+
+      <div class="sheet__actions">
+        @if (isEditMode()) {
+          <button
+            type="button"
+            class="btn btn--danger"
+            [disabled]="submitting()"
+            (click)="deleteItem()"
+          >
+            Supprimer
+          </button>
+        }
+        <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+          {{ submitting() ? 'Enregistrement…' : 'Enregistrer' }}
+        </button>
+      </div>
+    </form>
   </section>
 </div>
+
+@if (pickerOpen()) {
+  <app-ingredient-product-picker-sheet
+    [catalog]="catalog()"
+    (selected)="onProductSelected($event)"
+    (closed)="closeProductPicker()"
+  />
+}

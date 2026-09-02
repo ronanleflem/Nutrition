@@ -10,4 +10,26 @@
     </a>
     <a class="settings-page__link" routerLink="/settings/data-sources">Sources de données</a>
   </nav>
+
+  <section class="settings-page__section" aria-label="Recherche en ligne">
+    <h2 class="settings-page__section-title">Recherche en ligne</h2>
+    <p class="settings-page__section-intro">
+      Les 30 dernières réponses OFF, FoodRepo et USDA sont conservées localement pendant 30 jours
+      pour réutilisation hors ligne limitée.
+    </p>
+    <button
+      class="settings-page__danger-button"
+      type="button"
+      [disabled]="clearingSearchHistory()"
+      (click)="clearSearchHistory()"
+    >
+      {{ clearingSearchHistory() ? 'Effacement…' : 'Effacer historique recherche' }}
+    </button>
+    @if (searchHistoryMessage()) {
+      <p class="settings-page__status" role="status">{{ searchHistoryMessage() }}</p>
+    }
+    @if (searchHistoryError()) {
+      <p class="settings-page__error" role="alert">{{ searchHistoryError() }}</p>
+    }
+  </section>
 </section>

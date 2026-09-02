@@ -3,6 +3,15 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { OFF_API_ORIGIN, OFF_API_URL_PATTERN } from './off-api-origin';
+import { OFF_SEARCH_ORIGIN, OFF_SEARCH_URL_PATTERN } from '../off-api/off-search-origin';
+import {
+  FOODREPO_API_ORIGIN,
+  FOODREPO_API_URL_PATTERN,
+} from '../foodrepo-api/foodrepo-search-origin';
+import {
+  USDA_FDC_API_ORIGIN,
+  USDA_FDC_API_URL_PATTERN,
+} from '../usda-fdc/usda-fdc-origin';
 
 describe('ngsw-config.json', () => {
   const configPath = resolve(process.cwd(), 'ngsw-config.json');
@@ -52,6 +61,32 @@ describe('ngsw-config.json', () => {
     expect(offGroup?.urls[0]).toContain(OFF_API_ORIGIN);
     expect(offGroup?.cacheConfig.maxSize).toBe(0);
     expect(offGroup?.cacheConfig.maxAge).toBe('0u');
+  });
+
+  it('does not persist Open Food Facts Search-a-licious responses in the service worker', () => {
+    const searchGroup = config.dataGroups.find(
+      (group) => group.name === 'open-food-facts-search-no-cache',
+    );
+    expect(searchGroup?.urls).toContain(OFF_SEARCH_URL_PATTERN);
+    expect(searchGroup?.urls[0]).toContain(OFF_SEARCH_ORIGIN);
+    expect(searchGroup?.cacheConfig.maxSize).toBe(0);
+    expect(searchGroup?.cacheConfig.maxAge).toBe('0u');
+  });
+
+  it('does not persist FoodRepo API responses in the service worker', () => {
+    const foodRepoGroup = config.dataGroups.find((group) => group.name === 'foodrepo-api-no-cache');
+    expect(foodRepoGroup?.urls).toContain(FOODREPO_API_URL_PATTERN);
+    expect(foodRepoGroup?.urls[0]).toContain(FOODREPO_API_ORIGIN);
+    expect(foodRepoGroup?.cacheConfig.maxSize).toBe(0);
+    expect(foodRepoGroup?.cacheConfig.maxAge).toBe('0u');
+  });
+
+  it('does not persist USDA FDC API responses in the service worker', () => {
+    const usdaGroup = config.dataGroups.find((group) => group.name === 'usda-fdc-api-no-cache');
+    expect(usdaGroup?.urls).toContain(USDA_FDC_API_URL_PATTERN);
+    expect(usdaGroup?.urls[0]).toContain(USDA_FDC_API_ORIGIN);
+    expect(usdaGroup?.cacheConfig.maxSize).toBe(0);
+    expect(usdaGroup?.cacheConfig.maxAge).toBe('0u');
   });
 });
 

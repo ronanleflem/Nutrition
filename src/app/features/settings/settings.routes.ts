@@ -28,4 +28,9 @@ export const SETTINGS_ROUTES: Routes = [
     component: DataSourcesPageComponent,
     data: { title: 'Sources de données' },
   },
+  {
+    path: 'api-keys',
+    redirectTo: 'data-sources',
+    pathMatch: 'full',
+  },
 ];

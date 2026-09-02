@@ -85,6 +85,42 @@ describe('BackupService', () => {
     expect(downloads).toHaveLength(1);
     expect(downloads[0].filename).toMatch(/\.nutrition-backup\.enc$/);
   });
+
+  it('strips FoodRepo API key from export payload', async () => {
+    await database.updateFoodRepoApiKey('secret-foodrepo-key');
+
+    const payload = await backupService.buildExportPayload();
+    const settings = payload.data.appSettings[0];
+
+    expect(settings?.foodRepoApiKey).toBeUndefined();
+
+    const localSettings = await database.getAppSettings();
+    expect(localSettings.foodRepoApiKey).toBe('secret-foodrepo-key');
+  });
+
+  it('strips USDA API key from export payload', async () => {
+    await database.updateUsdaApiKey('secret-usda-key');
+
+    const payload = await backupService.buildExportPayload();
+    const settings = payload.data.appSettings[0];
+
+    expect(settings?.usdaApiKey).toBeUndefined();
+
+    const localSettings = await database.getAppSettings();
+    expect(localSettings.usdaApiKey).toBe('secret-usda-key');
+  });
+
+  it('preserves local API keys when restoring a backup that omits them', async () => {
+    await database.updateFoodRepoApiKey('local-foodrepo');
+    await database.updateUsdaApiKey('local-usda');
+
+    const payload = await backupService.buildExportPayload();
+    await database.replaceAllFromBackup(payload.data);
+
+    const settings = await database.getAppSettings();
+    expect(settings.foodRepoApiKey).toBe('local-foodrepo');
+    expect(settings.usdaApiKey).toBe('local-usda');
+  });
 });
 
 function stubFileDownload(downloads: Array<{ blob: Blob; filename: string }>): void {
