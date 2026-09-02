@@ -12,6 +12,8 @@ export interface AppSettings {
   foodRepoApiKey?: string;
   /** Clé API USDA FoodData Central (api.data.gov) — stockage local uniquement (NFR-21). */
   usdaApiKey?: string;
+  /** Si true, les providers online ne s'exécutent qu'après « Rechercher en ligne » (NFR-19). */
+  preferManualOnlineSearch?: boolean;
 }
 
 export function createDefaultAppSettings(): AppSettings {

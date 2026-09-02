@@ -2,11 +2,12 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
+import { DatabaseService } from '../../../../core/database/database.service';
 import { OPENNUTRITION_INLINE_CREDIT } from '../../../../core/food-library/food-library-attribution';
 import {
+  isLibrarySearchHit,
   isOnlineSearchHit,
   isUsdaSearchHit,
-  type FoodLibraryPageSearchResult,
   type FoodLibrarySearchHit,
   type FoodLibrarySearchSection,
 } from '../../../../core/food-library/food-library-search.types';
@@ -14,15 +15,25 @@ import { FoodLibraryImportService } from '../../../../core/food-library/food-lib
 import type { StarterPackImportSummary } from '../../../../core/food-library/food-library-import.service';
 import type { FoodLibraryImportDuplicate } from '../../../../core/food-library/food-library-import';
 import { FOOD_LIBRARY_STARTER_PACK_LABEL } from '../../../../core/food-library/food-library-starter-pack';
-import { FoodSearchService } from '../../../../core/food-library/food-search.service';
+import {
+  buildFoodRepoCascadeMessage,
+  buildOffCascadeMessage,
+  buildUsdaCascadeMessage,
+} from '../../../../core/food-library/food-search-cascade-messages';
+import { resolveIncludeOnline } from '../../../../core/food-library/food-search-cascade-runner';
+import {
+  FOOD_SEARCH_ONLINE_DEBOUNCE_MS,
+  FOOD_SEARCH_ONLINE_MIN_QUERY_LENGTH,
+  FoodSearchService,
+} from '../../../../core/food-library/food-search.service';
 import type { FoodSearchHit } from '../../../../core/food-library/food-search.types';
+import { ONLINE_CASCADE_SOURCES } from '../../../../core/food-library/food-search-cascade.types';
 import { NetworkStatusService } from '../../../../core/network/network-status.service';
 import { formatMacrosSummary } from '../../../../core/models/product-reference';
 import { ProductsService } from '../../services/products.service';
 import { ScanService } from '../../services/scan.service';
 import { UsdaFoodCacheService } from '../../../../core/usda-fdc/usda-food-cache.service';
 
-const SEARCH_DEBOUNCE_MS = 400;
 const MIN_OFFLINE_QUERY_LENGTH = 1;
 
 @Component({
@@ -33,6 +44,7 @@ const MIN_OFFLINE_QUERY_LENGTH = 1;
 })
 export class FoodLibraryPageComponent {
   private readonly foodSearch = inject(FoodSearchService);
+  private readonly database = inject(DatabaseService);
   private readonly importService = inject(FoodLibraryImportService);
   private readonly productsService = inject(ProductsService);
   private readonly scanService = inject(ScanService);
@@ -42,25 +54,28 @@ export class FoodLibraryPageComponent {
 
   private searchSequence = 0;
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastQuery = '';
 
   readonly isOnlineSearchHit = isOnlineSearchHit;
   readonly isOnline = this.networkStatus.isOnline;
+  readonly onlineCascadeSources = ONLINE_CASCADE_SOURCES;
 
   readonly starterPackLabel = FOOD_LIBRARY_STARTER_PACK_LABEL;
   readonly openNutritionCredit = OPENNUTRITION_INLINE_CREDIT;
   readonly searchQuery = signal('');
   readonly sections = signal<FoodLibrarySearchSection[]>([]);
   readonly searching = signal(false);
-  readonly searchingOff = signal(false);
+  readonly searchingOnline = signal(false);
+  readonly onlinePending = signal(false);
   readonly importingId = signal<string | null>(null);
   readonly importingStarterPack = signal(false);
   readonly starterPackSummary = signal<StarterPackImportSummary | null>(null);
   readonly searchError = signal<string | null>(null);
   readonly offSearchMessage = signal<string | null>(null);
   readonly foodRepoSearchMessage = signal<string | null>(null);
-  readonly foodRepoStatus = signal<FoodLibraryPageSearchResult['foodRepoStatus']>(undefined);
+  readonly foodRepoStatus = signal<'ok' | 'skipped' | 'no_api_key' | 'unauthorized' | 'network_error' | undefined>(undefined);
   readonly usdaSearchMessage = signal<string | null>(null);
-  readonly usdaStatus = signal<FoodLibraryPageSearchResult['usdaStatus']>(undefined);
+  readonly usdaStatus = signal<'ok' | 'skipped' | 'no_api_key' | 'unauthorized' | 'network_error' | undefined>(undefined);
   readonly importError = signal<string | null>(null);
   readonly pendingDuplicate = signal<{
     hit: FoodSearchHit;
@@ -83,10 +98,18 @@ export class FoodLibraryPageComponent {
     return this.sections().some((section) => section.source === 'opennutrition');
   }
 
+  isOnlineSectionLoading(source: string): boolean {
+    return this.searchingOnline() && (ONLINE_CASCADE_SOURCES as readonly string[]).includes(source);
+  }
+
   onSearchInput(event: Event): void {
     const query = (event.target as HTMLInputElement).value;
     this.searchQuery.set(query);
     this.scheduleSearch(query);
+  }
+
+  searchOnlineManually(): void {
+    void this.runSearch(this.lastQuery, true);
   }
 
   async selectHit(hit: FoodLibrarySearchHit): Promise<void> {
@@ -99,7 +122,9 @@ export class FoodLibraryPageComponent {
       return;
     }
 
-    await this.importHit(hit);
+    if (isLibrarySearchHit(hit)) {
+      await this.importHit(hit);
+    }
   }
 
   async importHit(hit: FoodSearchHit): Promise<void> {
@@ -193,21 +218,16 @@ export class FoodLibraryPageComponent {
     this.searchDebounceTimer = setTimeout(() => {
       this.searchDebounceTimer = null;
       void this.runSearch(query);
-    }, SEARCH_DEBOUNCE_MS);
+    }, FOOD_SEARCH_ONLINE_DEBOUNCE_MS);
   }
 
-  private async runSearch(query: string): Promise<void> {
+  private async runSearch(query: string, forceOnline = false): Promise<void> {
     const sequence = ++this.searchSequence;
     const trimmed = query.trim();
+    this.lastQuery = trimmed;
 
     if (!trimmed || trimmed.length < MIN_OFFLINE_QUERY_LENGTH) {
-      this.sections.set([]);
-      this.searchError.set(null);
-      this.offSearchMessage.set(null);
-      this.foodRepoSearchMessage.set(null);
-      this.foodRepoStatus.set(undefined);
-      this.usdaSearchMessage.set(null);
-      this.usdaStatus.set(undefined);
+      this.resetSearchState();
       return;
     }
 
@@ -218,23 +238,37 @@ export class FoodLibraryPageComponent {
     this.foodRepoStatus.set(undefined);
     this.usdaSearchMessage.set(null);
     this.usdaStatus.set(undefined);
+    this.onlinePending.set(false);
 
-    if (this.networkStatus.isOnline() && trimmed.length >= 3) {
-      this.searchingOff.set(true);
-    }
+    const willSearchOnline =
+      this.networkStatus.isOnline() && trimmed.length >= FOOD_SEARCH_ONLINE_MIN_QUERY_LENGTH;
+    this.searchingOnline.set(willSearchOnline && (forceOnline || !(await this.database.getAppSettings()).preferManualOnlineSearch));
 
     try {
-      const result = await this.foodSearch.searchLibraryPage(trimmed);
+      const { includeOnline } = await resolveIncludeOnline(
+        this.database,
+        this.networkStatus,
+        trimmed,
+        forceOnline,
+      );
+
+      const result = await this.foodSearch.searchLibraryPage(trimmed, { includeOnline });
       if (sequence !== this.searchSequence) {
         return;
       }
 
       this.sections.set(result.sections);
-      this.offSearchMessage.set(this.buildOffSearchMessage(result.offStatus, result.offMsUntilRetry));
+      this.onlinePending.set(
+        this.networkStatus.isOnline() &&
+          trimmed.length >= FOOD_SEARCH_ONLINE_MIN_QUERY_LENGTH &&
+          (await this.database.getAppSettings()).preferManualOnlineSearch === true &&
+          !includeOnline,
+      );
+      this.offSearchMessage.set(buildOffCascadeMessage(result.offStatus, result.offMsUntilRetry));
       this.foodRepoStatus.set(result.foodRepoStatus);
-      this.foodRepoSearchMessage.set(this.buildFoodRepoSearchMessage(result.foodRepoStatus));
+      this.foodRepoSearchMessage.set(buildFoodRepoCascadeMessage(result.foodRepoStatus));
       this.usdaStatus.set(result.usdaStatus);
-      this.usdaSearchMessage.set(this.buildUsdaSearchMessage(result.usdaStatus));
+      this.usdaSearchMessage.set(buildUsdaCascadeMessage(result.usdaStatus));
     } catch {
       if (sequence !== this.searchSequence) {
         return;
@@ -247,60 +281,20 @@ export class FoodLibraryPageComponent {
     } finally {
       if (sequence === this.searchSequence) {
         this.searching.set(false);
-        this.searchingOff.set(false);
+        this.searchingOnline.set(false);
       }
     }
   }
 
-  private buildOffSearchMessage(
-    status: FoodLibraryPageSearchResult['offStatus'],
-    msUntilRetry?: number,
-  ): string | null {
-    if (status === 'rate_limited' && msUntilRetry != null) {
-      const seconds = Math.ceil(msUntilRetry / 1000);
-      return `Trop de recherches Open Food Facts — réessayez dans ${seconds} s.`;
-    }
-
-    if (status === 'network_error') {
-      return 'Recherche Open Food Facts indisponible pour le moment.';
-    }
-
-    return null;
-  }
-
-  private buildFoodRepoSearchMessage(
-    status: FoodLibraryPageSearchResult['foodRepoStatus'],
-  ): string | null {
-    if (status === 'no_api_key') {
-      return null;
-    }
-
-    if (status === 'unauthorized') {
-      return 'Clé FoodRepo invalide — vérifiez vos paramètres.';
-    }
-
-    if (status === 'network_error') {
-      return 'Recherche FoodRepo indisponible pour le moment.';
-    }
-
-    return null;
-  }
-
-  private buildUsdaSearchMessage(
-    status: FoodLibraryPageSearchResult['usdaStatus'],
-  ): string | null {
-    if (status === 'no_api_key') {
-      return null;
-    }
-
-    if (status === 'unauthorized') {
-      return 'Clé USDA invalide — vérifiez vos paramètres.';
-    }
-
-    if (status === 'network_error') {
-      return 'Recherche USDA indisponible pour le moment.';
-    }
-
-    return null;
+  private resetSearchState(): void {
+    this.sections.set([]);
+    this.searchError.set(null);
+    this.offSearchMessage.set(null);
+    this.foodRepoSearchMessage.set(null);
+    this.foodRepoStatus.set(undefined);
+    this.usdaSearchMessage.set(null);
+    this.usdaStatus.set(undefined);
+    this.onlinePending.set(false);
+    this.searchingOnline.set(false);
   }
 }

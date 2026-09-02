@@ -56,6 +56,15 @@
       </span>
     </label>
 
+    <label class="api-keys-page__field api-keys-page__field--checkbox">
+      <input type="checkbox" formControlName="preferManualOnlineSearch" />
+      <span class="api-keys-page__label">Recherche en ligne manuelle (NFR-19)</span>
+      <span class="api-keys-page__hint">
+        Si activé, les sources OFF, FoodRepo et USDA ne se lancent qu'après le bouton
+        « Rechercher en ligne » dans les pickers produit.
+      </span>
+    </label>
+
     <button class="api-keys-page__submit" type="submit" [disabled]="saving()">
       {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
     </button>

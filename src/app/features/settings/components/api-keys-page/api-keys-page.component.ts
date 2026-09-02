@@ -22,6 +22,7 @@ export class ApiKeysPageComponent implements OnInit {
   readonly form = this.fb.nonNullable.group({
     foodRepoApiKey: [''],
     usdaApiKey: [''],
+    preferManualOnlineSearch: [false],
   });
 
   ngOnInit(): void {
@@ -36,8 +37,10 @@ export class ApiKeysPageComponent implements OnInit {
     try {
       const foodRepoValue = this.form.controls.foodRepoApiKey.value.trim();
       const usdaValue = this.form.controls.usdaApiKey.value.trim();
+      const preferManual = this.form.controls.preferManualOnlineSearch.value;
       await this.database.updateFoodRepoApiKey(foodRepoValue || undefined);
       await this.database.updateUsdaApiKey(usdaValue || undefined);
+      await this.database.updatePreferManualOnlineSearch(preferManual);
       this.missingUsdaKey.set(!usdaValue);
       this.saveMessage.set('Clés enregistrées localement.');
     } catch {
@@ -52,6 +55,7 @@ export class ApiKeysPageComponent implements OnInit {
     this.form.patchValue({
       foodRepoApiKey: settings.foodRepoApiKey ?? '',
       usdaApiKey: settings.usdaApiKey ?? '',
+      preferManualOnlineSearch: settings.preferManualOnlineSearch === true,
     });
     this.missingUsdaKey.set(!settings.usdaApiKey?.trim());
   }

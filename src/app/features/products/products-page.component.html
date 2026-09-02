@@ -20,18 +20,81 @@
 
   @if (loading()) {
     <p class="products-page__status" role="status">Chargement…</p>
-  } @else if (!hasCatalog()) {
+  } @else if (!hasCatalog() && !hasSearchQuery()) {
     <app-empty-state />
-  } @else if (!hasFilteredResults()) {
-    <div class="products-page__no-results">
-      <p class="products-page__no-results-message">Aucun produit ne correspond à votre recherche.</p>
-      <button class="products-page__clear-search" type="button" (click)="clearSearch()">
-        Effacer la recherche
+  } @else if (hasSearchQuery()) {
+    @if (searching()) {
+      <p class="products-page__status" role="status">Recherche…</p>
+    }
+
+    @if (onlinePending() && isOnline() && searchQuery().trim().length >= 3) {
+      <button
+        class="products-page__online-button"
+        type="button"
+        [disabled]="searching()"
+        (click)="searchOnlineManually()"
+      >
+        Rechercher en ligne
       </button>
-    </div>
+    }
+
+    @if (!isOnline() && searchQuery().trim().length >= 3) {
+      <p class="products-page__offline" role="status">
+        Recherche en ligne indisponible — sections locales uniquement.
+      </p>
+    }
+
+    @if (offSearchMessage() && isOnline()) {
+      <p class="products-page__offline" role="status">{{ offSearchMessage() }}</p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoSearchMessage()) {
+      <p class="products-page__offline" role="status">{{ foodRepoSearchMessage() }}</p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && foodRepoStatus() === 'no_api_key') {
+      <p class="products-page__offline" role="status">
+        Élargissez avec FoodRepo —
+        <a routerLink="/settings/api-keys">Configurer FoodRepo</a>.
+      </p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && usdaSearchMessage()) {
+      <p class="products-page__offline" role="status">{{ usdaSearchMessage() }}</p>
+    }
+
+    @if (isOnline() && searchQuery().trim().length >= 3 && usdaStatus() === 'no_api_key') {
+      <p class="products-page__offline" role="status">
+        Complétez avec USDA —
+        <a routerLink="/settings/api-keys">Ajoutez votre clé USDA gratuite</a>.
+      </p>
+    }
+
+    @if (searchError()) {
+      <p class="products-page__error" role="alert">{{ searchError() }}</p>
+    }
+
+    @if (!searching() && !searchError() && sections().length === 0) {
+      <div class="products-page__no-results">
+        <p class="products-page__no-results-message">
+          Aucun résultat pour « {{ searchQuery().trim() }} ».
+        </p>
+        <button class="products-page__clear-search" type="button" (click)="clearSearch()">
+          Effacer la recherche
+        </button>
+      </div>
+    } @else if (sections().length > 0) {
+      <app-food-search-cascade-results
+        [sections]="sections()"
+        [searchingOnline]="searchingOnline()"
+        [importingId]="importingId()"
+        catalogActionLabel="Ouvrir"
+        (hitSelected)="onCascadeHitSelected($event)"
+      />
+    }
   } @else {
     <div class="products-page__list">
-      @for (item of filteredCatalog(); track item.product.id) {
+      @for (item of catalog(); track item.product.id) {
         <app-product-card [item]="item" />
       }
     </div>

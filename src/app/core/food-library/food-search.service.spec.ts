@@ -217,6 +217,7 @@ describe('FoodSearchService', () => {
         },
       ],
       'oeuf',
+      { includeOnline: false },
     );
 
     expect(result.sections.map((section) => section.source)).toEqual(['catalog', 'ciqual']);
@@ -227,12 +228,26 @@ describe('FoodSearchService', () => {
     });
   });
 
+  it('searchForIngredientPicker appends OFF after library when online', async () => {
+    mockLibraryFetch();
+    onlineSignal.set(true);
+    await database.updateFoodRepoApiKey(undefined);
+    await database.updateUsdaApiKey(undefined);
+
+    const result = await service.searchForIngredientPicker([], 'skyr danone', {
+      includeOnline: true,
+    });
+
+    expect(result.sections.map((section) => section.source)).toContain('off');
+    expect(result.onlineSearched).toBe(true);
+  });
+
   it('searchLibraryPage appends OFF section when online', async () => {
     mockLibraryFetch();
     onlineSignal.set(true);
     await database.updateFoodRepoApiKey(undefined);
 
-    const result = await service.searchLibraryPage('skyr danone');
+    const result = await service.searchLibraryPage('skyr danone', { includeOnline: true });
 
     expect(result.sections.map((section) => section.source)).toContain('off');
     expect(result.offStatus).toBe('ok');
@@ -280,7 +295,7 @@ describe('FoodSearchService', () => {
     await database.updateFoodRepoApiKey('test-key');
     await database.updateUsdaApiKey('usda-key');
 
-    const result = await service.searchLibraryPage('skyr danone');
+    const result = await service.searchLibraryPage('skyr danone', { includeOnline: true });
 
     expect(
       result.sections.every(

@@ -1,0 +1,77 @@
+@for (section of sections(); track section.source) {
+  <section class="cascade-results__section" [attr.aria-label]="section.sourceLabel">
+    <h3 class="cascade-results__section-title">{{ section.sourceLabel }}</h3>
+
+    @if (isOnlineSectionLoading(section.source)) {
+      <p class="cascade-results__loading" role="status">{{ section.sourceLabel }}…</p>
+    }
+
+    <ul class="cascade-results__list">
+      @for (hit of section.hits; track hit.id) {
+        <li class="cascade-results__item">
+          <div class="cascade-results__item-main">
+            <div class="cascade-results__item-header">
+              <span class="cascade-results__badge">{{ hit.sourceLabel }}</span>
+              <span class="cascade-results__name">{{ hit.displayName }}</span>
+            </div>
+            @if (hit.subtitle) {
+              <span class="cascade-results__subtitle">{{ hit.subtitle }}</span>
+            }
+            <span class="cascade-results__macros">{{ formatMacros(hit) }}</span>
+          </div>
+
+          <button
+            class="cascade-results__action"
+            type="button"
+            [disabled]="importingId() === hit.id"
+            (click)="hitSelected.emit(hit)"
+          >
+            @if (importingId() === hit.id) {
+              Ajout…
+            } @else {
+              {{ actionLabel(hit) }}
+            }
+          </button>
+        </li>
+      }
+    </ul>
+
+    @if (section.source === 'opennutrition') {
+      <p class="cascade-results__attribution">
+        <a href="https://www.opennutrition.app/" rel="noopener noreferrer" target="_blank">
+          {{ openNutritionCredit }}
+        </a>
+      </p>
+    }
+
+    @if (section.source === 'off') {
+      <p class="cascade-results__attribution">
+        Données
+        <a href="https://world.openfoodfacts.org/" rel="noopener noreferrer" target="_blank">
+          Open Food Facts
+        </a>
+        (ODbL)
+      </p>
+    }
+
+    @if (section.source === 'foodrepo') {
+      <p class="cascade-results__attribution">
+        Données
+        <a href="https://www.foodrepo.org/" rel="noopener noreferrer" target="_blank">FoodRepo</a>
+        (CC-BY 4.0) ·
+        <a routerLink="/settings/api-keys">Configurer</a>
+      </p>
+    }
+
+    @if (section.source === 'usda') {
+      <p class="cascade-results__attribution">
+        Données
+        <a href="https://fdc.nal.usda.gov/" rel="noopener noreferrer" target="_blank">
+          USDA FoodData Central
+        </a>
+        (domaine public) ·
+        <a routerLink="/settings/api-keys">Configurer USDA</a>
+      </p>
+    }
+  </section>
+}

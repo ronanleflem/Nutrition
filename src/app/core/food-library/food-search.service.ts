@@ -5,24 +5,36 @@ import { FoodRepoSearchProvider } from '../foodrepo-api/foodrepo-search.provider
 import { OffSearchProvider } from '../off-api/off-search.provider';
 import { UsdaFdcSearchProvider } from '../usda-fdc/usda-search.provider';
 import type { ProductCatalogItem } from '../models/product-catalog';
-import type { FoodLibraryPageSearchResult, FoodLibrarySearchSection } from './food-library-search.types';
+import type { FoodLibraryPageSearchResult } from './food-library-search.types';
 import {
   parseCiqualChunk,
   parseOpenNutritionChunk,
 } from './food-library-chunk-validation';
 import {
-  FOOD_LIBRARY_BASE_PATH,
   FOOD_LIBRARY_MANIFEST_PATH,
   type FoodLibraryManifest,
   foodLibraryChunkPath,
 } from './food-library-paths';
+import {
+  buildCascadeFromLocalAndOnline,
+  buildCascadeFromLocalOnly,
+} from './food-search-cascade';
+import type { FoodSearchCascadeResult } from './food-search-cascade.types';
 import { FoodSearchIndex } from './food-search-index';
 import type { FoodSearchHit, FoodSearchLocalResult } from './food-search.types';
 import {
-  buildIngredientPickerSearchResult,
   searchCatalogForIngredientPicker,
 } from './ingredient-picker-search';
 import type { IngredientPickerSearchResult } from './ingredient-picker-search.types';
+
+export const FOOD_SEARCH_ONLINE_MIN_QUERY_LENGTH = 3;
+export const FOOD_SEARCH_ONLINE_DEBOUNCE_MS = 400;
+
+export interface FoodSearchCascadeOptions {
+  limitPerSection?: number;
+  includeOnline?: boolean;
+  catalog?: ProductCatalogItem[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class FoodSearchService {
@@ -66,24 +78,34 @@ export class FoodSearchService {
     return this.loadPromise;
   }
 
-  async searchLibraryPage(
+  async searchCascade(
     query: string,
-    options?: { limitPerSection?: number },
-  ): Promise<FoodLibraryPageSearchResult> {
+    options?: FoodSearchCascadeOptions,
+  ): Promise<FoodSearchCascadeResult> {
     const limit = options?.limitPerSection ?? 25;
+    const catalog = options?.catalog ?? [];
+    const catalogStartedAt = performance.now();
+    const catalogHits = catalog.length > 0
+      ? searchCatalogForIngredientPicker(catalog, query, limit)
+      : [];
+    const catalogDurationMs = performance.now() - catalogStartedAt;
+
     const localStartedAt = performance.now();
     const localResult = await this.searchLocal(query, { limitPerSection: limit });
     const localDurationMs = performance.now() - localStartedAt;
 
-    if (!this.networkStatus.isOnline()) {
-      return {
-        sections: localResult.sections.map((section) => ({
-          source: section.source,
-          sourceLabel: section.sourceLabel,
-          hits: section.hits,
-        })),
-        durationMs: localDurationMs,
-      };
+    const shouldSearchOnline =
+      options?.includeOnline === true &&
+      this.networkStatus.isOnline() &&
+      query.trim().length >= FOOD_SEARCH_ONLINE_MIN_QUERY_LENGTH;
+
+    if (!shouldSearchOnline) {
+      return buildCascadeFromLocalAndOnline(
+        catalogHits,
+        localResult,
+        catalogDurationMs + localDurationMs,
+        { included: false },
+      );
     }
 
     const onlineStartedAt = performance.now();
@@ -94,43 +116,32 @@ export class FoodSearchService {
     ]);
     const onlineDurationMs = performance.now() - onlineStartedAt;
 
-    const sections: FoodLibrarySearchSection[] = localResult.sections.map((section) => ({
-      source: section.source,
-      sourceLabel: section.sourceLabel,
-      hits: section.hits,
-    }));
+    return buildCascadeFromLocalAndOnline(
+      catalogHits,
+      localResult,
+      catalogDurationMs + localDurationMs,
+      {
+        included: true,
+        durationMs: onlineDurationMs,
+        off: offResult,
+        foodRepo: foodRepoResult,
+        usda: usdaResult,
+      },
+    );
+  }
 
-    if (offResult.hits.length > 0) {
-      sections.push({
-        source: 'off',
-        sourceLabel: offResult.hits[0]?.sourceLabel ?? 'Open Food Facts',
-        hits: offResult.hits,
-      });
-    }
-
-    if (foodRepoResult.hits.length > 0) {
-      sections.push({
-        source: 'foodrepo',
-        sourceLabel: foodRepoResult.hits[0]?.sourceLabel ?? 'FoodRepo',
-        hits: foodRepoResult.hits,
-      });
-    }
-
-    if (usdaResult.hits.length > 0) {
-      sections.push({
-        source: 'usda',
-        sourceLabel: usdaResult.hits[0]?.sourceLabel ?? 'USDA',
-        hits: usdaResult.hits,
-      });
-    }
+  async searchLibraryPage(
+    query: string,
+    options?: { limitPerSection?: number; includeOnline?: boolean },
+  ): Promise<FoodLibraryPageSearchResult> {
+    const result = await this.searchCascade(query, {
+      limitPerSection: options?.limitPerSection,
+      includeOnline: options?.includeOnline ?? this.networkStatus.isOnline(),
+    });
 
     return {
-      sections,
-      durationMs: localDurationMs + onlineDurationMs,
-      offStatus: offResult.status,
-      offMsUntilRetry: offResult.msUntilRetry,
-      foodRepoStatus: foodRepoResult.status,
-      usdaStatus: usdaResult.status,
+      ...result,
+      sections: result.sections.filter((section) => section.source !== 'catalog') as FoodLibraryPageSearchResult['sections'],
     };
   }
 
@@ -157,16 +168,13 @@ export class FoodSearchService {
   async searchForIngredientPicker(
     catalog: ProductCatalogItem[],
     query: string,
-    options?: { limitPerSection?: number },
+    options?: { limitPerSection?: number; includeOnline?: boolean },
   ): Promise<IngredientPickerSearchResult> {
-    const limit = options?.limitPerSection ?? 25;
-    const catalogStartedAt = performance.now();
-    const catalogHits = searchCatalogForIngredientPicker(catalog, query, limit);
-    const catalogDurationMs = performance.now() - catalogStartedAt;
-
-    const libraryResult = await this.searchLocal(query, { limitPerSection: limit });
-
-    return buildIngredientPickerSearchResult(catalogHits, libraryResult, catalogDurationMs);
+    return this.searchCascade(query, {
+      catalog,
+      limitPerSection: options?.limitPerSection,
+      includeOnline: options?.includeOnline ?? this.networkStatus.isOnline(),
+    });
   }
 
   async getCiqualHitById(id: string): Promise<FoodSearchHit | null> {

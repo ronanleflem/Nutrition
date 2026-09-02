@@ -1,6 +1,11 @@
-import type { FoodSearchHit, FoodSearchSection } from './food-search.types';
+import type {
+  FoodSearchCascadeHit,
+  FoodSearchCascadeResult,
+  FoodSearchCascadeSection,
+  FoodSearchCascadeSource,
+} from './food-search-cascade.types';
 
-export type IngredientSearchSource = 'catalog' | FoodSearchSection['source'];
+export type IngredientSearchSource = FoodSearchCascadeSource;
 
 export const INGREDIENT_CATALOG_SOURCE_LABEL = 'Mon catalogue';
 
@@ -18,15 +23,8 @@ export interface CatalogSearchHit {
   fiberG: number;
 }
 
-export type IngredientSearchHit = CatalogSearchHit | FoodSearchHit;
+export type IngredientSearchHit = FoodSearchCascadeHit;
 
-export interface IngredientSearchSection {
-  source: IngredientSearchSource;
-  sourceLabel: string;
-  hits: IngredientSearchHit[];
-}
+export type IngredientSearchSection = FoodSearchCascadeSection;
 
-export interface IngredientPickerSearchResult {
-  sections: IngredientSearchSection[];
-  durationMs: number;
-}
+export type IngredientPickerSearchResult = FoodSearchCascadeResult;

@@ -102,6 +102,7 @@ export function buildIngredientPickerSearchResult(
   return {
     sections: mergeIngredientPickerSections(catalogHits, libraryResult),
     durationMs: catalogDurationMs + libraryResult.durationMs,
+    onlineSearched: false,
   };
 }
 

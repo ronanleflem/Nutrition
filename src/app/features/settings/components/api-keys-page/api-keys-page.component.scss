@@ -45,6 +45,18 @@
   gap: 8px;
 }
 
+.api-keys-page__field--checkbox {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.api-keys-page__field--checkbox .api-keys-page__label,
+.api-keys-page__field--checkbox .api-keys-page__hint {
+  flex: 1 1 calc(100% - 28px);
+}
+
 .api-keys-page__label {
   font-weight: var(--font-weight-semibold);
 }

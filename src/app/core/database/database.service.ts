@@ -244,6 +244,16 @@ export class DatabaseService {
     });
   }
 
+  async updatePreferManualOnlineSearch(preferManual: boolean): Promise<void> {
+    await this.initialize();
+
+    const settings = await this.getAppSettings();
+    await this.db!.appSettings.put({
+      ...settings,
+      preferManualOnlineSearch: preferManual || undefined,
+    });
+  }
+
   async putUsdaFoodCacheEntry(entry: UsdaFoodCacheEntry): Promise<void> {
     await this.initialize();
     await this.db!.usdaFoodCache.put(entry);

@@ -1,17 +1,20 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, OnInit, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import type { PantryItemWithProduct } from '../../core/models/pantry-item';
+import { IngredientProductPickerSheetComponent } from '../recipes/components/ingredient-product-picker-sheet/ingredient-product-picker-sheet.component';
+import { ProductsService } from '../products/services/products.service';
 import { PantryService } from './pantry.service';
 
 @Component({
   selector: 'app-pantry-add-sheet',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, IngredientProductPickerSheetComponent],
   templateUrl: './pantry-add-sheet.component.html',
   styleUrl: './pantry-add-sheet.component.scss',
 })
-export class PantryAddSheetComponent {
+export class PantryAddSheetComponent implements OnInit {
   protected readonly pantry = inject(PantryService);
+  private readonly productsService = inject(ProductsService);
   private readonly fb = inject(FormBuilder);
 
   readonly item = input<PantryItemWithProduct | null>(null);
@@ -20,52 +23,65 @@ export class PantryAddSheetComponent {
 
   readonly submitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly pickerOpen = signal(false);
+  readonly selectedProductId = signal<string | null>(null);
+  readonly selectedProductName = signal<string | null>(null);
 
   readonly form = this.fb.nonNullable.group({
-    productId: [''],
-    newProductName: [''],
     quantityG: [100, [Validators.required, Validators.min(1)]],
     expiryDate: [''],
     location: [''],
   });
 
   readonly isEditMode = signal(false);
-  readonly hasProducts = signal(false);
+  readonly catalog = this.productsService.catalog;
 
   constructor() {
     effect(() => {
       const editing = this.item();
-      const products = this.pantry.products();
-      this.hasProducts.set(products.length > 0);
       this.isEditMode.set(editing != null);
 
       if (editing) {
         this.form.patchValue({
-          productId: editing.productId,
           quantityG: editing.quantityG,
           expiryDate: editing.expiryDate ?? '',
           location: editing.location ?? '',
         });
-        this.form.controls.productId.disable();
-        this.form.controls.newProductName.disable();
       } else {
-        this.form.controls.productId.enable();
-        this.form.controls.newProductName.enable();
         this.form.patchValue({
-          productId: products[0]?.id ?? '',
-          newProductName: '',
           quantityG: 100,
           expiryDate: '',
           location: '',
         });
+        this.selectedProductId.set(null);
+        this.selectedProductName.set(null);
       }
     });
+  }
+
+  ngOnInit(): void {
+    void this.productsService.loadCatalog();
   }
 
   onBackdropClick(event: MouseEvent): void {
     if ((event.target as HTMLElement).dataset['backdrop'] === 'true') {
       this.closed.emit();
     }
+  }
+
+  openProductPicker(): void {
+    this.pickerOpen.set(true);
+  }
+
+  closeProductPicker(): void {
+    this.pickerOpen.set(false);
+  }
+
+  onProductSelected(productId: string): void {
+    const item = this.catalog().find((entry) => entry.product.id === productId);
+    this.selectedProductId.set(productId);
+    this.selectedProductName.set(item?.product.name ?? 'Produit sélectionné');
+    this.pickerOpen.set(false);
   }
 
   async submit(): Promise<void> {
@@ -92,12 +108,8 @@ export class PantryAddSheetComponent {
           location: raw.location || null,
         });
       } else {
-        let productId = raw.productId;
-
-        if (!this.hasProducts()) {
-          const created = await this.pantry.createProduct(raw.newProductName);
-          productId = created.id;
-        } else if (!productId) {
+        const productId = this.selectedProductId();
+        if (!productId) {
           this.errorMessage.set('Choisissez un produit.');
           return;
         }

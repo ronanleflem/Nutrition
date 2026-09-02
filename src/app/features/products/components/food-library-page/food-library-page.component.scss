@@ -95,6 +95,23 @@
   font-size: var(--font-size-meta);
 }
 
+.food-library-page__online-button {
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+  min-height: var(--spacing-touch-min);
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.food-library-page__online-button:disabled {
+  opacity: 0.6;
+}
+
 .food-library-page__error {
   color: var(--color-accent-negative);
 }
