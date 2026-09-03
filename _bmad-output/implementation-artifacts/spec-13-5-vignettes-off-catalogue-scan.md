@@ -25,3 +25,8 @@ Story 13.5 implemented on the same branch/PR as 13.1–13.4.
 
 - `npm run build` ✅
 - `npm test` — **472/472** ✅
+
+### Review Findings
+
+- [ ] [Review][Patch] Fetch OFF sans timeout — soumission scan peut rester bloquée indéfiniment [`src/app/core/images/off-product-thumb.service.ts:18`]
+- [x] [Review][Defer] Vignette OFF importée uniquement via flux scan — pas d'autres points d'entrée catalogue identifiés [`scan-reference-page.component.ts:137`] — deferred, à confirmer si d'autres flux catalogue existent

@@ -35,3 +35,13 @@ Story 13.6 implemented on the same branch/PR as 13.1–13.5.
 
 - `npm run build` ✅
 - `npm test` — **480/480** ✅
+
+### Review Findings
+
+- [ ] [Review][Decision] Résumé import en bloc page statique vs toast éphémère — AC 13.6 dit « toast » ; implémentation = `<div role="status" aria-live>` persistant [`import-page.component.html:17`]
+- [ ] [Review][Patch] Compteur `photosRestored` gonflé en merge — compte toutes les FK valides post-fusion, pas seulement celles importées [`database.service.ts:781`]
+- [ ] [Review][Patch] Opacité ligne courses 0.85 au lieu de 0.55 (`DESIGN.md` § shopping-row) [`src/styles/_tokens.scss:36`]
+- [ ] [Review][Patch] Validation backup v2 superficielle — entrées `imageBlobs` mal formées font échouer tout l'import [`backup-validation.ts:67`, `backup-image-blobs.ts:133`]
+- [ ] [Review][Patch] Doublon « Import terminé » dans titre h2 et paragraphe photos [`import-page.component.html:18`]
+- [ ] [Review][Patch] `aria-checked` sur `<article>` sans `role` explicite — pattern a11y incomplet [`shopping-row.component.html:5`]
+- [x] [Review][Defer] Lacunes de tests d'intégration (merge blobs, round-trip `photoBlobId`, export chiffré > 5 Mo, photo-prompt attach, plan vignettes) — deferred, dette test
