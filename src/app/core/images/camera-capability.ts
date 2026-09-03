@@ -5,24 +5,20 @@ export async function probeCameraAvailability(): Promise<CameraAvailability> {
     return 'unavailable';
   }
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    for (const track of stream.getTracks()) {
-      track.stop();
-    }
-    return 'available';
-  } catch (error) {
-    const errorName =
-      typeof error === 'object' && error != null && 'name' in error
-        ? String((error as { name: string }).name)
-        : '';
+  if (navigator.permissions?.query) {
+    try {
+      const status = await navigator.permissions.query({ name: 'camera' as PermissionName });
+      if (status.state === 'denied') {
+        return 'denied';
+      }
 
-    if (errorName === 'NotAllowedError' || errorName === 'PermissionDeniedError') {
-      return 'denied';
+      return 'available';
+    } catch {
+      // Permissions API may not support the camera name on this browser.
     }
-
-    return 'unavailable';
   }
+
+  return 'available';
 }
 
 export function supportsCameraCaptureInput(): boolean {
@@ -31,4 +27,13 @@ export function supportsCameraCaptureInput(): boolean {
   }
 
   return 'mediaDevices' in navigator;
+}
+
+export function isPermissionDeniedError(error: unknown): boolean {
+  if (typeof error !== 'object' || error == null || !('name' in error)) {
+    return false;
+  }
+
+  const name = String((error as { name: string }).name);
+  return name === 'NotAllowedError' || name === 'PermissionDeniedError';
 }

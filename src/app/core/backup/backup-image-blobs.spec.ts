@@ -4,10 +4,12 @@ import { IMAGE_WEBP_MIME } from '../models/image-blob';
 import {
   collectReferencedBlobIds,
   decodeImageBlobFromBackup,
+  decodeImageBlobsFromBackup,
   encodeImageBlobForBackup,
   mergeRecipePhotoBlobId,
   mergeReferenceThumbBlobId,
   sanitizeBackupPhotoReferences,
+  summarizeMergePhotoRestore,
 } from './backup-image-blobs';
 import type { BackupData } from './backup-schema';
 
@@ -64,5 +66,39 @@ describe('backup-image-blobs', () => {
     const available = new Set(['import-thumb', 'local-thumb']);
 
     expect(mergeReferenceThumbBlobId(local, imported, available)).toBe('import-thumb');
+  });
+
+  it('filters invalid backup blob records during decode', () => {
+    const decoded = decodeImageBlobsFromBackup([
+      {
+        id: 'blob-1',
+        mimeType: IMAGE_WEBP_MIME,
+        dataBase64: btoa(String.fromCharCode(1, 2, 3)),
+        createdAt: '2026-09-03T00:00:00.000Z',
+      },
+      {
+        id: 'blob-2',
+        mimeType: IMAGE_WEBP_MIME,
+        dataBase64: '%%%invalid%%%',
+        createdAt: '2026-09-03T00:00:00.000Z',
+      },
+    ]);
+
+    expect(decoded).toHaveLength(1);
+    expect(decoded[0]?.id).toBe('blob-1');
+  });
+
+  it('counts only imported photos restored during merge', () => {
+    const summary = summarizeMergePhotoRestore(
+      {
+        recipes: [{ id: 'recipe-1', photoBlobId: 'photo-import' } as BackupData['recipes'][number]],
+        productReferences: [],
+      },
+      new Set(['photo-import']),
+      [{ id: 'recipe-1', photoBlobId: 'photo-import' } as BackupData['recipes'][number]],
+      [],
+    );
+
+    expect(summary).toEqual({ photosRestored: 1, photosMissing: 0 });
   });
 });

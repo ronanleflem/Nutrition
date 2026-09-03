@@ -74,10 +74,11 @@ import { NutritionalScoreService } from '../scoring/nutritional-score.service';
 import type { BackupData } from '../backup/backup-schema';
 import type { ImportSummary } from '../backup/backup-schema';
 import {
-  decodeImageBlobFromBackup,
+  decodeImageBlobsFromBackup,
   mergeRecipePhotoBlobId,
   mergeReferenceThumbBlobId,
   sanitizeBackupPhotoReferences,
+  summarizeMergePhotoRestore,
   type PhotoRestoreSummary,
 } from '../backup/backup-image-blobs';
 import {
@@ -337,6 +338,34 @@ export class DatabaseService {
     return recipeMatch != null || referenceMatch != null;
   }
 
+  private async purgeUnreferencedImageBlobs(db: NutritionDatabase): Promise<void> {
+    const referencedIds = new Set<string>();
+    const [recipes, references] = await Promise.all([
+      db.recipes.toArray(),
+      db.productReferences.toArray(),
+    ]);
+
+    for (const recipe of recipes) {
+      if (recipe.photoBlobId) {
+        referencedIds.add(recipe.photoBlobId);
+      }
+    }
+
+    for (const reference of references) {
+      if (reference.thumbBlobId) {
+        referencedIds.add(reference.thumbBlobId);
+      }
+    }
+
+    const staleIds = (await db.imageBlobs.toArray())
+      .filter((blob) => !referencedIds.has(blob.id))
+      .map((blob) => blob.id);
+
+    if (staleIds.length > 0) {
+      await db.imageBlobs.bulkDelete(staleIds);
+    }
+  }
+
   async rememberSearchCacheHits(query: string, hits: OnlineSearchHit[]): Promise<void> {
     await this.initialize();
 
@@ -397,7 +426,8 @@ export class DatabaseService {
     await this.initialize();
 
     const db = this.db!;
-    const importedBlobIds = new Set(data.imageBlobs.map((record) => record.id));
+    const decodedBlobs = decodeImageBlobsFromBackup(data.imageBlobs);
+    const importedBlobIds = new Set(decodedBlobs.map((blob) => blob.id));
     const photoSummary = sanitizeBackupPhotoReferences(data, importedBlobIds);
     const tables = [
       db.imageBlobs,
@@ -430,9 +460,8 @@ export class DatabaseService {
         await db.appSettings.clear();
 
         if (data.imageBlobs.length > 0) {
-          await db.imageBlobs.bulkPut(data.imageBlobs.map(decodeImageBlobFromBackup));
+          await db.imageBlobs.bulkPut(decodedBlobs);
         }
-
         if (data.products.length > 0) {
           await db.products.bulkPut(data.products);
         }
@@ -505,9 +534,10 @@ export class DatabaseService {
 
     await db.transaction('rw', tables, async () => {
         if (data.imageBlobs.length > 0) {
-          await db.imageBlobs.bulkPut(data.imageBlobs.map(decodeImageBlobFromBackup));
+          await db.imageBlobs.bulkPut(decodeImageBlobsFromBackup(data.imageBlobs));
         }
 
+        const importedBlobIds = new Set(data.imageBlobs.map((record) => record.id));
         const availableBlobIds = new Set((await db.imageBlobs.toArray()).map((blob) => blob.id));
         const localProducts = await db.products.toArray();
         const localReferences = await db.productReferences.toArray();
@@ -778,7 +808,10 @@ export class DatabaseService {
           db.recipes.toArray(),
           db.productReferences.toArray(),
         ]);
-        const photoSummary = sanitizeBackupPhotoReferences(
+        const decodedImportedBlobIds = new Set(
+          decodeImageBlobsFromBackup(data.imageBlobs).map((blob) => blob.id),
+        );
+        sanitizeBackupPhotoReferences(
           {
             ...data,
             recipes: mergedRecipes,
@@ -786,8 +819,16 @@ export class DatabaseService {
           },
           availableBlobIds,
         );
+        const photoSummary = summarizeMergePhotoRestore(
+          { recipes: data.recipes, productReferences: data.productReferences },
+          decodedImportedBlobIds,
+          mergedRecipes,
+          mergedReferences,
+          referenceIdMap,
+        );
         await db.recipes.bulkPut(mergedRecipes);
         await db.productReferences.bulkPut(mergedReferences);
+        await this.purgeUnreferencedImageBlobs(db);
         summary.photosRestored = photoSummary.photosRestored;
         summary.photosMissing = photoSummary.photosMissing;
     });

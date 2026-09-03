@@ -1,8 +1,9 @@
 <article
   class="shopping-row"
+  role="group"
   [class.shopping-row--checked]="item().checked"
   [class.shopping-row--store-mode]="storeMode()"
-  [attr.aria-checked]="item().checked"
+  [attr.aria-label]="item().productName"
 >
   <label class="shopping-row__check-zone" (click)="onCheckZoneClick($event)">
     <input

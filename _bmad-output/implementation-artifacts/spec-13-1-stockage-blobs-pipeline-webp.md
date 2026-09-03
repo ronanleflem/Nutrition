@@ -100,7 +100,7 @@ context:
 
 ### Review Findings
 
-- [ ] [Review][Patch] Fichiers sans type MIME rejetés par le pipeline [`src/app/core/images/image-webp.pipeline.ts:21`]
-- [ ] [Review][Patch] Import merge : blobs orphelins non supprimés après remplacement de FK [`src/app/core/database/database.service.ts:506`]
+- [x] [Review][Patch] Fichiers sans type MIME rejetés par le pipeline [`src/app/core/images/image-webp.pipeline.ts:21`]
+- [x] [Review][Patch] Import merge : blobs orphelins non supprimés après remplacement de FK [`src/app/core/database/database.service.ts:506`]
 - [x] [Review][Defer] Orientation EXIF non appliquée — photos mobile potentiellement penchées [`src/app/core/images/image-webp.pipeline.ts:28`] — deferred, hors scope spec 13.1
 - [x] [Review][Defer] Pas de limite de taille avant décodage canvas — risque mémoire sur très gros fichiers [`src/app/core/images/image-webp.pipeline.ts:28`] — deferred, amélioration post-MVP

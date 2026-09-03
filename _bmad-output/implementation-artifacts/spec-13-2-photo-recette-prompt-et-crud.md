@@ -27,7 +27,7 @@ Story 13.2 implemented on the same branch/PR as 13.1.
 
 ### Review Findings
 
-- [ ] [Review][Patch] Refus galerie non géré — `RECIPE_PHOTO_GALLERY_DENIED` défini mais jamais affiché ; AC 13.2 « galerie refusée → Plus tard + message » [`src/app/features/recipes/components/photo-prompt-page/photo-prompt-page.component.ts:148`]
-- [ ] [Review][Patch] Message échec remplacement incomplet — AC exige le même message qu'à l'ajout ; `RECIPE_PHOTO_REPLACE_ERROR` omet « La recette est sauvegardée. » [`src/app/core/images/recipe-photo.messages.ts:2`]
-- [ ] [Review][Patch] `probeCameraAvailability()` appelle `getUserMedia` au chargement de l'écran, avant action utilisateur [`src/app/core/images/camera-capability.ts:9`]
+- [x] [Review][Patch] Refus galerie non géré — `RECIPE_PHOTO_GALLERY_DENIED` défini mais jamais affiché ; AC 13.2 « galerie refusée → Plus tard + message » [`src/app/features/recipes/components/photo-prompt-page/photo-prompt-page.component.ts:148`]
+- [x] [Review][Patch] Message échec remplacement incomplet — AC exige le même message qu'à l'ajout ; `RECIPE_PHOTO_REPLACE_ERROR` omet « La recette est sauvegardée. » [`src/app/core/images/recipe-photo.messages.ts:2`]
+- [x] [Review][Patch] `probeCameraAvailability()` appelle `getUserMedia` au chargement de l'écran, avant action utilisateur [`src/app/core/images/camera-capability.ts:9`]
 - [x] [Review][Defer] SVG placeholder dupliqué au lieu de `RecipePhotoPlaceholderComponent` [`photo-prompt-page.component.html:12`] — deferred, cohérence visuelle mineure

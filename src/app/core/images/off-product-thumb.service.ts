@@ -4,6 +4,8 @@ import { OFF_PRODUCT_THUMB_MAX_WIDTH } from '../off-api/off-product-mapper';
 import { ImageBlobService } from './image-blob.service';
 import { isImageMimeType } from './image-webp.pipeline';
 
+const OFF_IMAGE_FETCH_TIMEOUT_MS = 15_000;
+
 @Injectable({ providedIn: 'root' })
 export class OffProductThumbService {
   private readonly imageBlobs = inject(ImageBlobService);
@@ -15,7 +17,9 @@ export class OffProductThumbService {
     }
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(OFF_IMAGE_FETCH_TIMEOUT_MS),
+      });
       if (!response.ok) {
         return undefined;
       }

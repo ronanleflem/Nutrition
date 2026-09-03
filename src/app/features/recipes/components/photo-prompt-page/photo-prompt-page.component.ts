@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { probeCameraAvailability, supportsCameraCaptureInput } from '../../../../core/images/camera-capability';
+import { probeCameraAvailability, supportsCameraCaptureInput, isPermissionDeniedError } from '../../../../core/images/camera-capability';
 import {
   RECIPE_PHOTO_ADD_ERROR,
   RECIPE_PHOTO_CAMERA_DENIED,
@@ -71,11 +71,38 @@ export class PhotoPromptPageComponent implements OnInit, AfterViewInit {
   }
 
   openGalleryPicker(input: HTMLInputElement): void {
-    input.click();
+    void this.openFilePicker(input, 'gallery');
   }
 
   openCameraPicker(input: HTMLInputElement): void {
-    input.click();
+    void this.openFilePicker(input, 'camera');
+  }
+
+  private async openFilePicker(
+    input: HTMLInputElement,
+    source: 'gallery' | 'camera',
+  ): Promise<void> {
+    try {
+      if ('showPicker' in input && typeof input.showPicker === 'function') {
+        await input.showPicker();
+        return;
+      }
+
+      input.click();
+    } catch (error) {
+      if (!isPermissionDeniedError(error)) {
+        return;
+      }
+
+      if (source === 'camera') {
+        this.showCamera.set(false);
+        this.infoMessage.set(RECIPE_PHOTO_CAMERA_DENIED);
+        return;
+      }
+
+      this.showGallery.set(false);
+      this.infoMessage.set(RECIPE_PHOTO_GALLERY_DENIED);
+    }
   }
 
   async onFileSelected(event: Event): Promise<void> {
@@ -144,6 +171,4 @@ export class PhotoPromptPageComponent implements OnInit, AfterViewInit {
       this.showCamera.set(false);
     }
   }
-
-  protected readonly galleryDeniedMessage = RECIPE_PHOTO_GALLERY_DENIED;
 }

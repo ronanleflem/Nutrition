@@ -97,4 +97,17 @@ describe('PhotoPromptPageComponent', () => {
 
     expect(finishAfterPhotoPrompt).toHaveBeenCalledTimes(1);
   });
+
+  it('shows gallery denied message when the picker is refused', async () => {
+    await createComponent();
+
+    const input = document.createElement('input');
+    input.showPicker = vi.fn().mockRejectedValue(Object.assign(new Error('denied'), { name: 'NotAllowedError' }));
+
+    await fixture.componentInstance.openGalleryPicker(input);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.showGallery()).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('Accès aux photos refusé');
+  });
 });

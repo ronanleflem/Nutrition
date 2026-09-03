@@ -18,8 +18,8 @@ export async function resizeImageToWebp(
   file: Blob,
   options: ResizeImageToWebpOptions = {},
 ): Promise<Blob> {
-  if (!isImageMimeType(file.type)) {
-    throw new Error(`Type MIME non pris en charge : ${file.type || 'inconnu'}`);
+  if (file.type && !isImageMimeType(file.type)) {
+    throw new Error(`Type MIME non pris en charge : ${file.type}`);
   }
 
   const maxWidth = options.maxWidth ?? DEFAULT_MAX_IMAGE_WIDTH;

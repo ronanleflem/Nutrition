@@ -36,7 +36,8 @@ describe('ShoppingRowComponent', () => {
     fixture.detectChanges();
 
     const row = fixture.nativeElement.querySelector('.shopping-row') as HTMLElement;
-    expect(row.getAttribute('aria-checked')).toBe('true');
+    expect(row.getAttribute('role')).toBe('group');
+    expect(row.getAttribute('aria-label')).toBe('Avoine');
     expect(row.classList.contains('shopping-row--checked')).toBe(true);
 
     const name = fixture.nativeElement.querySelector('.shopping-row__name') as HTMLElement;

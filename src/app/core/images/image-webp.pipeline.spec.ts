@@ -101,4 +101,34 @@ describe('image-webp.pipeline', () => {
 
     globalThis.createImageBitmap = originalCreateImageBitmap;
   });
+
+  it('allows files with an empty MIME type', async () => {
+    const drawImage = vi.fn();
+    const toBlob = vi.fn((callback: BlobCallback) => {
+      callback(new Blob(['webp'], { type: IMAGE_WEBP_MIME }));
+    });
+
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName !== 'canvas') {
+        throw new Error(`Unexpected element: ${tagName}`);
+      }
+
+      return {
+        width: 0,
+        height: 0,
+        getContext: () => ({ drawImage }),
+        toBlob,
+      } as unknown as HTMLCanvasElement;
+    });
+
+    globalThis.createImageBitmap = vi.fn(async () => ({
+      width: 400,
+      height: 300,
+      close: vi.fn(),
+    })) as typeof createImageBitmap;
+
+    await expect(resizeImageToWebp(new Blob(['png'], { type: '' }))).resolves.toBeInstanceOf(Blob);
+
+    globalThis.createImageBitmap = originalCreateImageBitmap;
+  });
 });

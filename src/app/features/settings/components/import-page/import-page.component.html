@@ -16,12 +16,6 @@
   @if (summary(); as result) {
     <div class="import-page__summary" role="status" aria-live="polite">
       <h2 class="import-page__summary-title">Import terminé</h2>
-      @if (result.photosRestored != null || result.photosMissing != null) {
-        <p class="import-page__summary-photos">
-          Import terminé — {{ result.photosRestored ?? 0 }} photos restaurées,
-          {{ result.photosMissing ?? 0 }} manquantes
-        </p>
-      }
       <ul class="import-page__summary-list">
         <li>{{ result.products }} produit(s)</li>
         <li>{{ result.productReferences }} référence(s) enseigne</li>

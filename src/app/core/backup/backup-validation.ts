@@ -7,6 +7,7 @@ import {
   type BackupPayload,
   type EncryptedBackupEnvelope,
 } from './backup-schema';
+import { isValidBackupImageBlobRecord } from './backup-image-blobs';
 
 export class BackupValidationError extends Error {
   constructor(message: string) {
@@ -70,7 +71,15 @@ function validateBackupData(data: unknown): BackupData {
     }
   }
 
-  const imageBlobs = (candidate['imageBlobs'] as BackupImageBlobRecord[] | undefined) ?? [];
+  const rawImageBlobs = candidate['imageBlobs'];
+  const imageBlobs: BackupImageBlobRecord[] = [];
+  if (Array.isArray(rawImageBlobs)) {
+    for (const record of rawImageBlobs) {
+      if (isValidBackupImageBlobRecord(record)) {
+        imageBlobs.push(record);
+      }
+    }
+  }
 
   return {
     ...(candidate as unknown as BackupData),

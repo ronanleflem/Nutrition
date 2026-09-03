@@ -10,6 +10,7 @@ import {
 import type { ImportMode, ImportSummary } from '../../../../core/backup/backup-schema';
 import { isEncryptedBackupContent } from '../../../../core/backup/backup-validation';
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
+import { ToastService } from '../../../../core/ui/toast/toast.service';
 
 @Component({
   selector: 'app-import-page',
@@ -21,6 +22,7 @@ export class ImportPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly backupService = inject(BackupService);
   private readonly backupReminder = inject(BackupReminderService);
+  private readonly toast = inject(ToastService);
 
   readonly importing = signal(false);
   readonly importError = signal<string | null>(null);
@@ -113,6 +115,7 @@ export class ImportPageComponent {
         password: this.form.controls.password.value || undefined,
       });
       this.summary.set(result);
+      this.showImportPhotoToast(result);
       await this.backupReminder.refresh();
     } catch (error) {
       if (error instanceof BackupValidationError) {
@@ -123,5 +126,16 @@ export class ImportPageComponent {
     } finally {
       this.importing.set(false);
     }
+  }
+
+  private showImportPhotoToast(result: ImportSummary): void {
+    const restored = result.photosRestored ?? 0;
+    const missing = result.photosMissing ?? 0;
+
+    if (restored === 0 && missing === 0) {
+      return;
+    }
+
+    this.toast.show(`Import terminé — ${restored} photos restaurées, ${missing} manquantes`);
   }
 }

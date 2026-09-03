@@ -27,6 +27,96 @@ export function decodeImageBlobFromBackup(record: BackupImageBlobRecord): ImageB
   };
 }
 
+export function isValidBackupImageBlobRecord(record: unknown): record is BackupImageBlobRecord {
+  if (!record || typeof record !== 'object') {
+    return false;
+  }
+
+  const candidate = record as Record<string, unknown>;
+  return (
+    typeof candidate['id'] === 'string' &&
+    typeof candidate['mimeType'] === 'string' &&
+    typeof candidate['dataBase64'] === 'string' &&
+    typeof candidate['createdAt'] === 'string'
+  );
+}
+
+export function decodeImageBlobsFromBackup(records: BackupImageBlobRecord[]): ImageBlob[] {
+  const decoded: ImageBlob[] = [];
+
+  for (const record of records) {
+    if (!isValidBackupImageBlobRecord(record)) {
+      continue;
+    }
+
+    try {
+      decoded.push(decodeImageBlobFromBackup(record));
+    } catch {
+      // Skip corrupt blob records instead of failing the whole import.
+    }
+  }
+
+  return decoded;
+}
+
+export function summarizeMergePhotoRestore(
+  importedData: Pick<BackupData, 'recipes' | 'productReferences'>,
+  importedBlobIds: ReadonlySet<string>,
+  mergedRecipes: Recipe[],
+  mergedReferences: ProductReference[],
+  referenceIdMap: ReadonlyMap<string, string> = new Map(),
+): PhotoRestoreSummary {
+  let photosRestored = 0;
+  let photosMissing = 0;
+
+  for (const importedRecipe of importedData.recipes) {
+    if (!importedRecipe.photoBlobId) {
+      continue;
+    }
+
+    const mergedRecipe = mergedRecipes.find((recipe) => recipe.id === importedRecipe.id);
+    if (!mergedRecipe) {
+      continue;
+    }
+
+    if (!importedBlobIds.has(importedRecipe.photoBlobId)) {
+      photosMissing += 1;
+      continue;
+    }
+
+    if (mergedRecipe.photoBlobId === importedRecipe.photoBlobId) {
+      photosRestored += 1;
+    } else {
+      photosMissing += 1;
+    }
+  }
+
+  for (const importedReference of importedData.productReferences) {
+    if (!importedReference.thumbBlobId) {
+      continue;
+    }
+
+    const mergedReferenceId = referenceIdMap.get(importedReference.id) ?? importedReference.id;
+    const mergedReference = mergedReferences.find((reference) => reference.id === mergedReferenceId);
+    if (!mergedReference) {
+      continue;
+    }
+
+    if (!importedBlobIds.has(importedReference.thumbBlobId)) {
+      photosMissing += 1;
+      continue;
+    }
+
+    if (mergedReference.thumbBlobId === importedReference.thumbBlobId) {
+      photosRestored += 1;
+    } else {
+      photosMissing += 1;
+    }
+  }
+
+  return { photosRestored, photosMissing };
+}
+
 export function collectReferencedBlobIds(
   data: Pick<BackupData, 'recipes' | 'productReferences'>,
 ): Set<string> {

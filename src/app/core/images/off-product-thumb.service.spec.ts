@@ -23,7 +23,9 @@ describe('OffProductThumbService', () => {
     const service = TestBed.inject(OffProductThumbService);
     const blobId = await service.importFromUrl('https://off.test/product.jpg');
 
-    expect(fetchMock).toHaveBeenCalledWith('https://off.test/product.jpg');
+    expect(fetchMock).toHaveBeenCalledWith('https://off.test/product.jpg', {
+      signal: expect.any(AbortSignal),
+    });
     expect(storeFromFile).toHaveBeenCalledWith(expect.any(Blob), {
       maxWidth: OFF_PRODUCT_THUMB_MAX_WIDTH,
     });
