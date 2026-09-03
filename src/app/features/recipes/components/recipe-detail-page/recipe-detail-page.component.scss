@@ -4,6 +4,11 @@
   color: var(--color-ink-secondary);
 }
 
+.recipe-hero {
+  margin: 0 calc(-1 * var(--spacing-screen-gutter, 16px)) 16px;
+  overflow: hidden;
+}
+
 .recipe-detail__header {
   display: flex;
   flex-direction: column;

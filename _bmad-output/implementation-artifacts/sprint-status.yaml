@@ -117,7 +117,7 @@ development_status:
   epic-13: in-progress
   13-1-stockage-blobs-pipeline-webp: review
   13-2-photo-recette-prompt-et-crud: review
-  13-3-affichage-recettes-plan-vignettes: backlog
+  13-3-affichage-recettes-plan-vignettes: review
   13-4-bandeaux-de-surface: backlog
   13-5-vignettes-off-catalogue-scan: backlog
   13-6-export-import-blobs-accessibilite: backlog

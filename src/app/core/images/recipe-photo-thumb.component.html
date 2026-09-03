@@ -1,0 +1,10 @@
+@if (objectUrl()) {
+  <img
+    class="recipe-photo-thumb__image"
+    [src]="objectUrl()!"
+    [alt]="imageAlt()"
+    [attr.aria-hidden]="isDecorative() ? true : null"
+  />
+} @else if (!loading()) {
+  <app-recipe-photo-placeholder class="recipe-photo-thumb__placeholder" />
+}

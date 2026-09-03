@@ -8,6 +8,7 @@ import { ContextShortcutsOutletComponent } from '../../../../core/ui/context-sho
 import { ContextShortcutsService } from '../../../../core/ui/context-shortcuts/context-shortcuts.service';
 import { RECIPE_PHOTO_REPLACE_ERROR } from '../../../../core/images/recipe-photo.messages';
 import { RecipePhotoService } from '../../../../core/images/recipe-photo.service';
+import { RecipePhotoThumbComponent } from '../../../../core/images/recipe-photo-thumb.component';
 import type { RecipeDetail, RecipeVariantDetail } from '../../../../core/models/recipe-detail';
 import { RecipeMacroService } from '../../../../core/scoring/recipe-macro.service';
 import { RecipesService } from '../../services/recipes.service';
@@ -24,6 +25,7 @@ import { VariantChipRowComponent } from '../variant-chip-row/variant-chip-row.co
     RecipeMacrosPanelComponent,
     ConfirmDialogComponent,
     ContextShortcutsOutletComponent,
+    RecipePhotoThumbComponent,
   ],
   templateUrl: './recipe-detail-page.component.html',
   styleUrl: './recipe-detail-page.component.scss',
