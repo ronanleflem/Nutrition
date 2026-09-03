@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import type { ProductCatalogItem } from '../../../../core/models/product-catalog';
 import { formatMacrosSummary } from '../../../../core/models/product-reference';
 import { STORE_LABELS } from '../../../../core/models/store';
+import { ProductThumbComponent } from '../../../../core/images/product-thumb.component';
 import { LongPressDirective } from '../../../../core/ui/context-shortcuts/long-press.directive';
 import { PriorityBadgeComponent } from '../priority-badge/priority-badge.component';
 import { ScoreChipComponent } from '../score-chip/score-chip.component';
@@ -12,6 +13,7 @@ import { FoodCategoryLabelComponent } from '../../../../core/ui/food-category-la
 @Component({
   selector: 'app-product-card',
   imports: [
+    ProductThumbComponent,
     PriorityBadgeComponent,
     ScoreChipComponent,
     RouterLink,

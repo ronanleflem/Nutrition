@@ -1,0 +1,12 @@
+@if (displayUrl()) {
+  <img
+    class="product-thumb__image"
+    [src]="displayUrl()!"
+    alt=""
+    aria-hidden="true"
+  />
+} @else if (!loading()) {
+  <div class="product-thumb__fallback" aria-hidden="true">
+    <app-food-category-icon [kind]="fallbackKind()" />
+  </div>
+}

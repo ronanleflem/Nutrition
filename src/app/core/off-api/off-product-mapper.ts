@@ -10,8 +10,14 @@ export interface OffProductFields {
   brands?: string | string[];
   ingredients_text?: string;
   ingredients_text_fr?: string;
+  image_front_small_url?: string;
+  image_front_url?: string;
+  image_small_url?: string;
+  image_url?: string;
   nutriments?: OffNutrimentsRecord;
 }
+
+export const OFF_PRODUCT_THUMB_MAX_WIDTH = 288;
 
 export function mapOffProductFields(barcode: string, product: OffProductFields): OffProductPrefill {
   const nutriments = product.nutriments ?? {};
@@ -33,7 +39,22 @@ export function mapOffProductFields(barcode: string, product: OffProductFields):
     fiberPer100g: readOptionalNutriment(nutriments, 'fiber_100g', 'fiber'),
     saltPer100g: readOptionalNutriment(nutriments, 'salt_100g', 'salt'),
     ingredients,
+    imageUrl: readOffImageUrl(product),
   };
+}
+
+export function readOffImageUrl(product: OffProductFields): string | undefined {
+  return (
+    pickUrl(product.image_front_small_url) ??
+    pickUrl(product.image_front_url) ??
+    pickUrl(product.image_small_url) ??
+    pickUrl(product.image_url)
+  );
+}
+
+function pickUrl(value?: string): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed || undefined;
 }
 
 function readBrand(brands: string | string[] | undefined): string | undefined {

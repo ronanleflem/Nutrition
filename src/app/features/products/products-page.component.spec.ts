@@ -491,7 +491,7 @@ describe('ProductsPageComponent', () => {
     fixture.detectChanges();
     await waitForLoad();
 
-    const link = fixture.nativeElement.querySelector('.product-card__body') as HTMLAnchorElement;
+    const link = fixture.nativeElement.querySelector('.product-card__link') as HTMLAnchorElement;
     expect(link.getAttribute('href')).toBe(`/products/${product.id}`);
   });
 });

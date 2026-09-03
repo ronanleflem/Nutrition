@@ -40,6 +40,7 @@ export interface CreateProductReferenceInput extends ProductReferenceMacros {
   price?: number;
   pricePerKg?: number;
   notes?: string;
+  thumbBlobId?: string;
 }
 
 export interface UpdateProductReferenceInput extends ProductReferenceMacros {
@@ -77,6 +78,7 @@ export function createProductReference(
     pricePerKg: input.pricePerKg,
     nutritionalScore,
     notes: input.notes?.trim() || undefined,
+    thumbBlobId: input.thumbBlobId,
     deletedAt: null,
     createdAt: now,
     updatedAt: now,

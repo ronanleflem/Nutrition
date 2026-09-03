@@ -21,4 +21,4 @@ Story 13.4 implemented on the same branch/PR as 13.1–13.3.
 ## Verification
 
 - `npm run build` ✅
-- `npm test` ✅
+- `npm test` — **463/463** ✅
