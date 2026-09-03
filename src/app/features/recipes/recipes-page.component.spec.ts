@@ -114,6 +114,7 @@ describe('RecipesPageComponent', () => {
     await mount();
 
     const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('app-surface-banner .surface-banner')).toBeTruthy();
     expect(element.textContent).toContain('Ajoutez votre première recette');
   });
 
@@ -234,10 +235,10 @@ describe('RecipesPageComponent', () => {
     });
     await mount();
 
-    const link = fixture.nativeElement.querySelector('.recipes-page__card-link') as HTMLAnchorElement;
+    const link = fixture.nativeElement.querySelector('.recipe-card__link') as HTMLAnchorElement;
     expect(link.getAttribute('href')).toBe(`/recipes/${created.recipe.id}`);
 
-    const card = fixture.nativeElement.querySelector('.recipes-page__card') as HTMLElement;
+    const card = fixture.nativeElement.querySelector('.recipe-card') as HTMLElement;
     card.dispatchEvent(
       new PointerEvent('pointerdown', { bubbles: true, cancelable: true, button: 0, clientX: 8, clientY: 8 }),
     );

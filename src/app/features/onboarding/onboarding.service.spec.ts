@@ -25,6 +25,9 @@ class DummyHomeComponent {}
 @Component({ template: 'Nouvelle recette', standalone: true })
 class DummyRecipeFormComponent {}
 
+@Component({ template: 'Photo prompt', standalone: true })
+class DummyPhotoPromptComponent {}
+
 describe('OnboardingService', () => {
   let service: OnboardingService;
   let database: DatabaseService;
@@ -38,6 +41,7 @@ describe('OnboardingService', () => {
         provideRouter([
           { path: 'home', component: DummyHomeComponent },
           { path: 'recipes/new', component: DummyRecipeFormComponent },
+          { path: 'recipes/:id/photo-prompt', component: DummyPhotoPromptComponent },
         ]),
       ],
     }).compileComponents();
@@ -124,7 +128,7 @@ describe('OnboardingService', () => {
     expect(service.step2Ready()).toBe(false);
   });
 
-  it('creates the Omelette recipe, sets the flag, and opens Accueil', async () => {
+  it('creates the Omelette recipe, opens the photo prompt, then completes onboarding after the prompt', async () => {
     await seedProduct('ciqual-22000', 'Œuf');
     await seedProduct('ciqual-16400', 'Beurre');
     await seedProduct('ciqual-11058', 'Sel');
@@ -134,13 +138,11 @@ describe('OnboardingService', () => {
     const recipes = await database.listRecipes();
     expect(recipes).toHaveLength(1);
     expect(recipes[0].recipe.title).toBe(OMELETTE_TITLE);
+    expect((await database.getAppSettings()).onboardingCompleted).toBeUndefined();
+    expect(TestBed.inject(Router).url).toContain('/photo-prompt');
+    expect(TestBed.inject(Router).url).toContain('from=onboarding');
 
-    const detail = await database.getRecipeDetail(recipes[0].recipe.id);
-    expect(detail?.variants[0].name).toBe(OMELETTE_VARIANT_NAME);
-    expect(detail?.variants[0].ingredients).toHaveLength(3);
-    expect(
-      detail?.variants[0].ingredients.map((item) => item.quantityG).sort((a, b) => a - b),
-    ).toEqual(OMELETTE_INGREDIENTS.map((item) => item.quantityG).sort((a, b) => a - b));
+    await service.finishAfterPhotoPrompt();
 
     expect((await database.getAppSettings()).onboardingCompleted).toBe(true);
     expect(TestBed.inject(Router).url).toBe('/home');
@@ -159,7 +161,7 @@ describe('OnboardingService', () => {
 
     expect(importSpy).toHaveBeenCalledWith(OMELETTE_CIQUAL_IDS);
     expect((await database.listRecipes())[0].recipe.title).toBe(OMELETTE_TITLE);
-    expect((await database.getAppSettings()).onboardingCompleted).toBe(true);
+    expect(TestBed.inject(Router).url).toContain('/photo-prompt');
   });
 
   it('throws a French error when omelette ingredients cannot be resolved', async () => {

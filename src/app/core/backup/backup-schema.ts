@@ -9,8 +9,16 @@ import type { RecipeIngredient } from '../models/recipe-ingredient';
 import type { RecipeVariant } from '../models/recipe-variant';
 import type { ShoppingListItem } from '../models/shopping-list-item';
 
-export const BACKUP_SCHEMA_VERSION = 1;
+export const BACKUP_SCHEMA_VERSION = 2;
+export const BACKUP_SCHEMA_VERSION_V1 = 1;
 export const BACKUP_APP_ID = 'nutrition';
+
+export interface BackupImageBlobRecord {
+  id: string;
+  mimeType: string;
+  dataBase64: string;
+  createdAt: string;
+}
 
 export interface BackupData {
   products: Product[];
@@ -23,6 +31,7 @@ export interface BackupData {
   shoppingListItems: ShoppingListItem[];
   macroGoals: MacroGoals[];
   appSettings: AppSettings[];
+  imageBlobs: BackupImageBlobRecord[];
 }
 
 export interface BackupPayload {
@@ -52,4 +61,6 @@ export interface ImportSummary {
   shoppingListItems: number;
   productsAdded?: number;
   productsUpdated?: number;
+  photosRestored?: number;
+  photosMissing?: number;
 }

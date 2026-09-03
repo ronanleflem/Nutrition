@@ -1,23 +1,30 @@
 <article class="product-card" appLongPress (appLongPress)="shortcut.emit(true)">
-  <a class="product-card__body" [routerLink]="['/products', item().product.id]">
-    <div class="product-card__top">
-      <app-priority-badge [priority]="item().product.priority" />
-      <div class="product-card__info">
-        <div class="product-card__title">{{ item().product.name }}</div>
-        @if (item().product.category) {
-          <app-food-category-label [category]="item().product.category" class="product-card__category" />
+  <a class="product-card__link" [routerLink]="['/products', item().product.id]">
+    <app-product-thumb
+      class="product-card__thumb"
+      [thumbBlobId]="item().preferredReference?.thumbBlobId"
+      [category]="item().product.category"
+    />
+    <span class="product-card__text">
+      <span class="product-card__top">
+        <app-priority-badge [priority]="item().product.priority" />
+        <span class="product-card__info">
+          <span class="product-card__title">{{ item().product.name }}</span>
+          @if (item().product.category) {
+            <app-food-category-label [category]="item().product.category" class="product-card__category" />
+          }
+          @if (storeLine(); as store) {
+            <span class="product-card__meta">{{ store }}</span>
+          }
+        </span>
+        @if (item().preferredReference; as preferred) {
+          <app-score-chip [score]="preferred.nutritionalScore" />
         }
-        @if (storeLine(); as store) {
-          <div class="product-card__meta">{{ store }}</div>
-        }
-      </div>
-      @if (item().preferredReference; as preferred) {
-        <app-score-chip [score]="preferred.nutritionalScore" />
+      </span>
+      @if (macrosLine(); as macros) {
+        <span class="product-card__macros">{{ macros }}</span>
       }
-    </div>
-    @if (macrosLine(); as macros) {
-      <div class="product-card__macros">{{ macros }}</div>
-    }
+    </span>
   </a>
   <button
     type="button"

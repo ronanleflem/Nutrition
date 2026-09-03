@@ -1,6 +1,8 @@
 import { Component, computed, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { RecipePhotoThumbComponent } from '../../core/images/recipe-photo-thumb.component';
+import { SurfaceBannerComponent } from '../../core/images/surface-banner.component';
 import { ContextShortcutsOutletComponent } from '../../core/ui/context-shortcuts/context-shortcuts-outlet.component';
 import { ContextShortcutsService } from '../../core/ui/context-shortcuts/context-shortcuts.service';
 import { LongPressDirective } from '../../core/ui/context-shortcuts/long-press.directive';
@@ -10,7 +12,14 @@ import { RecipesService } from './services/recipes.service';
 
 @Component({
   selector: 'app-recipes-page',
-  imports: [RouterLink, EmptyStateComponent, LongPressDirective, ContextShortcutsOutletComponent],
+  imports: [
+    RouterLink,
+    EmptyStateComponent,
+    LongPressDirective,
+    ContextShortcutsOutletComponent,
+    RecipePhotoThumbComponent,
+    SurfaceBannerComponent,
+  ],
   templateUrl: './recipes-page.component.html',
   styleUrl: './recipes-page.component.scss',
 })

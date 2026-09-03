@@ -97,7 +97,7 @@ export class OnboardingService {
 
   async createOmeletteAndFinish(): Promise<void> {
     const ingredients = await this.resolveOmeletteIngredients();
-    await this.recipes.createRecipeWithFirstVariant({
+    const result = await this.recipes.createRecipeWithFirstVariant({
       recipe: {
         title: OMELETTE_TITLE,
         steps: [...OMELETTE_STEPS],
@@ -106,11 +106,25 @@ export class OnboardingService {
       variantName: OMELETTE_VARIANT_NAME,
       ingredients,
     });
+
+    this.resumeAfterLibrary = false;
+    this.resumeAfterCustom = false;
+    this.resetWizard();
+    await this.navigateToPhotoPrompt(result.recipe.id, true);
+  }
+
+  async finishAfterPhotoPrompt(): Promise<void> {
     await this.completeAndGoHome();
   }
 
   async completeAfterCustomRecipe(): Promise<void> {
-    await this.completeAndGoHome();
+    await this.finishAfterPhotoPrompt();
+  }
+
+  async navigateToPhotoPrompt(recipeId: string, fromOnboarding = false): Promise<void> {
+    await this.router.navigate(['/recipes', recipeId, 'photo-prompt'], {
+      queryParams: fromOnboarding ? { from: 'onboarding' } : undefined,
+    });
   }
 
   private resetWizard(): void {

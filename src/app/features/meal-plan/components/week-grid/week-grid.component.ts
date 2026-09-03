@@ -1,11 +1,13 @@
 import { Component, input, output } from '@angular/core';
 
 import { MEAL_PLAN_SLOT_LABELS, type MealPlanSlot } from '../../../../core/models/meal-plan-entry';
+import { RecipePhotoThumbComponent } from '../../../../core/images/recipe-photo-thumb.component';
 import type { MealPlanSlotView } from '../../services/meal-plan.service';
 import type { WeekDay } from '../../utils/week-dates';
 
 @Component({
   selector: 'app-week-grid',
+  imports: [RecipePhotoThumbComponent],
   templateUrl: './week-grid.component.html',
   styleUrl: './week-grid.component.scss',
 })

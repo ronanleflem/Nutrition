@@ -8,7 +8,6 @@ import Dexie from 'dexie';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DatabaseService } from '../../../../core/database/database.service';
-import { OnboardingService } from '../../../onboarding/onboarding.service';
 import { NUTRITION_DB_NAME } from '../../../../core/database/nutrition-database';
 import { deleteNutritionDatabase } from '../../../../core/database/nutrition-database.testing';
 import { RecipeFormPageComponent } from './recipe-form-page.component';
@@ -18,6 +17,9 @@ class DummyHomeComponent {}
 
 @Component({ template: 'Recettes', standalone: true })
 class DummyRecipesComponent {}
+
+@Component({ template: 'Photo prompt', standalone: true })
+class DummyPhotoPromptComponent {}
 
 describe('RecipeFormPageComponent onboarding return', () => {
   let fixture: ComponentFixture<RecipeFormPageComponent>;
@@ -42,6 +44,7 @@ describe('RecipeFormPageComponent onboarding return', () => {
         provideRouter([
           { path: 'home', component: DummyHomeComponent },
           { path: 'recipes', component: DummyRecipesComponent },
+          { path: 'recipes/:id/photo-prompt', component: DummyPhotoPromptComponent },
           { path: 'onboarding', component: DummyHomeComponent },
         ]),
         {
@@ -92,35 +95,32 @@ describe('RecipeFormPageComponent onboarding return', () => {
     await fixture.whenStable();
   }
 
-  it('sets onboardingCompleted and opens Accueil after a successful create from onboarding', async () => {
+  it('opens the photo prompt after a successful create from onboarding without completing onboarding yet', async () => {
     const productId = await setup(true);
     await submitRecipe(productId);
 
     expect((await database.listRecipes())[0].recipe.title).toBe('Soupe');
-    expect((await database.getAppSettings()).onboardingCompleted).toBe(true);
-    expect(TestBed.inject(Router).url).toBe('/home');
+    expect((await database.getAppSettings()).onboardingCompleted).toBeUndefined();
+    expect(TestBed.inject(Router).url).toContain('/photo-prompt');
+    expect(TestBed.inject(Router).url).toContain('from=onboarding');
   });
 
-  it('does not set the flag when creating a recipe outside onboarding', async () => {
+  it('opens the photo prompt when creating a recipe outside onboarding', async () => {
     const productId = await setup(false);
     await submitRecipe(productId);
 
     expect((await database.listRecipes())[0].recipe.title).toBe('Soupe');
     expect((await database.getAppSettings()).onboardingCompleted).toBeUndefined();
-    expect(TestBed.inject(Router).url).toBe('/recipes');
+    expect(TestBed.inject(Router).url).toContain('/photo-prompt');
   });
 
-  it('navigates home without creating a second recipe if completing onboarding fails', async () => {
+  it('navigates back to the photo prompt if onboarding submit is triggered twice', async () => {
     const productId = await setup(true);
-    vi.spyOn(TestBed.inject(OnboardingService), 'completeAfterCustomRecipe').mockRejectedValue(
-      new Error('Flag indisponible.'),
-    );
-
     await submitRecipe(productId);
     await submitRecipe(productId);
 
     expect(await database.listRecipes()).toHaveLength(1);
-    expect(TestBed.inject(Router).url).toBe('/home');
+    expect(TestBed.inject(Router).url).toContain('/photo-prompt');
   });
 
   it('leaves the flag unchanged when the onboarding form is abandoned', async () => {

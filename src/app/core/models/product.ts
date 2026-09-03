@@ -70,3 +70,9 @@ export const PRODUCT_PRIORITY_LABELS: Record<ProductPriority, string> = {
   yellow: 'Priorité jaune',
   gray: 'Priorité grise',
 };
+
+export const PRODUCT_PRIORITY_VISIBLE_LABELS: Record<ProductPriority, string> = {
+  green: 'Haute',
+  yellow: 'Moyenne',
+  gray: 'Basse',
+};

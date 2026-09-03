@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 
 import { DatabaseService } from '../database/database.service';
+import {
+  collectReferencedBlobIds,
+  encodeImageBlobForBackup,
+} from './backup-image-blobs';
 import { BackupCryptoService } from './backup-crypto.service';
 import {
   BACKUP_APP_ID,
@@ -28,6 +32,8 @@ export interface ImportBackupOptions {
   password?: string;
 }
 
+export const LARGE_BACKUP_WARNING_BYTES = 5 * 1024 * 1024;
+
 export { BackupValidationError } from './backup-validation';
 
 @Injectable({ providedIn: 'root' })
@@ -39,16 +45,25 @@ export class BackupService {
 
   async buildExportPayload(): Promise<BackupPayload> {
     const data = await this.database.dumpAllTables();
+    const referencedIds = collectReferencedBlobIds(data);
+    const { imageBlobs: rawImageBlobs, ...rest } = data;
 
     return {
       schemaVersion: BACKUP_SCHEMA_VERSION,
       exportedAt: new Date().toISOString(),
       app: BACKUP_APP_ID,
       data: {
-        ...data,
+        ...rest,
         appSettings: data.appSettings.map(sanitizeAppSettingsForExport),
+        imageBlobs: rawImageBlobs
+          .filter((blob) => referencedIds.has(blob.id))
+          .map(encodeImageBlobForBackup),
       },
     };
+  }
+
+  estimatePayloadBytes(payload: BackupPayload): number {
+    return new Blob([JSON.stringify(payload)]).size;
   }
 
   async exportToFile(options: ExportBackupOptions): Promise<void> {
@@ -121,8 +136,11 @@ export class BackupService {
     const payload = await this.parseFileContent(content, options.password);
 
     if (options.mode === 'replace') {
-      await this.database.replaceAllFromBackup(payload.data);
-      return this.buildReplaceSummary(payload.data);
+      const photoSummary = await this.database.replaceAllFromBackup(payload.data);
+      return {
+        ...this.buildReplaceSummary(payload.data),
+        ...photoSummary,
+      };
     }
 
     return this.database.mergeFromBackup(payload.data);

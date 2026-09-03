@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { SurfaceBannerComponent } from '../../core/images/surface-banner.component';
 import type { MealPlanSlot } from '../../core/models/meal-plan-entry';
 import { MacroSynthesisSectionComponent } from '../macro-goals/components/macro-synthesis-section/macro-synthesis-section.component';
 import { MealSlotSheetComponent } from './components/meal-slot-sheet/meal-slot-sheet.component';
@@ -25,6 +26,7 @@ interface ActiveSlot {
   selector: 'app-meal-plan-page',
   imports: [
     RouterLink,
+    SurfaceBannerComponent,
     WeekGridComponent,
     RecipePickerSheetComponent,
     MealSlotSheetComponent,

@@ -1,10 +1,13 @@
 import {
   BACKUP_APP_ID,
   BACKUP_SCHEMA_VERSION,
+  BACKUP_SCHEMA_VERSION_V1,
   type BackupData,
+  type BackupImageBlobRecord,
   type BackupPayload,
   type EncryptedBackupEnvelope,
 } from './backup-schema';
+import { isValidBackupImageBlobRecord } from './backup-image-blobs';
 
 export class BackupValidationError extends Error {
   constructor(message: string) {
@@ -25,6 +28,8 @@ const BACKUP_DATA_KEYS = [
   'macroGoals',
   'appSettings',
 ] as const satisfies ReadonlyArray<keyof BackupData>;
+
+const OPTIONAL_BACKUP_DATA_KEYS = ['imageBlobs'] as const satisfies ReadonlyArray<keyof BackupData>;
 
 export function isEncryptedBackupContent(content: string): boolean {
   try {
@@ -60,7 +65,26 @@ function validateBackupData(data: unknown): BackupData {
     }
   }
 
-  return candidate as unknown as BackupData;
+  for (const key of OPTIONAL_BACKUP_DATA_KEYS) {
+    if (candidate[key] != null && !Array.isArray(candidate[key])) {
+      throw new BackupValidationError(`Champ data.${key} invalide.`);
+    }
+  }
+
+  const rawImageBlobs = candidate['imageBlobs'];
+  const imageBlobs: BackupImageBlobRecord[] = [];
+  if (Array.isArray(rawImageBlobs)) {
+    for (const record of rawImageBlobs) {
+      if (isValidBackupImageBlobRecord(record)) {
+        imageBlobs.push(record);
+      }
+    }
+  }
+
+  return {
+    ...(candidate as unknown as BackupData),
+    imageBlobs,
+  };
 }
 
 export function validateBackupPayload(raw: unknown): BackupPayload {
@@ -69,7 +93,8 @@ export function validateBackupPayload(raw: unknown): BackupPayload {
   }
 
   const candidate = raw as Record<string, unknown>;
-  if (candidate['schemaVersion'] !== BACKUP_SCHEMA_VERSION) {
+  const schemaVersion = candidate['schemaVersion'];
+  if (schemaVersion !== BACKUP_SCHEMA_VERSION && schemaVersion !== BACKUP_SCHEMA_VERSION_V1) {
     throw new BackupValidationError('Version de schéma non supportée.');
   }
 

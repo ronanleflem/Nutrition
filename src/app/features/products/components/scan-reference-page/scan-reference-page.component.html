@@ -8,6 +8,12 @@
     <p class="scan-reference-page__banner" role="status">{{ message }}</p>
   }
 
+  @if (previewImageUrl() || previewCategory() || flowState()?.prefill) {
+    <div class="scan-reference-page__preview" aria-hidden="true">
+      <app-product-thumb [previewUrl]="previewImageUrl()" [category]="previewCategory()" />
+    </div>
+  }
+
   <form class="reference-form" [formGroup]="form" (ngSubmit)="onSubmit()">
     @if (submitError()) {
       <p class="reference-form__error" role="alert">{{ submitError() }}</p>

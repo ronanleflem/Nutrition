@@ -3,6 +3,7 @@ import { By } from '@angular/platform-browser';
 
 import {
   PRODUCT_PRIORITY_LABELS,
+  PRODUCT_PRIORITY_VISIBLE_LABELS,
   type ProductPriority,
 } from '../../../../core/models/product';
 import { PriorityBadgeComponent } from './priority-badge.component';
@@ -19,12 +20,14 @@ describe('PriorityBadgeComponent', () => {
   });
 
   for (const priority of ['green', 'yellow', 'gray'] as ProductPriority[]) {
-    it(`renders French aria-label for ${priority} priority`, () => {
+    it(`renders visible label ${PRODUCT_PRIORITY_VISIBLE_LABELS[priority]} for ${priority}`, () => {
       fixture.componentRef.setInput('priority', priority);
       fixture.detectChanges();
 
-      const badge = fixture.debugElement.query(By.css('.priority-badge'));
-      expect(badge.attributes['aria-label']).toBe(PRODUCT_PRIORITY_LABELS[priority]);
+      expect(fixture.nativeElement.textContent).toContain(PRODUCT_PRIORITY_VISIBLE_LABELS[priority]);
+      expect(fixture.debugElement.query(By.css('.priority-badge__sr-only')).nativeElement.textContent).toBe(
+        PRODUCT_PRIORITY_LABELS[priority],
+      );
     });
   }
 

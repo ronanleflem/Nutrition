@@ -1,0 +1,93 @@
+.photo-prompt {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 32px);
+  padding: 48px 16px 24px;
+}
+
+.photo-prompt__status,
+.photo-prompt__subtitle,
+.photo-prompt__info {
+  color: var(--color-ink-secondary);
+}
+
+.photo-prompt__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-ink-primary);
+  line-height: 1.25;
+}
+
+.photo-prompt__subtitle {
+  margin: 8px 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.photo-prompt__placeholder {
+  width: 120px;
+  height: 120px;
+  margin: 32px auto;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-overlay);
+  border: 1px solid var(--color-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink-primary);
+}
+
+.photo-prompt__info,
+.photo-prompt__error {
+  margin: 0 0 12px;
+  font-size: var(--font-size-meta);
+  line-height: 1.4;
+}
+
+.photo-prompt__error {
+  color: var(--color-status-danger, #f08080);
+}
+
+.photo-prompt__actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.photo-prompt__button {
+  min-height: var(--spacing-touch-min);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+.photo-prompt__button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.photo-prompt__button--primary {
+  background: var(--color-accent-primary);
+  color: var(--color-surface-base);
+}
+
+.photo-prompt__button--secondary {
+  background: var(--color-surface-overlay);
+  color: var(--color-ink-primary);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.photo-prompt__button--ghost {
+  background: transparent;
+  color: var(--color-ink-secondary);
+  font-weight: 400;
+}
+
+.photo-prompt__file-input {
+  display: none;
+}

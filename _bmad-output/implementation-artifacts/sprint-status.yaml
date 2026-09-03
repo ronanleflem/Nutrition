@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 08-30-2026 18:11
-last_updated: 09-02-2026 23:05
+last_updated: 09-02-2026 23:10
 project: Nutrition
 project_key: NOKEY
 tracking_system: file-system
@@ -114,11 +114,11 @@ development_status:
   12-3-raccourcis-contextuels-cross-surfaces: done
   epic-12-retrospective: optional
 
-  epic-13: backlog
-  13-1-stockage-blobs-pipeline-webp: backlog
-  13-2-photo-recette-prompt-et-crud: backlog
-  13-3-affichage-recettes-plan-vignettes: backlog
-  13-4-bandeaux-de-surface: backlog
-  13-5-vignettes-off-catalogue-scan: backlog
-  13-6-export-import-blobs-accessibilite: backlog
+  epic-13: in-progress
+  13-1-stockage-blobs-pipeline-webp: review
+  13-2-photo-recette-prompt-et-crud: review
+  13-3-affichage-recettes-plan-vignettes: review
+  13-4-bandeaux-de-surface: review
+  13-5-vignettes-off-catalogue-scan: review
+  13-6-export-import-blobs-accessibilite: review
   epic-13-retrospective: optional

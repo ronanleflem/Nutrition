@@ -10,6 +10,7 @@ export interface OffProductPrefill {
   fiberPer100g?: number;
   saltPer100g?: number;
   ingredients?: string;
+  imageUrl?: string;
 }
 
 export type OffLookupResult =

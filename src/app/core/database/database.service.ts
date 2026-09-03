@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { normalizeBarcodeInput } from '../barcode/ean';
+import type { ImageBlob } from '../models/image-blob';
 
 import {
   APP_SETTINGS_SINGLETON_ID,
@@ -72,6 +73,14 @@ import { SEARCH_CACHE_MAX_ENTRIES, SEARCH_CACHE_TTL_MS } from '../food-library/s
 import { NutritionalScoreService } from '../scoring/nutritional-score.service';
 import type { BackupData } from '../backup/backup-schema';
 import type { ImportSummary } from '../backup/backup-schema';
+import {
+  decodeImageBlobsFromBackup,
+  mergeRecipePhotoBlobId,
+  mergeReferenceThumbBlobId,
+  sanitizeBackupPhotoReferences,
+  summarizeMergePhotoRestore,
+  type PhotoRestoreSummary,
+} from '../backup/backup-image-blobs';
 import {
   buildActiveBarcodeIndex,
   buildNameBrandIndex,
@@ -169,6 +178,7 @@ export class DatabaseService {
     shoppingListItems: ShoppingListItem[];
     macroGoals: MacroGoals[];
     appSettings: AppSettings[];
+    imageBlobs: ImageBlob[];
   }> {
     await this.initialize();
 
@@ -183,6 +193,7 @@ export class DatabaseService {
       shoppingListItems,
       macroGoals,
       appSettings,
+      imageBlobs,
     ] = await Promise.all([
       this.db!.products.toArray(),
       this.db!.productReferences.toArray(),
@@ -194,6 +205,7 @@ export class DatabaseService {
       this.db!.shoppingListItems.toArray(),
       this.db!.macroGoals.toArray(),
       this.db!.appSettings.toArray(),
+      this.db!.imageBlobs.toArray(),
     ]);
 
     return {
@@ -207,6 +219,7 @@ export class DatabaseService {
       shoppingListItems,
       macroGoals,
       appSettings,
+      imageBlobs,
     };
   }
 
@@ -299,6 +312,60 @@ export class DatabaseService {
     return (await this.db!.usdaFoodCache.get(fdcId)) ?? undefined;
   }
 
+  async putImageBlob(entry: ImageBlob): Promise<void> {
+    await this.initialize();
+    await this.db!.imageBlobs.put(entry);
+  }
+
+  async getImageBlob(id: string): Promise<ImageBlob | undefined> {
+    await this.initialize();
+    return (await this.db!.imageBlobs.get(id)) ?? undefined;
+  }
+
+  async deleteImageBlob(id: string): Promise<void> {
+    await this.initialize();
+    await this.db!.imageBlobs.delete(id);
+  }
+
+  async isImageBlobReferenced(id: string): Promise<boolean> {
+    await this.initialize();
+
+    const [recipeMatch, referenceMatch] = await Promise.all([
+      this.db!.recipes.filter((recipe) => recipe.photoBlobId === id).first(),
+      this.db!.productReferences.filter((reference) => reference.thumbBlobId === id).first(),
+    ]);
+
+    return recipeMatch != null || referenceMatch != null;
+  }
+
+  private async purgeUnreferencedImageBlobs(db: NutritionDatabase): Promise<void> {
+    const referencedIds = new Set<string>();
+    const [recipes, references] = await Promise.all([
+      db.recipes.toArray(),
+      db.productReferences.toArray(),
+    ]);
+
+    for (const recipe of recipes) {
+      if (recipe.photoBlobId) {
+        referencedIds.add(recipe.photoBlobId);
+      }
+    }
+
+    for (const reference of references) {
+      if (reference.thumbBlobId) {
+        referencedIds.add(reference.thumbBlobId);
+      }
+    }
+
+    const staleIds = (await db.imageBlobs.toArray())
+      .filter((blob) => !referencedIds.has(blob.id))
+      .map((blob) => blob.id);
+
+    if (staleIds.length > 0) {
+      await db.imageBlobs.bulkDelete(staleIds);
+    }
+  }
+
   async rememberSearchCacheHits(query: string, hits: OnlineSearchHit[]): Promise<void> {
     await this.initialize();
 
@@ -355,11 +422,15 @@ export class DatabaseService {
     }
   }
 
-  async replaceAllFromBackup(data: BackupData): Promise<void> {
+  async replaceAllFromBackup(data: BackupData): Promise<PhotoRestoreSummary> {
     await this.initialize();
 
     const db = this.db!;
+    const decodedBlobs = decodeImageBlobsFromBackup(data.imageBlobs);
+    const importedBlobIds = new Set(decodedBlobs.map((blob) => blob.id));
+    const photoSummary = sanitizeBackupPhotoReferences(data, importedBlobIds);
     const tables = [
+      db.imageBlobs,
       db.shoppingListItems,
       db.mealPlanEntries,
       db.recipeIngredients,
@@ -376,6 +447,7 @@ export class DatabaseService {
         const localSettings =
           (await db.appSettings.get(APP_SETTINGS_SINGLETON_ID)) ?? createDefaultAppSettings();
 
+        await db.imageBlobs.clear();
         await db.shoppingListItems.clear();
         await db.mealPlanEntries.clear();
         await db.recipeIngredients.clear();
@@ -387,6 +459,9 @@ export class DatabaseService {
         await db.macroGoals.clear();
         await db.appSettings.clear();
 
+        if (data.imageBlobs.length > 0) {
+          await db.imageBlobs.bulkPut(decodedBlobs);
+        }
         if (data.products.length > 0) {
           await db.products.bulkPut(data.products);
         }
@@ -420,6 +495,8 @@ export class DatabaseService {
           mergeAppSettingsPreservingApiKeys(localSettings, importedSettings ?? createDefaultAppSettings()),
         );
     });
+
+    return photoSummary;
   }
 
   async mergeFromBackup(data: BackupData): Promise<ImportSummary> {
@@ -436,10 +513,13 @@ export class DatabaseService {
       shoppingListItems: 0,
       productsAdded: 0,
       productsUpdated: 0,
+      photosRestored: 0,
+      photosMissing: 0,
     };
 
     const db = this.db!;
     const tables = [
+      db.imageBlobs,
       db.shoppingListItems,
       db.mealPlanEntries,
       db.recipeIngredients,
@@ -453,6 +533,12 @@ export class DatabaseService {
     ];
 
     await db.transaction('rw', tables, async () => {
+        if (data.imageBlobs.length > 0) {
+          await db.imageBlobs.bulkPut(decodeImageBlobsFromBackup(data.imageBlobs));
+        }
+
+        const importedBlobIds = new Set(data.imageBlobs.map((record) => record.id));
+        const availableBlobIds = new Set((await db.imageBlobs.toArray()).map((blob) => blob.id));
         const localProducts = await db.products.toArray();
         const localReferences = await db.productReferences.toArray();
         const localPantryItems = await db.pantryItems.toArray();
@@ -567,6 +653,11 @@ export class DatabaseService {
               nutritionalScore: importedReference.nutritionalScore,
               verdictLabel: importedReference.verdictLabel,
               notes: importedReference.notes,
+              thumbBlobId: mergeReferenceThumbBlobId(
+                localReference,
+                importedReference,
+                availableBlobIds,
+              ),
               deletedAt: importedReference.deletedAt,
               updatedAt: importedReference.updatedAt,
             });
@@ -576,6 +667,7 @@ export class DatabaseService {
               id: crypto.randomUUID(),
               productId: mappedProductId,
               barcode,
+              thumbBlobId: mergeReferenceThumbBlobId(undefined, importedReference, availableBlobIds),
             };
             referenceIdMap.set(importedReference.id, newReference.id);
             await db.productReferences.put(newReference);
@@ -640,6 +732,7 @@ export class DatabaseService {
         for (const importedRecipe of data.recipes) {
           const targetRecipeId = importedRecipe.id;
           recipeIdMap.set(importedRecipe.id, targetRecipeId);
+          const localRecipe = localRecipes.find((recipe) => recipe.id === importedRecipe.id);
 
           const importedVariants = data.recipeVariants.filter(
             (variant) => variant.recipeId === importedRecipe.id,
@@ -653,7 +746,9 @@ export class DatabaseService {
             await db.recipeVariants.where('recipeId').equals(importedRecipe.id).delete();
           }
 
-          await db.recipes.put({ ...importedRecipe, id: targetRecipeId });
+          const photoBlobId = mergeRecipePhotoBlobId(localRecipe, importedRecipe, availableBlobIds);
+
+          await db.recipes.put({ ...importedRecipe, id: targetRecipeId, photoBlobId });
           if (importedVariants.length > 0) {
             await db.recipeVariants.bulkPut(
               importedVariants.map((variant) => ({ ...variant, recipeId: targetRecipeId })),
@@ -708,6 +803,34 @@ export class DatabaseService {
             lastExportAt: mergeLastExportAt(localSettings.lastExportAt, importedSettings.lastExportAt),
           });
         }
+
+        const [mergedRecipes, mergedReferences] = await Promise.all([
+          db.recipes.toArray(),
+          db.productReferences.toArray(),
+        ]);
+        const decodedImportedBlobIds = new Set(
+          decodeImageBlobsFromBackup(data.imageBlobs).map((blob) => blob.id),
+        );
+        sanitizeBackupPhotoReferences(
+          {
+            ...data,
+            recipes: mergedRecipes,
+            productReferences: mergedReferences,
+          },
+          availableBlobIds,
+        );
+        const photoSummary = summarizeMergePhotoRestore(
+          { recipes: data.recipes, productReferences: data.productReferences },
+          decodedImportedBlobIds,
+          mergedRecipes,
+          mergedReferences,
+          referenceIdMap,
+        );
+        await db.recipes.bulkPut(mergedRecipes);
+        await db.productReferences.bulkPut(mergedReferences);
+        await this.purgeUnreferencedImageBlobs(db);
+        summary.photosRestored = photoSummary.photosRestored;
+        summary.photosMissing = photoSummary.photosMissing;
     });
 
     summary.products = summary.productsAdded! + summary.productsUpdated!;
@@ -983,6 +1106,7 @@ export class DatabaseService {
       price: input.price,
       pricePerKg: input.pricePerKg,
       notes: input.notes?.trim() || undefined,
+      thumbBlobId: input.thumbBlobId ?? existing.thumbBlobId,
       nutritionalScore,
       updatedAt: new Date().toISOString(),
     };
@@ -1435,6 +1559,33 @@ export class DatabaseService {
     return updated;
   }
 
+  async updateRecipePhotoBlobId(recipeId: string, photoBlobId: string | null): Promise<Recipe> {
+    await this.initialize();
+
+    const existing = await this.db!.recipes.get(recipeId);
+    if (!existing) {
+      throw new Error('Recette introuvable.');
+    }
+
+    const previousId = existing.photoBlobId;
+    const updated: Recipe = {
+      ...existing,
+      photoBlobId: photoBlobId ?? undefined,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.db!.recipes.put(updated);
+
+    if (previousId && previousId !== photoBlobId) {
+      const referenced = await this.isImageBlobReferenced(previousId);
+      if (!referenced) {
+        await this.deleteImageBlob(previousId);
+      }
+    }
+
+    return updated;
+  }
+
   async countMealPlanEntriesForRecipe(recipeId: string): Promise<number> {
     await this.initialize();
     return this.db!.mealPlanEntries.where('recipeId').equals(recipeId).count();
@@ -1756,6 +1907,7 @@ export class DatabaseService {
       throw new Error('Recette introuvable.');
     }
 
+    const photoBlobId = recipe.photoBlobId;
     const variants = await this.db!.recipeVariants.where('recipeId').equals(recipeId).toArray();
     const variantIds = variants.map((variant) => variant.id);
 
@@ -1774,6 +1926,13 @@ export class DatabaseService {
         await this.db!.recipes.delete(recipeId);
       },
     );
+
+    if (photoBlobId) {
+      const referenced = await this.isImageBlobReferenced(photoBlobId);
+      if (!referenced) {
+        await this.deleteImageBlob(photoBlobId);
+      }
+    }
   }
 
   /** Test helper to reset in-memory state after closing the Dexie connection. */

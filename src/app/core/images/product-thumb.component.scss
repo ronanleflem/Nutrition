@@ -1,0 +1,32 @@
+:host {
+  display: block;
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-overlay);
+}
+
+.product-thumb__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.product-thumb__fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--color-ink-primary);
+}
+
+.product-thumb__fallback app-food-category-icon {
+  width: 32px;
+  height: 32px;
+}

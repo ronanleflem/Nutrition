@@ -9,6 +9,7 @@ import { NUTRITION_DB_NAME } from '../database/nutrition-database';
 import { deleteNutritionDatabase } from '../database/nutrition-database.testing';
 import { APP_SETTINGS_SINGLETON_ID } from '../models/app-settings';
 import { MACRO_GOALS_SINGLETON_ID } from '../models/macro-goals';
+import { IMAGE_WEBP_MIME } from '../models/image-blob';
 import { BackupCryptoService } from './backup-crypto.service';
 import { BACKUP_APP_ID, BACKUP_SCHEMA_VERSION } from './backup-schema';
 import { BackupService } from './backup.service';
@@ -62,6 +63,7 @@ describe('BackupService import', () => {
       shoppingListItems: [],
       macroGoals: [],
       appSettings: [],
+      imageBlobs: [],
     });
 
     const summary = await backupService.importFromFile(file, { mode: 'replace' });
@@ -154,6 +156,7 @@ describe('BackupService import', () => {
             lastExportAt: '2026-09-01T00:00:00.000Z',
           },
         ],
+        imageBlobs: [],
       },
     };
 
@@ -226,6 +229,7 @@ describe('BackupService import', () => {
         shoppingListItems: [],
         macroGoals: [],
         appSettings: [],
+        imageBlobs: [],
       },
     };
 
@@ -242,5 +246,63 @@ describe('BackupService import', () => {
 
     const preferredReference = await database.getProductReference(localReference.id);
     expect(preferredReference?.label).toBe('Yaourt import');
+  });
+
+  it('round-trips referenced image blobs through export and replace import', async () => {
+    const product = await database.createProduct({ name: 'Skyr' });
+    const reference = await database.createProductReference({
+      productId: product.id,
+      store: 'auchan',
+      label: 'Skyr nature',
+      kcalPer100g: 60,
+      proteinPer100g: 10,
+      fatPer100g: 0.2,
+      carbsPer100g: 4,
+    });
+    const blobId = crypto.randomUUID();
+    await database.putImageBlob({
+      id: blobId,
+      mimeType: IMAGE_WEBP_MIME,
+      data: new Uint8Array([9, 8, 7]).buffer,
+      createdAt: '2026-09-01T00:00:00.000Z',
+    });
+    await database.updateProductReference(reference.id, {
+      store: reference.store,
+      label: reference.label,
+      kcalPer100g: reference.kcalPer100g,
+      proteinPer100g: reference.proteinPer100g,
+      fatPer100g: reference.fatPer100g,
+      carbsPer100g: reference.carbsPer100g,
+      thumbBlobId: blobId,
+    });
+
+    const payload = await backupService.buildExportPayload();
+    expect(payload.data.imageBlobs).toHaveLength(1);
+
+    const file = new File([JSON.stringify(payload)], 'blobs.nutrition-backup.json', {
+      type: 'application/json',
+    });
+
+    await database.replaceAllFromBackup({
+      products: [],
+      productReferences: [],
+      pantryItems: [],
+      recipes: [],
+      recipeVariants: [],
+      recipeIngredients: [],
+      mealPlanEntries: [],
+      shoppingListItems: [],
+      macroGoals: [],
+      appSettings: [],
+      imageBlobs: [],
+    });
+
+    const summary = await backupService.importFromFile(file, { mode: 'replace' });
+
+    expect(summary.photosRestored).toBe(1);
+    expect(summary.photosMissing).toBe(0);
+    const restoredReference = (await database.listActiveReferencesByProductId(product.id))[0];
+    expect(restoredReference.thumbBlobId).toBe(blobId);
+    expect((await database.getImageBlob(blobId))?.mimeType).toBe(IMAGE_WEBP_MIME);
   });
 });

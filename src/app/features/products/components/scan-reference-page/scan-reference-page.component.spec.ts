@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 
+import { OffProductThumbService } from '../../../../core/images/off-product-thumb.service';
 import { ProductsService } from '../../services/products.service';
 import { ScanService } from '../../services/scan.service';
 import { ScanReferencePageComponent } from './scan-reference-page.component';
@@ -22,6 +23,12 @@ describe('ScanReferencePageComponent', () => {
             catalog: () => [],
             createProduct: async () => ({ id: 'product-1' }),
             createReference: async () => ({}),
+          },
+        },
+        {
+          provide: OffProductThumbService,
+          useValue: {
+            importFromUrl: async () => undefined,
           },
         },
       ],
@@ -68,6 +75,30 @@ describe('ScanReferencePageComponent', () => {
 
     expect(fixture.componentInstance.form.controls.label.value).toBe('Nutella');
     expect(fixture.componentInstance.form.controls.kcalPer100g.value).toBe(539);
+  });
+
+  it('shows an OFF preview thumbnail when prefill includes an image URL', async () => {
+    scanService.flowState.set({
+      barcode: '3017620422003',
+      status: 'off-found',
+      prefill: {
+        barcode: '3017620422003',
+        label: 'Nutella',
+        suggestedProductName: 'Nutella',
+        kcalPer100g: 539,
+        proteinPer100g: 6.3,
+        fatPer100g: 30.9,
+        carbsPer100g: 57.5,
+        imageUrl: 'https://off.test/nutella.jpg',
+      },
+    });
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const image = fixture.nativeElement.querySelector('.product-thumb__image') as HTMLImageElement;
+    expect(image.getAttribute('src')).toBe('https://off.test/nutella.jpg');
   });
 
   it('allows submit in existing product mode without newProductName', async () => {

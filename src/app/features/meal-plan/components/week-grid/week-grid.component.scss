@@ -60,6 +60,7 @@
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
+  min-height: var(--spacing-touch-min);
   padding: 0;
   border: none;
   background: transparent;
@@ -68,17 +69,24 @@
   cursor: pointer;
 }
 
+.week-grid__slot-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.week-grid__slot-recipe {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+}
+
 .week-grid__slot-label {
   font-size: var(--font-size-meta);
   color: var(--color-ink-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-
-.week-grid__slot-recipe {
-  margin-top: 6px;
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-semibold);
 }
 
 .week-grid__variant-chip {
@@ -96,13 +104,13 @@
 
 .week-grid__slot-empty {
   margin-top: 6px;
-  color: var(--color-ink-disabled);
+  color: var(--color-ink-secondary);
   font-size: 1.25rem;
   line-height: 1;
 }
 
 .week-grid__slot-empty-label {
   margin-top: 4px;
-  color: var(--color-ink-disabled);
+  color: var(--color-ink-secondary);
   font-size: 0.9375rem;
 }

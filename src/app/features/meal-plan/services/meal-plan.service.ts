@@ -18,6 +18,7 @@ export interface MealPlanSlotView {
   entry?: MealPlanEntry;
   recipeId?: string;
   recipeTitle?: string;
+  photoBlobId?: string;
   resolvedVariantId?: string;
   variantLabel?: string;
 }
@@ -86,6 +87,7 @@ export class MealPlanService {
         entry,
         recipeId: entry.recipeId,
         recipeTitle: this.recipeTitleById.get(entry.recipeId) ?? 'Recette supprimée',
+        photoBlobId: detail?.recipe.photoBlobId,
         resolvedVariantId,
         variantLabel,
       };

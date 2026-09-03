@@ -10,11 +10,11 @@
   </p>
 
   @if (importError()) {
-    <p class="import-page__error" role="alert">{{ importError() }}</p>
+    <p class="import-page__error" role="alert" aria-live="polite">{{ importError() }}</p>
   }
 
   @if (summary(); as result) {
-    <div class="import-page__summary" role="status">
+    <div class="import-page__summary" role="status" aria-live="polite">
       <h2 class="import-page__summary-title">Import terminé</h2>
       <ul class="import-page__summary-list">
         <li>{{ result.products }} produit(s)</li>

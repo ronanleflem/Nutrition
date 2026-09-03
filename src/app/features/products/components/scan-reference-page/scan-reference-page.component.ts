@@ -1,7 +1,9 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
+import { OffProductThumbService } from '../../../../core/images/off-product-thumb.service';
+import { ProductThumbComponent } from '../../../../core/images/product-thumb.component';
 import type { Store } from '../../../../core/models/store';
 import { STORES, STORE_LABELS } from '../../../../core/models/store';
 import type { Product } from '../../../../core/models/product';
@@ -11,7 +13,7 @@ import { ScanService } from '../../services/scan.service';
 
 @Component({
   selector: 'app-scan-reference-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ProductThumbComponent],
   templateUrl: './scan-reference-page.component.html',
   styleUrl: './scan-reference-page.component.scss',
 })
@@ -20,6 +22,7 @@ export class ScanReferencePageComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly productsService = inject(ProductsService);
   private readonly scanService = inject(ScanService);
+  private readonly offThumb = inject(OffProductThumbService);
 
   readonly stores = STORES;
   readonly storeLabels = STORE_LABELS;
@@ -28,6 +31,16 @@ export class ScanReferencePageComponent implements OnInit, OnDestroy {
   readonly saving = signal(false);
   readonly submitError = signal<string | null>(null);
   readonly productMode = signal<'existing' | 'new'>('new');
+
+  readonly previewImageUrl = computed(() => this.flowState()?.prefill?.imageUrl);
+  readonly previewCategory = computed(() => {
+    if (this.productMode() === 'existing') {
+      const productId = this.form.controls.productId.value;
+      return this.products().find((product) => product.id === productId)?.category;
+    }
+
+    return undefined;
+  });
 
   readonly form = this.fb.nonNullable.group({
     productId: [''],
@@ -121,6 +134,8 @@ export class ScanReferencePageComponent implements OnInit, OnDestroy {
         return;
       }
 
+      const thumbBlobId = await this.offThumb.importFromUrl(state.prefill?.imageUrl);
+
       await this.productsService.createReference({
         productId,
         store: raw.store as Store,
@@ -135,6 +150,7 @@ export class ScanReferencePageComponent implements OnInit, OnDestroy {
         saltPer100g: raw.saltPer100g ?? undefined,
         ingredients: raw.ingredients || undefined,
         notes: raw.notes || undefined,
+        thumbBlobId,
       });
 
       this.scanService.clearFlowState();

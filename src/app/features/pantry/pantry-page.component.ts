@@ -10,12 +10,13 @@ import {
 } from './pantry-expiry.util';
 import type { PantryFilterMode, PantrySortMode } from './pantry-list.util';
 import { PantryAddSheetComponent } from './pantry-add-sheet.component';
+import { SurfaceBannerComponent } from '../../core/images/surface-banner.component';
 import { EmptyStateComponent } from '../products/components/empty-state/empty-state.component';
 import { PantryService } from './pantry.service';
 
 @Component({
   selector: 'app-pantry-page',
-  imports: [PantryAddSheetComponent, EmptyStateComponent],
+  imports: [PantryAddSheetComponent, EmptyStateComponent, SurfaceBannerComponent],
   templateUrl: './pantry-page.component.html',
   styleUrl: './pantry-page.component.scss',
 })

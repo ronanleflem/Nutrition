@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { describe, expect, it, vi } from 'vitest';
 
 import { BackupService } from '../../../../core/backup/backup.service';
+import { ToastService } from '../../../../core/ui/toast/toast.service';
 import { ImportPageComponent } from './import-page.component';
 
 describe('ImportPageComponent', () => {
@@ -73,5 +74,32 @@ describe('ImportPageComponent', () => {
 
     expect(importSpy).not.toHaveBeenCalled();
     expect(fixture.componentInstance.showReplaceWarning()).toBe(true);
+  });
+
+  it('shows an ephemeral toast with photo restore summary after import', async () => {
+    const toast = TestBed.inject(ToastService);
+    const showSpy = vi.spyOn(toast, 'show');
+    vi.spyOn(backupService, 'importFromFile').mockResolvedValue({
+      mode: 'merge',
+      products: 1,
+      productReferences: 0,
+      pantryItems: 0,
+      recipes: 0,
+      recipeVariants: 0,
+      mealPlanEntries: 0,
+      shoppingListItems: 0,
+      photosRestored: 2,
+      photosMissing: 1,
+    });
+
+    fixture.componentInstance.selectedFile.set(
+      new File(['{}'], 'backup.nutrition-backup.json', { type: 'application/json' }),
+    );
+    fixture.componentInstance.form.controls.mode.setValue('merge');
+    fixture.detectChanges();
+
+    await fixture.componentInstance.onSubmit();
+
+    expect(showSpy).toHaveBeenCalledWith('Import terminé — 2 photos restaurées, 1 manquantes');
   });
 });
