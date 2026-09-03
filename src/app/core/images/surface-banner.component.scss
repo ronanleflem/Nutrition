@@ -1,17 +1,137 @@
 .surface-banner {
+  position: relative;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   height: 100px;
   margin-bottom: 12px;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  background: var(--color-surface-overlay);
-  color: var(--color-ink-primary);
   overflow: hidden;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-accent-positive-muted) 22%, var(--color-surface-overlay)),
+      var(--color-surface-overlay) 72%
+    );
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-ink-warm) 8%, transparent);
 }
 
-.surface-banner__icon {
-  width: min(200px, 80%);
-  height: 72px;
+.surface-banner__scene {
+  width: 100%;
+  height: 100%;
+}
+
+.surface-banner__hill {
+  fill: var(--color-forest-scene-hill);
+  opacity: 0.55;
+}
+
+.surface-banner__foliage,
+.surface-banner__tree,
+.surface-banner__plant,
+.surface-banner__herb {
+  fill: none;
+  stroke: var(--color-forest-scene-foliage);
+  stroke-linecap: round;
+  stroke-width: 2;
+  opacity: 0.75;
+}
+
+.surface-banner__tree {
+  stroke-width: 2.4;
+}
+
+.surface-banner__shelf-back {
+  fill: var(--color-forest-scene-wood);
+  opacity: 0.9;
+}
+
+.surface-banner__shelf-board {
+  fill: var(--color-forest-scene-warm);
+  opacity: 0.85;
+}
+
+.surface-banner__jar {
+  fill: var(--color-forest-scene-jar);
+  stroke: color-mix(in srgb, var(--color-ink-warm) 35%, transparent);
+  stroke-width: 1;
+}
+
+.surface-banner__jar-accent {
+  fill: var(--color-forest-scene-jar-accent);
+  opacity: 0.9;
+}
+
+.surface-banner__board {
+  fill: var(--color-forest-scene-warm);
+  opacity: 0.88;
+}
+
+.surface-banner__plate {
+  fill: color-mix(in srgb, var(--color-ink-warm) 18%, var(--color-surface-raised));
+}
+
+.surface-banner__plate-rim {
+  fill: none;
+  stroke: var(--color-ink-warm);
+  stroke-width: 1.6;
+  opacity: 0.85;
+}
+
+.surface-banner__food {
+  fill: var(--color-forest-scene-moss);
+  opacity: 0.9;
+}
+
+.surface-banner__table {
+  fill: var(--color-forest-scene-wood);
+  opacity: 0.85;
+}
+
+.surface-banner__calendar {
+  fill: color-mix(in srgb, var(--color-ink-warm) 12%, var(--color-surface-raised));
+  stroke: color-mix(in srgb, var(--color-ink-warm) 30%, transparent);
+  stroke-width: 1;
+}
+
+.surface-banner__calendar-line {
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-ink-warm) 40%, transparent);
+  stroke-width: 1.4;
+}
+
+.surface-banner__meal-dot {
+  fill: var(--color-accent-positive);
+  opacity: 0.9;
+}
+
+.surface-banner__cup {
+  fill: color-mix(in srgb, var(--color-ink-warm) 20%, var(--color-surface-raised));
+  stroke: color-mix(in srgb, var(--color-ink-warm) 35%, transparent);
+  stroke-width: 1;
+}
+
+.surface-banner__cup-handle {
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-ink-warm) 45%, transparent);
+  stroke-width: 1.4;
+}
+
+.surface-banner--pantry {
+  background:
+    linear-gradient(180deg, #2d382d 0%, var(--color-surface-overlay) 75%),
+    var(--color-surface-overlay);
+}
+
+.surface-banner--recipes {
+  background:
+    linear-gradient(180deg, #2f3428 0%, var(--color-surface-overlay) 75%),
+    var(--color-surface-overlay);
+}
+
+.surface-banner--plan {
+  background:
+    linear-gradient(180deg, #28302c 0%, var(--color-surface-overlay) 75%),
+    var(--color-surface-overlay);
 }

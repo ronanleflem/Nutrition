@@ -30,12 +30,8 @@
   height: 120px;
   margin: 32px auto;
   border-radius: var(--radius-md);
-  background: var(--color-surface-overlay);
   border: 1px solid var(--color-border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-ink-primary);
+  overflow: hidden;
 }
 
 .photo-prompt__info,

@@ -23,8 +23,9 @@ describe('SurfaceBannerComponent', () => {
 
     const banner = fixture.nativeElement.querySelector('.surface-banner') as HTMLElement;
     expect(banner.getAttribute('aria-hidden')).toBe('true');
-    expect(banner.querySelector('svg')).toBeTruthy();
-    expect(banner.querySelector('rect')).toBeTruthy();
+    expect(banner.classList.contains('surface-banner--pantry')).toBe(true);
+    expect(banner.querySelector('.surface-banner__jar')).toBeTruthy();
+    expect(banner.querySelector('.surface-banner__hill')).toBeTruthy();
   });
 
   it('renders the recipes plate scene', () => {
@@ -32,7 +33,8 @@ describe('SurfaceBannerComponent', () => {
     fixture.detectChanges();
 
     const banner = fixture.nativeElement.querySelector('.surface-banner') as HTMLElement;
-    expect(banner.querySelector('ellipse')).toBeTruthy();
+    expect(banner.querySelector('.surface-banner__plate')).toBeTruthy();
+    expect(banner.querySelector('.surface-banner__food')).toBeTruthy();
   });
 
   it('renders the plan week-table scene', () => {
@@ -40,6 +42,7 @@ describe('SurfaceBannerComponent', () => {
     fixture.detectChanges();
 
     const banner = fixture.nativeElement.querySelector('.surface-banner') as HTMLElement;
-    expect(banner.querySelector('circle')).toBeTruthy();
+    expect(banner.querySelector('.surface-banner__calendar')).toBeTruthy();
+    expect(banner.querySelector('.surface-banner__meal-dot')).toBeTruthy();
   });
 });

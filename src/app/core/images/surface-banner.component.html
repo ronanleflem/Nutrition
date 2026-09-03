@@ -1,32 +1,53 @@
-<div class="surface-banner" aria-hidden="true">
+<div class="surface-banner" [class]="'surface-banner surface-banner--' + variant()" aria-hidden="true">
   @switch (variant()) {
     @case ('pantry') {
-      <svg class="surface-banner__icon" viewBox="0 0 200 72" fill="none" stroke="currentColor" stroke-width="1.6">
-        <path d="M28 52h144M28 38h144" />
-        <path d="M36 24h128v30H36z" />
-        <path d="M36 38h128M84 24v30M132 24v30" />
-        <rect x="48" y="42" width="14" height="10" rx="2" />
-        <rect x="68" y="40" width="12" height="12" rx="2" />
-        <rect x="96" y="43" width="16" height="9" rx="2" />
-        <rect x="124" y="41" width="14" height="11" rx="2" />
-        <path d="M52 28v8M58 28c0-3-2-5-4-5s-4 2-4 5v8" />
-        <path d="M108 26v10M114 26c0-3-2-5-4-5s-4 2-4 5v10" />
+      <svg class="surface-banner__scene" viewBox="0 0 240 100" aria-hidden="true">
+        <path class="surface-banner__hill" d="M0 78 C40 62, 80 88, 120 74 S200 58, 240 72 V100 H0 Z" />
+        <path class="surface-banner__foliage" d="M18 70c0-14 6-22 12-22s12 8 12 22M210 68c0-12 5-18 10-18s10 6 10 18" />
+        <path class="surface-banner__tree" d="M28 72V52c0-8 5-14 10-14s10 6 10 14v20M202 74V54c0-7 4-12 9-12s9 5 9 12v20" />
+        <rect class="surface-banner__shelf-back" x="52" y="34" width="136" height="52" rx="4" />
+        <rect class="surface-banner__shelf-board" x="48" y="48" width="144" height="6" rx="1" />
+        <rect class="surface-banner__shelf-board" x="48" y="64" width="144" height="6" rx="1" />
+        <rect class="surface-banner__jar" x="62" y="38" width="16" height="18" rx="3" />
+        <rect class="surface-banner__jar-accent" x="66" y="42" width="8" height="6" rx="1" />
+        <rect class="surface-banner__jar" x="86" y="40" width="14" height="16" rx="3" />
+        <rect class="surface-banner__jar" x="108" y="39" width="18" height="17" rx="3" />
+        <rect class="surface-banner__jar-accent" x="114" y="43" width="6" height="5" rx="1" />
+        <rect class="surface-banner__jar" x="132" y="41" width="15" height="15" rx="3" />
+        <rect class="surface-banner__jar" x="154" y="40" width="16" height="16" rx="3" />
+        <rect class="surface-banner__jar" x="70" y="56" width="18" height="14" rx="2" />
+        <rect class="surface-banner__jar" x="96" y="57" width="14" height="13" rx="2" />
+        <rect class="surface-banner__jar" x="118" y="56" width="20" height="14" rx="2" />
+        <rect class="surface-banner__jar-accent" x="124" y="60" width="8" height="4" rx="1" />
+        <path class="surface-banner__plant" d="M176 36c2-6 6-9 10-9s8 3 10 9M181 36v10" />
+        <path class="surface-banner__plant" d="M54 36c2-5 5-8 9-8s7 3 9 8M59 36v10" />
       </svg>
     }
     @case ('recipes') {
-      <svg class="surface-banner__icon" viewBox="0 0 200 72" fill="none" stroke="currentColor" stroke-width="1.6">
-        <ellipse cx="70" cy="48" rx="42" ry="12" />
-        <path d="M36 48c4-18 22-28 34-28s30 10 34 28" />
-        <path d="M118 28h48v32h-48z" />
-        <path d="M128 38h28M128 46h20" />
+      <svg class="surface-banner__scene" viewBox="0 0 240 100" aria-hidden="true">
+        <path class="surface-banner__hill" d="M0 80 C50 64, 95 90, 140 76 S205 60, 240 74 V100 H0 Z" />
+        <path class="surface-banner__foliage" d="M16 72c0-12 5-18 10-18s10 6 10 18M214 70c0-11 4-16 9-16s9 5 9 16" />
+        <rect class="surface-banner__board" x="108" y="42" width="72" height="40" rx="4" transform="rotate(-4 144 62)" />
+        <ellipse class="surface-banner__plate" cx="88" cy="62" rx="38" ry="11" />
+        <path class="surface-banner__plate-rim" d="M50 62c4-20 22-30 38-30s34 10 38 30" />
+        <path class="surface-banner__food" d="M62 58c6-10 16-14 26-14s20 4 26 14c-8 4-16 6-26 6s-18-2-26-6Z" />
+        <path class="surface-banner__herb" d="M118 48c3-4 7-6 10-6s7 2 10 6M123 48v8" />
+        <path class="surface-banner__herb" d="M132 50c2-3 5-5 8-5s6 2 8 5M136 50v6" />
       </svg>
     }
     @case ('plan') {
-      <svg class="surface-banner__icon" viewBox="0 0 180 64" fill="none" stroke="currentColor" stroke-width="1.6">
-        <rect x="18" y="16" width="144" height="36" rx="4" />
-        <path d="M18 28h144M48 16v-8M90 16v-8M132 16v-8" />
-        <circle cx="58" cy="40" r="3" fill="currentColor" stroke="none" />
-        <circle cx="100" cy="40" r="3" fill="currentColor" stroke="none" />
+      <svg class="surface-banner__scene" viewBox="0 0 240 100" aria-hidden="true">
+        <path class="surface-banner__hill" d="M0 82 C45 66, 90 92, 135 78 S200 62, 240 76 V100 H0 Z" />
+        <path class="surface-banner__foliage" d="M20 74c0-13 6-20 11-20s11 7 11 20M208 72c0-12 5-17 10-17s10 5 10 17" />
+        <rect class="surface-banner__table" x="44" y="58" width="152" height="10" rx="2" />
+        <rect class="surface-banner__calendar" x="62" y="30" width="96" height="44" rx="4" />
+        <path class="surface-banner__calendar-line" d="M62 42h96M86 30v-12M134 30v-12" />
+        <circle class="surface-banner__meal-dot" cx="82" cy="52" r="3" />
+        <circle class="surface-banner__meal-dot" cx="102" cy="56" r="3" />
+        <circle class="surface-banner__meal-dot" cx="122" cy="50" r="3" />
+        <circle class="surface-banner__meal-dot" cx="142" cy="55" r="3" />
+        <path class="surface-banner__cup" d="M168 48h14v18c0 4-3 7-7 7s-7-3-7-7V48Z" />
+        <path class="surface-banner__cup-handle" d="M182 52h6c3 0 5 2 5 5s-2 5-5 5" />
       </svg>
     }
   }
