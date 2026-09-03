@@ -14,6 +14,7 @@ Donner à l’app une **présence visuelle à la maison** (photos recettes, vign
 - Story 13.4: Bandeaux de surface
 - Story 13.5: Vignettes OFF catalogue et scan
 - Story 13.6: Export/import blobs et accessibilité visuelle
+- Story 13.7: Illustrations forêt et ambiance maison
 
 ## Requirements & Constraints
 

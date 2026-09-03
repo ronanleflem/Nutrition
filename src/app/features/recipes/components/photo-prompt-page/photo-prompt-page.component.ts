@@ -7,12 +7,14 @@ import {
   RECIPE_PHOTO_CAMERA_DENIED,
   RECIPE_PHOTO_GALLERY_DENIED,
 } from '../../../../core/images/recipe-photo.messages';
+import { RecipePhotoPlaceholderComponent } from '../../../../core/images/recipe-photo-placeholder.component';
 import { RecipePhotoService } from '../../../../core/images/recipe-photo.service';
 import { OnboardingService } from '../../../onboarding/onboarding.service';
 import { RecipesService } from '../../services/recipes.service';
 
 @Component({
   selector: 'app-photo-prompt-page',
+  imports: [RecipePhotoPlaceholderComponent],
   templateUrl: './photo-prompt-page.component.html',
   styleUrl: './photo-prompt-page.component.scss',
 })
