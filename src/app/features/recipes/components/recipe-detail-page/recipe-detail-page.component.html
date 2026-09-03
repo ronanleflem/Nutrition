@@ -188,7 +188,7 @@
   }
 
   @if (actionError()) {
-    <p class="recipe-detail__error" role="alert">{{ actionError() }}</p>
+    <p class="recipe-detail__error" role="alert" aria-live="polite">{{ actionError() }}</p>
   }
 }
 

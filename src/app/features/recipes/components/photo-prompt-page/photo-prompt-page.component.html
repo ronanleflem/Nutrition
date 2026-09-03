@@ -17,11 +17,11 @@
     </div>
 
     @if (infoMessage()) {
-      <p class="photo-prompt__info" role="status">{{ infoMessage() }}</p>
+      <p class="photo-prompt__info" role="status" aria-live="polite">{{ infoMessage() }}</p>
     }
 
     @if (actionError()) {
-      <p class="photo-prompt__error" role="alert">{{ actionError() }}</p>
+      <p class="photo-prompt__error" role="alert" aria-live="polite">{{ actionError() }}</p>
     }
 
     <div class="photo-prompt__actions">

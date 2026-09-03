@@ -10,7 +10,11 @@
   </p>
 
   @if (exportError()) {
-    <p class="export-page__error" role="alert">{{ exportError() }}</p>
+    <p class="export-page__error" role="alert" aria-live="polite">{{ exportError() }}</p>
+  }
+
+  @if (exportSuccess()) {
+    <p class="export-page__success" role="status" aria-live="polite">{{ exportSuccess() }}</p>
   }
 
   <form class="export-page__form" [formGroup]="form" (ngSubmit)="onSubmit()">
@@ -64,6 +68,21 @@
       cancelLabel="Annuler"
       (confirmed)="confirmPlainExport()"
       (cancelled)="cancelPlainExport()"
+    />
+  }
+
+  @if (showLargeEncryptWarning()) {
+    <app-confirm-dialog
+      title="Sauvegarde volumineuse"
+      [message]="
+        'Ce fichier fait environ ' +
+        formatEstimatedSize(estimatedExportSize()) +
+        '. Le chiffrement peut prendre un moment sur mobile. Continuer ?'
+      "
+      confirmLabel="Chiffrer et exporter"
+      cancelLabel="Annuler"
+      (confirmed)="confirmLargeEncryptExport()"
+      (cancelled)="cancelLargeEncryptExport()"
     />
   }
 </section>

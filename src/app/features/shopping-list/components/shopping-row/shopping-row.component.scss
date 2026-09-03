@@ -7,11 +7,12 @@
 }
 
 .shopping-row--checked {
-  opacity: 0.55;
+  opacity: var(--shopping-row-checked-opacity);
 }
 
 .shopping-row--checked .shopping-row__name,
 .shopping-row--checked .shopping-row__quantity {
+  color: var(--color-ink-primary);
   text-decoration: line-through;
 }
 

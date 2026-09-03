@@ -23,7 +23,12 @@
 
 .export-page__error {
   margin: 0 0 12px;
-  color: var(--color-danger, #c0392b);
+  color: var(--color-accent-negative);
+}
+
+.export-page__success {
+  margin: 0 0 12px;
+  color: var(--color-accent-positive);
 }
 
 .export-page__form {

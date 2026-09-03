@@ -74,6 +74,13 @@ import { NutritionalScoreService } from '../scoring/nutritional-score.service';
 import type { BackupData } from '../backup/backup-schema';
 import type { ImportSummary } from '../backup/backup-schema';
 import {
+  decodeImageBlobFromBackup,
+  mergeRecipePhotoBlobId,
+  mergeReferenceThumbBlobId,
+  sanitizeBackupPhotoReferences,
+  type PhotoRestoreSummary,
+} from '../backup/backup-image-blobs';
+import {
   buildActiveBarcodeIndex,
   buildNameBrandIndex,
   collectImportedProductKeys,
@@ -170,6 +177,7 @@ export class DatabaseService {
     shoppingListItems: ShoppingListItem[];
     macroGoals: MacroGoals[];
     appSettings: AppSettings[];
+    imageBlobs: ImageBlob[];
   }> {
     await this.initialize();
 
@@ -184,6 +192,7 @@ export class DatabaseService {
       shoppingListItems,
       macroGoals,
       appSettings,
+      imageBlobs,
     ] = await Promise.all([
       this.db!.products.toArray(),
       this.db!.productReferences.toArray(),
@@ -195,6 +204,7 @@ export class DatabaseService {
       this.db!.shoppingListItems.toArray(),
       this.db!.macroGoals.toArray(),
       this.db!.appSettings.toArray(),
+      this.db!.imageBlobs.toArray(),
     ]);
 
     return {
@@ -208,6 +218,7 @@ export class DatabaseService {
       shoppingListItems,
       macroGoals,
       appSettings,
+      imageBlobs,
     };
   }
 
@@ -382,11 +393,14 @@ export class DatabaseService {
     }
   }
 
-  async replaceAllFromBackup(data: BackupData): Promise<void> {
+  async replaceAllFromBackup(data: BackupData): Promise<PhotoRestoreSummary> {
     await this.initialize();
 
     const db = this.db!;
+    const importedBlobIds = new Set(data.imageBlobs.map((record) => record.id));
+    const photoSummary = sanitizeBackupPhotoReferences(data, importedBlobIds);
     const tables = [
+      db.imageBlobs,
       db.shoppingListItems,
       db.mealPlanEntries,
       db.recipeIngredients,
@@ -403,6 +417,7 @@ export class DatabaseService {
         const localSettings =
           (await db.appSettings.get(APP_SETTINGS_SINGLETON_ID)) ?? createDefaultAppSettings();
 
+        await db.imageBlobs.clear();
         await db.shoppingListItems.clear();
         await db.mealPlanEntries.clear();
         await db.recipeIngredients.clear();
@@ -413,6 +428,10 @@ export class DatabaseService {
         await db.products.clear();
         await db.macroGoals.clear();
         await db.appSettings.clear();
+
+        if (data.imageBlobs.length > 0) {
+          await db.imageBlobs.bulkPut(data.imageBlobs.map(decodeImageBlobFromBackup));
+        }
 
         if (data.products.length > 0) {
           await db.products.bulkPut(data.products);
@@ -447,6 +466,8 @@ export class DatabaseService {
           mergeAppSettingsPreservingApiKeys(localSettings, importedSettings ?? createDefaultAppSettings()),
         );
     });
+
+    return photoSummary;
   }
 
   async mergeFromBackup(data: BackupData): Promise<ImportSummary> {
@@ -463,10 +484,13 @@ export class DatabaseService {
       shoppingListItems: 0,
       productsAdded: 0,
       productsUpdated: 0,
+      photosRestored: 0,
+      photosMissing: 0,
     };
 
     const db = this.db!;
     const tables = [
+      db.imageBlobs,
       db.shoppingListItems,
       db.mealPlanEntries,
       db.recipeIngredients,
@@ -480,6 +504,11 @@ export class DatabaseService {
     ];
 
     await db.transaction('rw', tables, async () => {
+        if (data.imageBlobs.length > 0) {
+          await db.imageBlobs.bulkPut(data.imageBlobs.map(decodeImageBlobFromBackup));
+        }
+
+        const availableBlobIds = new Set((await db.imageBlobs.toArray()).map((blob) => blob.id));
         const localProducts = await db.products.toArray();
         const localReferences = await db.productReferences.toArray();
         const localPantryItems = await db.pantryItems.toArray();
@@ -594,6 +623,11 @@ export class DatabaseService {
               nutritionalScore: importedReference.nutritionalScore,
               verdictLabel: importedReference.verdictLabel,
               notes: importedReference.notes,
+              thumbBlobId: mergeReferenceThumbBlobId(
+                localReference,
+                importedReference,
+                availableBlobIds,
+              ),
               deletedAt: importedReference.deletedAt,
               updatedAt: importedReference.updatedAt,
             });
@@ -603,6 +637,7 @@ export class DatabaseService {
               id: crypto.randomUUID(),
               productId: mappedProductId,
               barcode,
+              thumbBlobId: mergeReferenceThumbBlobId(undefined, importedReference, availableBlobIds),
             };
             referenceIdMap.set(importedReference.id, newReference.id);
             await db.productReferences.put(newReference);
@@ -667,6 +702,7 @@ export class DatabaseService {
         for (const importedRecipe of data.recipes) {
           const targetRecipeId = importedRecipe.id;
           recipeIdMap.set(importedRecipe.id, targetRecipeId);
+          const localRecipe = localRecipes.find((recipe) => recipe.id === importedRecipe.id);
 
           const importedVariants = data.recipeVariants.filter(
             (variant) => variant.recipeId === importedRecipe.id,
@@ -680,7 +716,9 @@ export class DatabaseService {
             await db.recipeVariants.where('recipeId').equals(importedRecipe.id).delete();
           }
 
-          await db.recipes.put({ ...importedRecipe, id: targetRecipeId });
+          const photoBlobId = mergeRecipePhotoBlobId(localRecipe, importedRecipe, availableBlobIds);
+
+          await db.recipes.put({ ...importedRecipe, id: targetRecipeId, photoBlobId });
           if (importedVariants.length > 0) {
             await db.recipeVariants.bulkPut(
               importedVariants.map((variant) => ({ ...variant, recipeId: targetRecipeId })),
@@ -735,6 +773,23 @@ export class DatabaseService {
             lastExportAt: mergeLastExportAt(localSettings.lastExportAt, importedSettings.lastExportAt),
           });
         }
+
+        const [mergedRecipes, mergedReferences] = await Promise.all([
+          db.recipes.toArray(),
+          db.productReferences.toArray(),
+        ]);
+        const photoSummary = sanitizeBackupPhotoReferences(
+          {
+            ...data,
+            recipes: mergedRecipes,
+            productReferences: mergedReferences,
+          },
+          availableBlobIds,
+        );
+        await db.recipes.bulkPut(mergedRecipes);
+        await db.productReferences.bulkPut(mergedReferences);
+        summary.photosRestored = photoSummary.photosRestored;
+        summary.photosMissing = photoSummary.photosMissing;
     });
 
     summary.products = summary.productsAdded! + summary.productsUpdated!;
@@ -1010,6 +1065,7 @@ export class DatabaseService {
       price: input.price,
       pricePerKg: input.pricePerKg,
       notes: input.notes?.trim() || undefined,
+      thumbBlobId: input.thumbBlobId ?? existing.thumbBlobId,
       nutritionalScore,
       updatedAt: new Date().toISOString(),
     };

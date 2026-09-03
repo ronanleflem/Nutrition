@@ -31,11 +31,33 @@ describe('backup-validation', () => {
       shoppingListItems: [],
       macroGoals: [],
       appSettings: [],
+      imageBlobs: [],
     },
   };
 
   it('validates a correct payload', () => {
     expect(validateBackupPayload(validPayload)).toEqual(validPayload);
+  });
+
+  it('accepts v1 payloads without image blobs', () => {
+    const v1Payload = {
+      ...validPayload,
+      schemaVersion: 1,
+      data: {
+        products: [],
+        productReferences: [],
+        pantryItems: [],
+        recipes: [],
+        recipeVariants: [],
+        recipeIngredients: [],
+        mealPlanEntries: [],
+        shoppingListItems: [],
+        macroGoals: [],
+        appSettings: [],
+      },
+    };
+
+    expect(validateBackupPayload(v1Payload).data.imageBlobs).toEqual([]);
   });
 
   it('rejects unsupported schema versions', () => {

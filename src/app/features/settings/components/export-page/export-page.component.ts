@@ -4,7 +4,10 @@ import { RouterLink } from '@angular/router';
 
 import { ConfirmDialogComponent } from '../../../../core/ui/confirm-dialog/confirm-dialog.component';
 import { BackupReminderService } from '../../../../core/backup/backup-reminder.service';
-import { BackupService } from '../../../../core/backup/backup.service';
+import {
+  BackupService,
+  LARGE_BACKUP_WARNING_BYTES,
+} from '../../../../core/backup/backup.service';
 
 @Component({
   selector: 'app-export-page',
@@ -19,7 +22,10 @@ export class ExportPageComponent {
 
   readonly exporting = signal(false);
   readonly exportError = signal<string | null>(null);
+  readonly exportSuccess = signal<string | null>(null);
   readonly showPlainWarning = signal(false);
+  readonly showLargeEncryptWarning = signal(false);
+  readonly estimatedExportSize = signal<number | null>(null);
 
   readonly form = this.fb.group({
     encrypt: [true],
@@ -57,6 +63,7 @@ export class ExportPageComponent {
 
   async onSubmit(): Promise<void> {
     this.exportError.set(null);
+    this.exportSuccess.set(null);
 
     if (!this.canExport) {
       this.form.markAllAsTouched();
@@ -68,7 +75,24 @@ export class ExportPageComponent {
       return;
     }
 
+    const payload = await this.backupService.buildExportPayload();
+    const size = this.backupService.estimatePayloadBytes(payload);
+    if (size >= LARGE_BACKUP_WARNING_BYTES) {
+      this.estimatedExportSize.set(size);
+      this.showLargeEncryptWarning.set(true);
+      return;
+    }
+
     await this.runExport(true);
+  }
+
+  async confirmLargeEncryptExport(): Promise<void> {
+    this.showLargeEncryptWarning.set(false);
+    await this.runExport(true);
+  }
+
+  cancelLargeEncryptExport(): void {
+    this.showLargeEncryptWarning.set(false);
   }
 
   async confirmPlainExport(): Promise<void> {
@@ -83,6 +107,7 @@ export class ExportPageComponent {
   private async runExport(encrypt: boolean): Promise<void> {
     this.exporting.set(true);
     this.exportError.set(null);
+    this.exportSuccess.set(null);
 
     try {
       await this.backupService.exportToFile({
@@ -90,10 +115,23 @@ export class ExportPageComponent {
         password: encrypt ? (this.form.controls.password.value ?? undefined) : undefined,
       });
       await this.backupReminder.refresh();
+      this.exportSuccess.set('Export terminé — le fichier a été téléchargé.');
     } catch {
       this.exportError.set('Export impossible. Réessayez.');
     } finally {
       this.exporting.set(false);
     }
+  }
+
+  formatEstimatedSize(bytes: number | null): string {
+    if (bytes == null) {
+      return '';
+    }
+
+    if (bytes >= 1024 * 1024) {
+      return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+    }
+
+    return `${Math.max(1, Math.round(bytes / 1024))} Ko`;
   }
 }

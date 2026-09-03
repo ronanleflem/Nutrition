@@ -52,6 +52,7 @@ export interface UpdateProductReferenceInput extends ProductReferenceMacros {
   price?: number;
   pricePerKg?: number;
   notes?: string;
+  thumbBlobId?: string;
 }
 
 export function createProductReference(

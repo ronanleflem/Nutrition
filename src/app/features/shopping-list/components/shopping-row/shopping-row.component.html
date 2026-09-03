@@ -2,6 +2,7 @@
   class="shopping-row"
   [class.shopping-row--checked]="item().checked"
   [class.shopping-row--store-mode]="storeMode()"
+  [attr.aria-checked]="item().checked"
 >
   <label class="shopping-row__check-zone" (click)="onCheckZoneClick($event)">
     <input

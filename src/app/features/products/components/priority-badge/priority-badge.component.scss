@@ -1,20 +1,42 @@
 .priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.priority-badge__dot {
   display: inline-block;
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 5px;
 }
 
-.priority-badge--green {
-  background-color: #4caf50;
+.priority-badge__label {
+  font-size: var(--font-size-meta);
+  color: var(--color-ink-secondary);
 }
 
-.priority-badge--yellow {
-  background-color: #ffc107;
+.priority-badge__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.priority-badge--gray {
-  background-color: #9e9e9e;
+.priority-badge--green .priority-badge__dot {
+  background-color: var(--color-priority-green);
+}
+
+.priority-badge--yellow .priority-badge__dot {
+  background-color: var(--color-priority-yellow);
+}
+
+.priority-badge--gray .priority-badge__dot {
+  background-color: var(--color-priority-gray);
 }
