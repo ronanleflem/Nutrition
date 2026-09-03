@@ -114,6 +114,7 @@ describe('RecipesPageComponent', () => {
     await mount();
 
     const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('app-surface-banner .surface-banner')).toBeTruthy();
     expect(element.textContent).toContain('Ajoutez votre première recette');
   });
 

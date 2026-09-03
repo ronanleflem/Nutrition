@@ -1,4 +1,6 @@
 <section class="recipes-page">
+  <app-surface-banner variant="recipes" />
+
   @if (loading()) {
     <p class="recipes-page__status" role="status">Chargement…</p>
   } @else if (!hasRecipes()) {

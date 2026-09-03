@@ -1,0 +1,33 @@
+<div class="surface-banner" aria-hidden="true">
+  @switch (variant()) {
+    @case ('pantry') {
+      <svg class="surface-banner__icon" viewBox="0 0 200 72" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M28 52h144M28 38h144" />
+        <path d="M36 24h128v30H36z" />
+        <path d="M36 38h128M84 24v30M132 24v30" />
+        <rect x="48" y="42" width="14" height="10" rx="2" />
+        <rect x="68" y="40" width="12" height="12" rx="2" />
+        <rect x="96" y="43" width="16" height="9" rx="2" />
+        <rect x="124" y="41" width="14" height="11" rx="2" />
+        <path d="M52 28v8M58 28c0-3-2-5-4-5s-4 2-4 5v8" />
+        <path d="M108 26v10M114 26c0-3-2-5-4-5s-4 2-4 5v10" />
+      </svg>
+    }
+    @case ('recipes') {
+      <svg class="surface-banner__icon" viewBox="0 0 200 72" fill="none" stroke="currentColor" stroke-width="1.6">
+        <ellipse cx="70" cy="48" rx="42" ry="12" />
+        <path d="M36 48c4-18 22-28 34-28s30 10 34 28" />
+        <path d="M118 28h48v32h-48z" />
+        <path d="M128 38h28M128 46h20" />
+      </svg>
+    }
+    @case ('plan') {
+      <svg class="surface-banner__icon" viewBox="0 0 180 64" fill="none" stroke="currentColor" stroke-width="1.6">
+        <rect x="18" y="16" width="144" height="36" rx="4" />
+        <path d="M18 28h144M48 16v-8M90 16v-8M132 16v-8" />
+        <circle cx="58" cy="40" r="3" fill="currentColor" stroke="none" />
+        <circle cx="100" cy="40" r="3" fill="currentColor" stroke="none" />
+      </svg>
+    }
+  }
+</div>
