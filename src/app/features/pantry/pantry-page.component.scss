@@ -1,4 +1,5 @@
 @use '../../../styles/home-surface-page';
+@use '../../../styles/forest-maison';
 
 @include home-surface-page.home-surface-page-host;
 
@@ -55,6 +56,7 @@
 }
 
 .pantry__row {
+  @include forest-maison.forest-maison-card;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -62,9 +64,7 @@
   width: 100%;
   min-height: var(--spacing-touch-min);
   padding: 12px;
-  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  background: var(--color-surface-raised);
   color: var(--color-ink-primary);
   text-align: left;
   cursor: pointer;

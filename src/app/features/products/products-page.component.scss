@@ -1,3 +1,7 @@
+@use '../../../styles/home-surface-page';
+
+@include home-surface-page.home-surface-page-host;
+
 .products-page__toolbar {
   display: flex;
   flex-wrap: wrap;

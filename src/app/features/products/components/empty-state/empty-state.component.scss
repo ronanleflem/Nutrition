@@ -1,3 +1,5 @@
+@use '../../../../../styles/forest-maison';
+
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -5,6 +7,11 @@
   gap: 12px;
   padding: 32px 16px;
   text-align: center;
+}
+
+:host-context(.shell--maison) .empty-state {
+  @include forest-maison.forest-maison-empty-state;
+  padding: 36px 20px;
 }
 
 .empty-state__title {

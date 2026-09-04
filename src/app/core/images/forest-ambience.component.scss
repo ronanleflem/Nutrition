@@ -1,0 +1,81 @@
+:host {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.forest-ambience {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.forest-ambience__sky,
+.forest-ambience__landscape,
+.forest-ambience__canopy {
+  position: absolute;
+  left: 0;
+  width: 100%;
+}
+
+.forest-ambience__sky {
+  top: 0;
+  height: 55%;
+  opacity: 0.9;
+}
+
+.forest-ambience__landscape {
+  bottom: 0;
+  height: min(48%, 260px);
+  min-height: 160px;
+  opacity: 0.52;
+}
+
+.forest-ambience__canopy {
+  top: 0;
+  height: 88px;
+  opacity: 0.28;
+}
+
+.forest-ambience__hill--back {
+  fill: var(--color-forest-scene-hill);
+  opacity: 0.45;
+}
+
+.forest-ambience__hill--front {
+  fill: var(--color-forest-scene-foliage);
+  opacity: 0.35;
+}
+
+.forest-ambience__tree {
+  fill: none;
+  stroke: var(--color-forest-scene-foliage);
+  stroke-linecap: round;
+  stroke-width: 3;
+  opacity: 0.75;
+}
+
+.forest-ambience__tree--wide {
+  stroke-width: 3.6;
+}
+
+.forest-ambience__bush {
+  fill: var(--color-forest-scene-moss);
+  opacity: 0.55;
+}
+
+.forest-ambience__fern {
+  fill: none;
+  stroke: var(--color-forest-scene-moss);
+  stroke-linecap: round;
+  stroke-width: 2;
+  opacity: 0.65;
+}
+
+.forest-ambience__canopy-branch {
+  fill: var(--color-forest-scene-foliage);
+  opacity: 0.5;
+}

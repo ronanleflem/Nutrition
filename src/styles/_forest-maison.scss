@@ -1,0 +1,25 @@
+// Cartes et panneaux sur les surfaces « maison » — bordure mousse, fond légèrement teinté.
+
+@mixin forest-maison-card {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--color-accent-positive) 7%, var(--color-surface-overlay)),
+      var(--color-surface-overlay)
+    );
+  border: 1px solid color-mix(in srgb, var(--color-accent-positive) 18%, var(--color-border-subtle));
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-ink-warm) 6%, transparent) inset,
+    0 8px 20px rgb(0 0 0 / 12%);
+}
+
+@mixin forest-maison-empty-state {
+  border: 1px solid color-mix(in srgb, var(--color-accent-positive) 16%, var(--color-border-subtle));
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(
+      ellipse 90% 80% at 50% 0%,
+      color-mix(in srgb, var(--color-accent-positive-muted) 16%, var(--color-surface-raised)),
+      var(--color-surface-raised)
+    );
+}

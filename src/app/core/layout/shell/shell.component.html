@@ -1,4 +1,11 @@
-<div class="shell" [class.shell--chrome-hidden]="shellChrome.hidden()">
+<div
+  class="shell"
+  [class.shell--chrome-hidden]="shellChrome.hidden()"
+  [class.shell--maison]="isMaison()"
+>
+  @if (isMaison() && !shellChrome.hidden()) {
+    <app-forest-ambience class="shell__ambience" />
+  }
   @if (!shellChrome.hidden()) {
     <header class="shell__header">
       @if (isHome()) {

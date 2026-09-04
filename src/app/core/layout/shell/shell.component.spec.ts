@@ -13,6 +13,7 @@ import { APP_SETTINGS_SINGLETON_ID } from '../../models/app-settings';
 import { BackupReminderService } from '../../backup/backup-reminder.service';
 import { ShellComponent } from './shell.component';
 import { ShellChromeService } from '../shell-chrome.service';
+import { isMaisonSurfaceUrl } from '../maison-surface';
 
 @Component({ template: '<router-outlet />', imports: [RouterOutlet] })
 class TestHostComponent {}
@@ -39,7 +40,10 @@ describe('ShellComponent', () => {
               { path: '', pathMatch: 'full', redirectTo: 'pantry' },
               { path: 'home', component: StubPageComponent, data: { title: 'Accueil' } },
               { path: 'pantry', component: StubPageComponent, data: { title: 'Garde-manger' } },
+              { path: 'recipes', component: StubPageComponent, data: { title: 'Recettes' } },
               { path: 'plan', component: StubPageComponent, data: { title: 'Plan' } },
+              { path: 'products', component: StubPageComponent, data: { title: 'Produits' } },
+              { path: 'shopping', component: StubPageComponent, data: { title: 'Courses' } },
               { path: 'goals', component: StubPageComponent, data: { title: 'Objectifs' } },
               { path: 'settings', component: StubPageComponent, data: { title: 'Paramètres' } },
             ],
@@ -70,6 +74,10 @@ describe('ShellComponent', () => {
 
   function getShellElement(): HTMLElement {
     return hostFixture.debugElement.query(By.directive(ShellComponent)).nativeElement;
+  }
+
+  function getShellRootElement(): HTMLElement {
+    return getShellElement().querySelector('.shell') as HTMLElement;
   }
 
   it('renders five French bottom-nav labels', async () => {
@@ -197,5 +205,35 @@ describe('ShellComponent', () => {
 
     expect(getShellElement().querySelector('.shell__header')).toBeNull();
     expect(getShellElement().querySelector('app-bottom-nav')).toBeNull();
+  });
+
+  it('applies maison forest theme on pantry, recipes, plan and products', async () => {
+    const router = TestBed.inject(Router);
+
+    for (const path of ['/pantry', '/recipes', '/plan', '/products']) {
+      await router.navigateByUrl(path);
+      await hostFixture.whenStable();
+      hostFixture.detectChanges();
+
+      const shellEl = getShellRootElement();
+      expect(isMaisonSurfaceUrl(router.url)).toBe(true);
+      expect(shellEl.classList.contains('shell--maison')).toBe(true);
+      expect(shellEl.querySelector('app-forest-ambience')).toBeTruthy();
+    }
+  });
+
+  it('does not apply maison forest theme on shopping or home', async () => {
+    const router = TestBed.inject(Router);
+
+    for (const path of ['/home', '/shopping', '/goals']) {
+      await router.navigateByUrl(path);
+      await hostFixture.whenStable();
+      hostFixture.detectChanges();
+
+      const shellEl = getShellRootElement();
+      expect(isMaisonSurfaceUrl(router.url)).toBe(false);
+      expect(shellEl.classList.contains('shell--maison')).toBe(false);
+      expect(shellEl.querySelector('app-forest-ambience')).toBeNull();
+    }
   });
 });

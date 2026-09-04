@@ -4,14 +4,35 @@
 }
 
 .shell {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
   background: var(--color-surface-base);
   color: var(--color-ink-primary);
+  isolation: isolate;
+}
+
+.shell__ambience {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.shell--maison {
+  background:
+    radial-gradient(
+      ellipse 120% 70% at 50% -15%,
+      color-mix(in srgb, var(--color-accent-positive) 10%, transparent),
+      transparent 58%
+    ),
+    var(--color-surface-base);
 }
 
 .shell__header {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -19,6 +40,18 @@
   padding: var(--spacing-screen-gutter);
   border-bottom: 1px solid var(--color-border-subtle);
   background: var(--color-surface-base);
+}
+
+.shell--maison .shell__header {
+  border-bottom-color: color-mix(in srgb, var(--color-accent-positive) 22%, var(--color-border-subtle));
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-accent-positive) 8%, var(--color-surface-base)),
+      color-mix(in srgb, var(--color-accent-positive) 3%, var(--color-surface-base)) 72%,
+      transparent
+    );
+  backdrop-filter: blur(6px);
 }
 
 .shell__title {
@@ -70,6 +103,8 @@
 }
 
 .shell__content {
+  position: relative;
+  z-index: 1;
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-screen-gutter);
@@ -77,4 +112,25 @@
 
 .shell--chrome-hidden .shell__content {
   padding: 0;
+}
+
+.shell--maison app-bottom-nav {
+  position: relative;
+  z-index: 1;
+}
+
+.shell--maison .bottom-nav {
+  background:
+    linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--color-accent-positive) 6%, var(--color-surface-raised)),
+      var(--color-surface-raised)
+    );
+  border-top-color: color-mix(in srgb, var(--color-accent-positive) 20%, var(--color-border-subtle));
+  box-shadow: 0 -8px 24px rgb(0 0 0 / 18%);
+}
+
+.shell--maison .bottom-nav__item--active {
+  color: var(--color-accent-positive);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--color-accent-positive) 35%, transparent);
 }

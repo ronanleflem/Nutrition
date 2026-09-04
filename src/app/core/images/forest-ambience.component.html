@@ -1,0 +1,39 @@
+<div class="forest-ambience" aria-hidden="true">
+  <svg class="forest-ambience__sky" viewBox="0 0 400 240" preserveAspectRatio="xMidYMin slice">
+    <defs>
+      <linearGradient id="forestSky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--color-forest-scene-sky-top)" stop-opacity="0.55" />
+        <stop offset="100%" stop-color="var(--color-forest-scene-sky-bottom)" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+    <rect width="400" height="240" fill="url(#forestSky)" />
+  </svg>
+
+  <svg class="forest-ambience__landscape" viewBox="0 0 400 160" preserveAspectRatio="xMidYMax slice">
+    <path
+      class="forest-ambience__hill forest-ambience__hill--back"
+      d="M0 110 C70 80, 130 125, 200 95 S330 70, 400 100 V160 H0 Z"
+    />
+    <path
+      class="forest-ambience__hill forest-ambience__hill--front"
+      d="M0 125 C90 100, 160 140, 240 118 S340 108, 400 128 V160 H0 Z"
+    />
+    <path class="forest-ambience__tree" d="M24 128V88c0-10 7-18 14-18s14 8 14 18v40" />
+    <path class="forest-ambience__tree" d="M52 132V92c0-8 6-14 11-14s11 6 11 14v40" />
+    <path class="forest-ambience__tree forest-ambience__tree--wide" d="M340 130V78c0-12 9-22 18-22s18 10 18 22v52" />
+    <path class="forest-ambience__tree" d="M368 128V96c0-9 6-15 12-15s12 6 12 15v32" />
+    <ellipse class="forest-ambience__bush" cx="88" cy="132" rx="18" ry="10" />
+    <ellipse class="forest-ambience__bush" cx="108" cy="136" rx="14" ry="8" />
+    <ellipse class="forest-ambience__bush" cx="292" cy="134" rx="16" ry="9" />
+    <ellipse class="forest-ambience__bush" cx="312" cy="138" rx="12" ry="7" />
+    <path class="forest-ambience__fern" d="M176 132c4-10 10-14 16-14s12 4 16 14M192 132v16" />
+    <path class="forest-ambience__fern" d="M208 134c3-8 8-12 13-12s10 4 13 12M221 134v14" />
+  </svg>
+
+  <svg class="forest-ambience__canopy" viewBox="0 0 400 80" preserveAspectRatio="none">
+    <path
+      class="forest-ambience__canopy-branch"
+      d="M0 42 C40 18, 80 28, 120 12 S200 8, 260 20 S340 34, 400 16 V0 H0 Z"
+    />
+  </svg>
+</div>
