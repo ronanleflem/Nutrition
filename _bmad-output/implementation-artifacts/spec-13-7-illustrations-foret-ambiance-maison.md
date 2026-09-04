@@ -9,14 +9,16 @@ context:
   - '{project-root}/_bmad-output/planning-artifacts/ux-designs/ux-Nutrition-2026-08-30/DESIGN.md'
 ---
 
-Story 13.7 enrichit la couche visuelle « maison » livrée en 13.4 : bandeaux illustrés palette forêt, fond de page discret, placeholder recette aligné.
+Story 13.7 enrichit la couche visuelle « maison » : thème forêt assumé sur les onglets maison (ambiance shell, cartes teintées, bandeaux panoramiques), pas seulement des illustrations isolées.
 
 ## Summary
 
-- `surface-banner` : scènes remplies (collines, feuillage, étagères/bocaux, plat/planche, calendrier/table) avec dégradé forêt
-- Tokens illustration `--color-forest-scene-*`
-- Fond halo discret sur Garde-manger / Recettes / Plan (`_home-surface-page.scss`)
-- `recipe-photo-placeholder` et `photo-prompt` : même main graphique que le bandeau Recettes
+- `app-forest-ambience` : paysage décoratif fixe sur Garde-manger, Recettes, Plan, Produits (`shell--maison`)
+- Shell header + bottom-nav teintés forêt en mode maison
+- `forest-maison-card` / `forest-maison-empty-state` : cartes et états vides cohérents
+- `surface-banner` : pleine largeur, scènes plus immersives
+- Fond halo renforcé (`_home-surface-page.scss`, incl. catalogue Produits)
+- Tokens `--color-forest-scene-sky-*`
 
 ## Verification
 

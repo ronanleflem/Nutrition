@@ -1,13 +1,15 @@
-import { Component, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 
 import { BackupReminderBannerComponent } from '../../backup/backup-reminder-banner/backup-reminder-banner.component';
 import { BackupReminderService } from '../../backup/backup-reminder.service';
-import { BottomNavComponent } from '../bottom-nav/bottom-nav.component';
-import { ShellChromeService } from '../shell-chrome.service';
+import { ForestAmbienceComponent } from '../../images/forest-ambience.component';
 import { NetworkStatusService } from '../../network/network-status.service';
+import { BottomNavComponent } from '../bottom-nav/bottom-nav.component';
+import { isMaisonSurfaceUrl } from '../maison-surface';
+import { ShellChromeService } from '../shell-chrome.service';
 
 function getPageTitle(route: ActivatedRoute): string {
   let current: ActivatedRoute | null = route;
@@ -26,7 +28,13 @@ function getPageTitle(route: ActivatedRoute): string {
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, BottomNavComponent, BackupReminderBannerComponent],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    BottomNavComponent,
+    BackupReminderBannerComponent,
+    ForestAmbienceComponent,
+  ],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
 })
@@ -37,6 +45,21 @@ export class ShellComponent {
   protected readonly shellChrome = inject(ShellChromeService);
   protected readonly backupReminder = inject(BackupReminderService);
 
+  protected readonly isMaison = signal(isMaisonSurfaceUrl(this.router.url));
+
+  constructor() {
+    this.syncMaisonSurface();
+
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => {
+        this.syncMaisonSurface();
+      });
+  }
+
   readonly pageTitle = toSignal(
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
@@ -46,7 +69,7 @@ export class ShellComponent {
     { initialValue: getPageTitle(this.route) },
   );
 
-  readonly isHome = toSignal(
+  protected readonly isHome = toSignal(
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
       startWith(null),
@@ -58,6 +81,10 @@ export class ShellComponent {
   private isHomeUrl(url: string): boolean {
     const path = url.split(/[?#]/, 1)[0];
     return path === '/home';
+  }
+
+  private syncMaisonSurface(): void {
+    this.isMaison.set(isMaisonSurfaceUrl(this.router.url));
   }
 
   dismissBackupReminder(): void {
